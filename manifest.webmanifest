@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "LUMEN: Orbital Conquest",
+  "short_name": "LUMEN",
+  "description": "A glowing real-time strategy game of planets and swarms. Play solo, skirmish, or with friends.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait",
+  "background_color": "#03040b",
+  "theme_color": "#03040b",
+  "categories": ["games"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
