@@ -666,11 +666,7 @@ function render(){
   // power bar
   if(state==='play'||state==='end'||state==='paused'){let sum=0;const val=[0,0,0,0];for(let f=0;f<4;f++){val[f]=tot[f];for(const P of planets)if(P.owner===f)val[f]+=8*P.sf*P.level;sum+=val[f];}
     if(sum>0){const bw=Math.min(CW-40,420),bx=(CW-bw)/2,by=SAT+(rot?50:60);let cx=bx;
-      ctx.font='600 9px system-ui,-apple-system,sans-serif';ctx.textBaseline='top';
-      for(let f=0;f<4;f++){if(!val[f])continue;const w=bw*val[f]/sum;ctx.fillStyle=rgb(FCOL[f],0.85);ctx.fillRect(cx,by,Math.max(0,w-1),4);
-        const lab=f===0?'YOU':PERS[f].label;const txt=w>ctx.measureText(lab).width+6?lab:(w>12?lab[0]:'');
-        if(txt&&!demo){ctx.fillStyle=rgb(mix(FCOL[f],WHITE,0.35),0.85);ctx.fillText(txt,cx+w/2,by+7);}cx+=w;}
-      ctx.textBaseline='middle';}}
+      for(let f=0;f<4;f++){if(!val[f])continue;const w=bw*val[f]/sum;ctx.fillStyle=rgb(FCOL[f],0.85);ctx.fillRect(cx,by,Math.max(0,w-1),4);cx+=w;}}}
 }
 function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
