@@ -50,6 +50,20 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 .seg button{flex:1;height:40px;font-size:14px;font-weight:600;opacity:.65}
 .seg button.on{background:rgba(70,215,255,.22);opacity:1;box-shadow:inset 0 0 14px rgba(70,215,255,.35)}
 .lbl{font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.55;margin:6px 0 8px}
+.big.alt{background:rgba(20,40,70,.45);color:#dff6ff;border:1px solid rgba(120,220,255,.45);box-shadow:0 0 18px rgba(70,200,255,.15)}
+.big:disabled{opacity:.4}
+.note{font-size:13px;opacity:.7;line-height:1.45;margin:6px 0;min-height:1em}
+.note.err{color:#ff9aa4;opacity:1}
+#joinCode{flex:1;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:700 22px system-ui,sans-serif;letter-spacing:.35em;text-align:center;text-transform:uppercase;-webkit-user-select:text;user-select:text;outline:none}
+.code{font:800 44px system-ui,sans-serif;letter-spacing:.3em;margin-right:-.3em;color:#9ff0ff;text-shadow:0 0 20px rgba(70,215,255,.6)}
+#mapSel{width:100%;height:42px;border-radius:21px;background:rgba(10,25,45,.7);color:#fff;border:1px solid rgba(120,220,255,.35);padding:0 14px;font:600 15px system-ui,sans-serif}
+.slot{display:flex;align-items:center;gap:10px;padding:9px 12px;margin:6px 0;border-radius:16px;background:rgba(20,40,70,.35);border:1px solid rgba(120,220,255,.15);text-align:left;font-size:15px}
+.slot i{width:16px;height:16px;border-radius:50%;flex:none}
+.slot span{flex:1}
+.slot small{opacity:.6;font-size:12px}
+.slot button{height:32px;padding:0 12px;border-radius:16px;border:1px solid rgba(120,220,255,.35);background:rgba(20,40,70,.5);font-size:13px;font-weight:600}
+.slot .ok{color:#9dff9d;font-weight:700;font-size:13px}
+.slot .wait{color:#ffd08a;font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .grid button{aspect-ratio:1;border-radius:50%;border:1px solid rgba(120,220,255,.35);background:radial-gradient(circle at 35% 30%,rgba(120,230,255,.35),rgba(20,50,90,.4));font-weight:700;font-size:15px;position:relative}
 .grid button.done{box-shadow:0 0 12px rgba(70,215,255,.5)}
@@ -90,6 +104,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div class="logo">LUMEN</div>
     <div class="tag">orbital conquest</div>
     <button id="bPlay" class="big">Play</button>
+    <button id="bMulti" class="big alt">Multiplayer</button>
     <div class="seg" id="diffSeg"><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
     <div class="lbl">Sectors</div>
     <div id="lvlGrid" class="grid"></div>
@@ -109,8 +124,38 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
       <li><span class="i">▲</span>With one planet selected, tap <b>Upgrade</b> to spend its orbiting units on a level-up (max 3).</li>
       <li><span class="i">◆</span><b>Rivals have personalities:</b> <b style="color:#ff6a78">Red</b> is aggressive and raids often, <b style="color:#9dff6a">Green</b> turtles, upgrades and counterattacks, <b style="color:#d48bff">Violet</b> is balanced and hunts whoever is winning.</li>
       <li><span class="i">%</span>The % button sets how much each planet sends. Destroy every rival planet and unit to win.</li>
+      <li><span class="i">⇄</span><b>Multiplayer:</b> one phone taps <b>Create room</b> and shares the 4-letter code or link; friends tap <b>Join</b>. Everyone taps Ready, the host starts. Your color is shown at the top and your home is always at the bottom.</li>
     </ul>
     <button id="bHowOk" class="big">Got it</button>
+  </div>
+</div>
+
+<div id="sMp" class="screen hidden">
+  <div class="panel">
+    <h2>Multiplayer</h2>
+    <p class="note">Play live against friends on their phones (2–4 players). Needs an internet connection.</p>
+    <button id="bCreate" class="big">Create room</button>
+    <div class="lbl">or join with a code</div>
+    <div class="row"><input id="joinCode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="bJoin" class="ghost">Join</button></div>
+    <div id="mpStatus" class="note"></div>
+    <div class="row"><button id="bMpBack" class="ghost">Back</button></div>
+  </div>
+</div>
+
+<div id="sLobby" class="screen hidden">
+  <div class="panel">
+    <div class="lbl">Room code</div>
+    <div id="roomCode" class="code">----</div>
+    <div class="row"><button id="bShare" class="ghost">Share invite</button><button id="bCopy" class="ghost">Copy link</button></div>
+    <div class="lbl">Map</div>
+    <select id="mapSel"></select><div id="mapTxt" class="note"></div>
+    <div class="lbl">Bot skill</div>
+    <div class="seg" id="mpDiff"><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
+    <div class="lbl">Players</div>
+    <div id="slotList"></div>
+    <button id="bReady" class="big">Ready</button>
+    <div id="lobbyNote" class="note"></div>
+    <div class="row"><button id="bLeave" class="ghost">Leave room</button></div>
   </div>
 </div>
 
@@ -138,11 +183,16 @@ const $=id=>document.getElementById(id);
 const cv=$('c'), ctx=cv.getContext('2d',{alpha:false});
 const bg=document.createElement('canvas');
 const TAU=Math.PI*2, rand=Math.random;
-let DPR=1,CW=1,CH=1,rot=false,S=1,OX=0,OY=0,SAT=0,SAB=0;
+let DPR=1,CW=1,CH=1,rot=false,FLIP=false,S=1,OX=0,OY=0,SAT=0,SAB=0;
 const MW=1000,MH=1600;
 const FCOL=[[70,215,255],[255,84,100],[150,255,95],[205,115,255]];
 const NEUT=[135,145,170];
 const FNAME=['You','Red','Green','Violet'];
+const CNAME=['Cyan','Red','Green','Violet'];
+let ME=0,HUM=new Set([0]);   // local player's faction, and the set of human-controlled factions
+const net={on:false,role:'',inMatch:false,peer:null,conns:new Map(),hostConn:null,code:'',myId:'',slots:[],map:0,diff:'normal',ready:false,
+  seq:0,ack:[0,0,0,0],pend:[],winner:-2,alive:15,endShown:false,elimShown:false,endMode:'',snapT:0,lastRx:0,bytesOut:0,bytesIn:0,snaps:0,lastFrame:0};
+function curDiff(){return DIFF[net.inMatch?net.diff:save.diff]||DIFF.normal;}
 // Fixed personalities per color. Difficulty (Easy/Normal/Hard) is a separate skill layer on top.
 const PERS=[
  {label:'BALANCED',  name:'Balanced',  blurb:'',                                 think:1,   delay:1,   defTh:0.8, defGive:0.7, upg:1,   upgRes:6,  attack:1,   hunt:1,   weak:1,   opp:1,   leader:1,   lead:1.35,marginN:1,   marginO:1,   frac:1,   keep:0.05,over:1,   reach:1,   safe:0,   front:true, revenge:1},
@@ -290,10 +340,10 @@ function startLevel(idx,isDemo,custom){
   cnt=new Int32Array(NP*4);inc=new Int32Array(NP*4);ph=new Int32Array(NP).fill(-1);
   distM=new Float32Array(NP*NP);
   for(let i=0;i<NP;i++)for(let j=0;j<NP;j++)distM[i*NP+j]=Math.hypot(planets[i].x-planets[j].x,planets[i].y-planets[j].y);
-  const D=DIFF[save.diff];
+  const D=curDiff();
   aiList=isDemo?[0,1,2,3]:L.ais.slice();
   aiMulCur=isDemo?1:L.aiMul;
-  for(let f=0;f<4;f++){prodMul[f]=(isDemo||f===0)?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay*PERS[f].delay)+rand()*D.think*PERS[f].think;}
+  for(let f=0;f<4;f++){prodMul[f]=(isDemo||HUM.has(f))?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay*PERS[f].delay)+rand()*D.think*PERS[f].think;}
   planets.forEach((P,i)=>{if(P.owner>=0)for(let k=0;k<16;k++)spawnOrbiter(i,P.owner,false);});
   aiInit();
   sel.clear();time=0;endTimer=-1;stats={sent:0,killed:0,captured:0,lost:0,produced:0};
@@ -301,8 +351,9 @@ function startLevel(idx,isDemo,custom){
   if(!isDemo){
     $('lvlName').innerHTML=`${L.name}<b>Sector ${idx+1} · ${save.diff}</b>`;
     hintStage=0;defHinted=false;
-    if(idx===0)toast('Tap your glowing cyan planet to select it',5000);
-    showIntro(L,idx===0?5200:3600);
+    if(net.inMatch){hintStage=99;}
+    else if(idx===0)toast('Tap your glowing cyan planet to select it',5000);
+    if(!net.inMatch)showIntro(L,idx===0?5200:3600);
   }
 }
 function spawnOrbiter(pi,f,fromCenter){
@@ -338,7 +389,7 @@ function step(dt){
       for(let xx=cx-1;xx<=cx+1;xx++){if(xx<0||xx>=GW)continue;let j=ghead[yy*GW+xx];
         while(j!==-1){if(us[j]&&uo[j]!==f){const dx=ux[j]-x,dy=uy[j]-y;if(dx*dx+dy*dy<CR2){hit=j;break;}}j=unext[j];}
         if(hit>=0)break;}}
-    if(hit>=0){if(METR)metrClash((x+ux[hit])/2,(y+uy[hit])/2);burst((x+ux[hit])/2,(y+uy[hit])/2,f,uo[hit]);if(f===0||uo[hit]===0){stats.killed++;if(!demo)sfx.pop();}killU(i);killU(hit);}
+    if(hit>=0){if(METR)metrClash((x+ux[hit])/2,(y+uy[hit])/2);burst((x+ux[hit])/2,(y+uy[hit])/2,f,uo[hit]);if(f===ME||uo[hit]===ME){stats.killed++;if(!demo)sfx.pop();}killU(i);killU(hit);}
   }
   // arrivals
   for(let k=0;k<nArr;k++){const i=arrQ[k];if(us[i]===2)arrive(i);}
@@ -346,22 +397,23 @@ function step(dt){
   for(let p=0;p<NP;p++){const P=planets[p];P.flash=Math.max(0,P.flash-dt*3);P.spin+=dt*0.05;
     if(P.owner<0)continue;const mh=maxHp(P);
     if(cnt[p*4+P.owner]<capOf(P)){P.prodAcc+=prodRate(P)*prodMul[P.owner]*dt;
-      while(P.prodAcc>=1){P.prodAcc-=1;if(spawnOrbiter(p,P.owner,true)>=0&&P.owner===0)stats.produced++;}}
+      while(P.prodAcc>=1){P.prodAcc-=1;if(spawnOrbiter(p,P.owner,true)>=0&&P.owner===ME)stats.produced++;}}
     if(P.hp<mh&&time-P.lastHit>3.5)P.hp=Math.min(mh,P.hp+mh*0.08*dt);}
   // particles
   for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;pl[i]-=dt;px[i]+=pvx[i]*dt;py[i]+=pvy[i]*dt;pvx[i]*=0.96;pvy[i]*=0.96;}
   for(let i=rings.length-1;i>=0;i--){rings[i].t+=dt;if(rings[i].t>rings[i].d)rings.splice(i,1);}
   for(const A of [beams,floats])for(let i=A.length-1;i>=0;i--){A[i].t+=dt;if(A[i].t>A[i].d)A.splice(i,1);}
   // AI
-  const D=DIFF[save.diff];
+  const D=curDiff();
   for(const f of aiList){aiT[f]-=dt;if(aiT[f]<=0){aiT[f]=D.think*PERS[f].think*(0.75+rand()*0.5)/(demo?1:Math.max(0.6,aiMulCur));if(ownP[f]>0)aiThink(f,demo?DIFF.normal:D);}}
   // selection validity
-  for(const p of sel)if(planets[p].owner!==0)sel.delete(p);
+  for(const p of sel)if(planets[p].owner!==ME)sel.delete(p);
   // end check
-  if(state==='play'&&endTimer<0){
+  if(net.inMatch){if(net.role==='host')mpHostCheck();}
+  else if(state==='play'&&endTimer<0){
     const meAlive=ownP[0]>0||tot[0]>0;let foes=false;for(const f of aiList)if(ownP[f]>0||tot[f]>0)foes=true;
     if(!meAlive||!foes){endWin=meAlive;endTimer=1.4;}
-  }else if(state==='play'&&endTimer>0){endTimer-=dt;if(endTimer<=0)showEnd();}
+  }else if(!net.inMatch&&state==='play'&&endTimer>0){endTimer-=dt;if(endTimer<=0)showEnd();}
   if(demo&&state!=='play'){let alive=0;for(let f=0;f<4;f++)if(ownP[f]>0)alive++;if(alive<=1&&time>5)startLevel(0,true);if(time>240)startLevel(0,true);}
 }
 function arrive(i){
@@ -374,7 +426,7 @@ function arrive(i){
     P.flash=Math.min(1,P.flash+0.3);return;
   }
   let j=ph[p];while(j!==-1&&!(us[j]===1&&up[j]===p&&uo[j]===P.owner))j=upn[j];ph[p]=j;
-  if(j!==-1){burst((ux[i]+ux[j])/2,(uy[i]+uy[j])/2,f,uo[j]);if(f===0||P.owner===0){stats.killed++;if(!demo)sfx.pop();}killU(j);ph[p]=upn[j];}
+  if(j!==-1){burst((ux[i]+ux[j])/2,(uy[i]+uy[j])/2,f,uo[j]);if(f===ME||P.owner===ME){stats.killed++;if(!demo)sfx.pop();}killU(j);ph[p]=upn[j];}
   else{P.hp-=1;P.lastHit=time;P.flash=1;if(P.hp<=0)neutralize(P,f);}
 }
 function addRing(P,c,d){rings.push({x:P.x,y:P.y,r:P.r,c,t:0,d:d||0.9});}
@@ -382,12 +434,12 @@ function capture(P,f){
   if(METR)metrCaptured(f,P.id);
   P.owner=f;P.capOwner=-1;P.capProg=0;P.hp=Math.max(1,maxHp(P)*0.5);P.prodAcc=0;P.lastHit=time;addRing(P,f,1.1);
   for(let k=0;k<18;k++){const a=k/18*TAU;addP(P.x+Math.cos(a)*P.r,P.y+Math.sin(a)*P.r,Math.cos(a)*90,Math.sin(a)*90,0.6,f);}
-  if(!demo&&f===0){stats.captured++;sfx.capture();
+  if(!demo&&f===ME){stats.captured++;sfx.capture();
     if(hintStage===2&&levelIdx===0){hintStage=3;setTimeout(()=>{if(state==='play')toast('Select a single planet and tap ▲ Upgrade to level it up',4000);},1500);}}
 }
 function neutralize(P,by){
   const old=P.owner;P.owner=-1;P.neutralAt=time;P.capOwner=-1;P.capProg=0;P.hp=0;addRing(P,old,0.8);
-  if(!demo&&old===0){stats.lost++;sfx.lost();}
+  if(!demo&&old===ME){stats.lost++;sfx.lost();}
 }
 function sendUnits(from,to,n){
   if(from===to||n<=0)return 0;const P=planets[from],T=planets[to],f=P.owner;if(f<0)return 0;
@@ -401,12 +453,12 @@ function sendUnits(from,to,n){
 function tryUpgrade(p,f){
   const P=planets[p];if(P.owner!==f||P.level>=3)return false;const cost=upCost(P);
   let have=0;for(let j=ph[p];j!==-1;j=upn[j])if(us[j]===1&&up[j]===p&&uo[j]===f)have++;
-  if(have<cost){if(f===0){sfx.deny();toast(`Upgrade needs ${cost} units here (${have})`,1800);}return false;}
+  if(have<cost){if(f===ME){sfx.deny();toast(`Upgrade needs ${cost} units here (${have})`,1800);}return false;}
   let k=0;for(let j=ph[p];j!==-1&&k<cost;j=upn[j]){if(us[j]===1&&up[j]===p&&uo[j]===f){
     if(k%2===0)addP(ux[j],uy[j],(P.x-ux[j])*2,(P.y-uy[j])*2,0.45,f);killU(j);k++;}}
   cnt[p*4+f]=Math.max(0,cnt[p*4+f]-cost);
   P.level++;P.hp=maxHp(P);P.flash=1;addRing(P,f,1.2);
-  if(f===0&&!demo){sfx.upgrade();if(hintStage<3&&levelIdx===0){hintStage=3;}}
+  if(f===ME&&!demo){sfx.upgrade();if(hintStage<3&&levelIdx===0){hintStage=3;}}
   return true;
 }
 
@@ -489,7 +541,7 @@ function aiThink(f,D){
     // counterattack: this planet just attacked us (Defensive lives for this)
     if(T.owner>=0&&time-M.hitBy[t]<15){value*=Q.revenge;if(Q.revenge>2)margin=Math.min(margin,1.05);}
     if(T.owner>=0&&need<15)value*=Q.weak;
-    if(T.owner===0)value*=D.hunt*Q.hunt;
+    if(HUM.has(T.owner))value*=D.hunt*Q.hunt;
     // sunk cost: recently wasted waves here -> look elsewhere for a while
     const rec=M.tgt[t];if(rec&&rec.coolUntil>time)value*=0.08;
     if(M.focus===t)value*=1.12;     // a little commitment so we don't flip-flop
@@ -553,9 +605,9 @@ function resize(){
   S=Math.max(0.05,Math.min(aw/ww,ah/wh));OX=(CW-ww*S)/2;OY=topPad+(ah-wh*S)/2;
   buildBackground();
 }
-const SX=(x,y)=>rot?OX+y*S:OX+x*S;
-const SY=(x,y)=>rot?OY+(MW-x)*S:OY+y*S;
-function toWorld(sx,sy){return rot?[MW-(sy-OY)/S,(sx-OX)/S]:[(sx-OX)/S,(sy-OY)/S];}
+const SX=(x,y)=>{if(FLIP){x=MW-x;y=MH-y;}return rot?OX+y*S:OX+x*S;};
+const SY=(x,y)=>{if(FLIP){x=MW-x;y=MH-y;}return rot?OY+(MW-x)*S:OY+y*S;};
+function toWorld(sx,sy){const w=rot?[MW-(sy-OY)/S,(sx-OX)/S]:[(sx-OX)/S,(sy-OY)/S];return FLIP?[MW-w[0],MH-w[1]]:w;}
 function planetAt(sx,sy){
   let best=-1,bd=1e9;
   for(let i=0;i<NP;i++){const P=planets[i];const d=Math.hypot(SX(P.x,P.y)-sx,SY(P.x,P.y)-sy);const r=P.r*S;const hr=Math.max(44,r+16);
@@ -612,8 +664,8 @@ function render(){
   const selMask=new Uint8Array(NP);for(const p of sel)selMask[p]=1;if(lassoSet)for(const p of lassoSet)selMask[p]=1;
   const sz2=sz*1.7,h2=sz2/2;
   for(let i=0;i<hiU;i++){if(!us[i])continue;const x=ux[i],y=uy[i];
-    const sx=rot?OX+y*S:OX+x*S,sy=rot?OY+(MW-x)*S:OY+y*S;
-    if(us[i]===1&&selMask[up[i]]&&uo[i]===0){ctx.drawImage(sprites[0],sx-h2,sy-h2,sz2,sz2);ctx.drawImage(starSpr,sx-h,sy-h,sz,sz);}
+    const sx=SX(x,y),sy=SY(x,y);
+    if(us[i]===1&&selMask[up[i]]&&uo[i]===ME){ctx.drawImage(sprites[ME],sx-h2,sy-h2,sz2,sz2);ctx.drawImage(starSpr,sx-h,sy-h,sz,sz);}
     else ctx.drawImage(sprites[uo[i]],sx-h,sy-h,sz,sz);}
   // particles
   for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;const k=pl[i]/pml[i];const s2=sz*(0.4+0.8*k);ctx.globalAlpha=k;
@@ -628,7 +680,7 @@ function render(){
   ctx.textAlign='center';ctx.textBaseline='middle';
   for(let p=0;p<NP;p++){const P=planets[p];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
     let txt='',a=0.9;
-    if(P.owner>=0){txt=String(cnt[p*4+P.owner]);a=P.owner===0?0.95:0.7;}
+    if(P.owner>=0){txt=String(cnt[p*4+P.owner]);a=P.owner===ME?0.95:0.7;}
     else{const req=capReq(P);txt=String(P.capOwner>=0?Math.max(0,req-P.capProg):req);a=0.45;}
     ctx.font=`600 ${Math.max(10,Math.round(r*0.6))}px system-ui,-apple-system,sans-serif`;
     ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fillText(txt,x,y+1);
@@ -642,15 +694,15 @@ function render(){
       ctx.strokeStyle=`rgba(190,250,255,${0.8+0.2*pu})`;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,rr,0,TAU);ctx.stroke();
       for(let k=0;k<4;k++){const a=now*1.2+k*TAU/4;ctx.fillStyle='#e8fdff';ctx.beginPath();ctx.arc(x+Math.cos(a)*(rr+6),y+Math.sin(a)*(rr+6),2.2,0,TAU);ctx.fill();}}
     else if(lassoSet&&lassoSet.has(p)){ctx.strokeStyle='rgba(190,250,255,0.6)';ctx.lineWidth=2;ctx.setLineDash([4,5]);ctx.beginPath();ctx.arc(x,y,r+12,0,TAU);ctx.stroke();ctx.setLineDash([]);}
-    if(p===aimT){const own=planets[p].owner===0;ctx.strokeStyle=own?'rgba(150,255,200,0.95)':'rgba(255,255,255,0.95)';ctx.lineWidth=3;
+    if(p===aimT){const own=planets[p].owner===ME;ctx.strokeStyle=own?'rgba(150,255,200,0.95)':'rgba(255,255,255,0.95)';ctx.lineWidth=3;
       ctx.beginPath();ctx.arc(x,y,r+14+Math.sin(now*10)*2,0,TAU);ctx.stroke();
-      let n=0;for(const q of aimSources()){if(q===p)continue;const c=cnt[q*4];n+=save.pct>=1?c:Math.round(c*save.pct);}
+      let n=0;for(const q of aimSources()){if(q===p)continue;const c=cnt[q*4+ME];n+=save.pct>=1?c:Math.round(c*save.pct);}
       ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.fillStyle='#fff';ctx.fillText((own?'reinforce ':(planets[p].owner<0?'capture ':'attack '))+n,x,y-r-26);}
   }
   // upgrade chip (big button)
   chip=null;
   if(state==='play'&&sel.size===1&&!aiming){const p=sel.values().next().value;const P=planets[p];
-    if(P&&P.owner===0&&P.level<3){const cost=upCost(P),have=cnt[p*4],ok=have>=cost;const w=128,hh=44;const px0=SX(P.x,P.y),py0=SY(P.x,P.y),pr=P.r*S;
+    if(P&&P.owner===ME&&P.level<3){const cost=upCost(P),have=cnt[p*4+ME],ok=have>=cost;const w=128,hh=44;const px0=SX(P.x,P.y),py0=SY(P.x,P.y),pr=P.r*S;
       // pick the spot (above/below/left/right) that overlaps other planets least and stays on screen
       const cands=[[px0,py0-pr-50],[px0,py0+pr+50],[px0-pr-w/2-22,py0],[px0+pr+w/2+22,py0]];let x=0,y=0,bestPen=1e9;
       for(const c of cands){const cx2=Math.max(w/2+8,Math.min(CW-w/2-8,c[0])),cy2=Math.max(SAT+100,Math.min(CH-SAB-110,c[1]));let pen=0;
@@ -667,8 +719,8 @@ function render(){
   // threat warnings + DEFEND badges
   badges.length=0;
   if(state==='play'){
-    for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==0)continue;const th=threatOn(p);if(th<3)continue;
-      const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;const covered=cnt[p*4]+inc[p*4]+P.hp>=th*1.1;const pu=0.5+0.5*Math.sin(now*8);
+    for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==ME)continue;const th=threatOn(p);if(th<3)continue;
+      const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;const covered=cnt[p*4+ME]+inc[p*4+ME]+P.hp>=th*1.1;const pu=0.5+0.5*Math.sin(now*8);
       ctx.strokeStyle=covered?`rgba(255,190,90,${0.45+0.4*pu})`:`rgba(255,70,90,${0.55+0.45*pu})`;ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.lineDashOffset=-now*30;
       ctx.beginPath();ctx.arc(x,y,r+7+pu*3,0,TAU);ctx.stroke();ctx.setLineDash([]);
       const w=92,hh=34;
@@ -702,20 +754,26 @@ const TAP_SLOP=10,HOLD_MS=380;
 const ptr={down:false,id:null,sx:0,sy:0,x:0,y:0,moved:false,start:-1,mode:'',path:[],hold:0};
 let lastNudge=0;
 function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(_){}}
-function aimSources(){const s=new Set(sel);if(ptr.start>=0&&planets[ptr.start]&&planets[ptr.start].owner===0)s.add(ptr.start);return s;}
+function aimSources(){const s=new Set(sel);if(ptr.start>=0&&planets[ptr.start]&&planets[ptr.start].owner===ME)s.add(ptr.start);return s;}
 function aimTarget(){const t=planetAt(ptr.x,ptr.y);return t===ptr.start?-1:t;}
-function threatOn(p){let t=0;for(let g=1;g<4;g++)t+=inc[p*4+g];return t;}
+function threatFor(f,p){let t=0;for(let g=0;g<4;g++)if(g!==f)t+=inc[p*4+g];return t;}
+function threatOn(p){let t=0;for(let g=0;g<4;g++)if(g!==ME)t+=inc[p*4+g];return t;}
 function defend(p){
-  const P=planets[p];if(!P||P.owner!==0)return;const th=threatOn(p);
-  let need=Math.ceil(th*1.2+4-(cnt[p*4]+inc[p*4]+P.hp));
-  if(need<=0){sfx.select();floats.push({x:P.x,y:P.y,r:P.r,s:'✓ covered',t:0,d:1});toast('Covered: your garrison and incoming units can hold',1800);return;}
-  const srcs=[];for(let q=0;q<NP;q++)if(q!==p&&planets[q].owner===0&&threatOn(q)<3&&cnt[q*4]>0)srcs.push(q);
+  if(net.inMatch&&net.role==='client'){mpClientDefend(p);return;}
+  defendF(ME,p,save.pct,true);
+}
+function defendF(f,p,pct,fx){
+  const P=planets[p];if(!P||P.owner!==f)return;let th=0;for(let g=0;g<4;g++)if(g!==f)th+=inc[p*4+g];
+  let need=Math.ceil(th*1.2+4-(cnt[p*4+f]+inc[p*4+f]+P.hp));
+  if(need<=0){if(!fx)return;sfx.select();floats.push({x:P.x,y:P.y,r:P.r,s:'✓ covered',t:0,d:1});toast('Covered: your garrison and incoming units can hold',1800);return;}
+  const srcs=[];for(let q=0;q<NP;q++)if(q!==p&&planets[q].owner===f&&threatFor(f,q)<3&&cnt[q*4+f]>0)srcs.push(q);
   srcs.sort((a,b)=>distM[a*NP+p]-distM[b*NP+p]);
   let total=0;
-  for(const q of srcs){if(need<=0)break;const c=cnt[q*4];const cap=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));const give=Math.min(cap,need);
-    const s2=sendUnits(q,p,give);if(s2>0){total+=s2;need-=s2;beams.push({x1:planets[q].x,y1:planets[q].y,x2:P.x,y2:P.y,t:0,d:0.5});}}
+  for(const q of srcs){if(need<=0)break;const c=cnt[q*4+f];const cap=pct>=1?c:Math.max(1,Math.round(c*pct));const give=Math.min(cap,need);
+    const s2=sendUnits(q,p,give);if(s2>0){total+=s2;need-=s2;if(fx)beams.push({x1:planets[q].x,y1:planets[q].y,x2:P.x,y2:P.y,t:0,d:0.5});}}
+  if(!fx)return;
   save.defUsed=true;persist();
-  if(total>0){sfx.send();buzz([15,40,15]);stats.sent+=total;rings.push({x:P.x,y:P.y,r:P.r*0.8,c:0,t:0,d:0.6});
+  if(total>0){sfx.send();buzz([15,40,15]);stats.sent+=total;rings.push({x:P.x,y:P.y,r:P.r*0.8,c:ME,t:0,d:0.6});
     floats.push({x:P.x,y:P.y,r:P.r,s:'defend +'+total,t:0,d:1.1});
     if(need>0)toast(`Rallied ${total}. Not enough spare units nearby to fully cover`,2200);}
   else{sfx.deny();toast('No spare units nearby to defend with',1800);}
@@ -724,7 +782,7 @@ function inPoly(x,y,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;
   if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))c=!c;}return c;}
 function lassoPick(){
   const poly=ptr.path.concat([[ptr.x,ptr.y]]);const out=[];
-  for(let i=0;i<NP;i++){const P=planets[i];if(P.owner!==0)continue;const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
+  for(let i=0;i<NP;i++){const P=planets[i];if(P.owner!==ME)continue;const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
     let hit=poly.length>2&&inPoly(x,y,poly);
     if(!hit)for(const q of poly){if(Math.hypot(q[0]-x,q[1]-y)<r+10){hit=true;break;}}
     if(hit)out.push(i);}
@@ -738,11 +796,11 @@ function onDown(sx,sy,addKey){
   if(!onBody){for(const B of badges)if(inRect(sx,sy,B)){ptr.mode='badge';ptr.start=B.p;return;}
     if(inRect(sx,sy,chip)){ptr.mode='chip';ptr.start=chip.p;return;}}
   ptr.start=under;
-  ptr.mode=(under>=0&&planets[under].owner===0)?'aim':'lasso';
+  ptr.mode=(under>=0&&planets[under].owner===ME)?'aim':'lasso';
   if(ptr.mode==='aim'){
     if(addKey){ptr.mode='held';if(sel.has(under)){sel.delete(under);sfx.deselect();}else{sel.add(under);sfx.select();}return;}
     // hold your planet = add it to the selection (no delay on normal taps)
-    ptr.hold=setTimeout(()=>{if(ptr.down&&!ptr.moved&&ptr.mode==='aim'&&ptr.start===under&&planets[under].owner===0){
+    ptr.hold=setTimeout(()=>{if(ptr.down&&!ptr.moved&&ptr.mode==='aim'&&ptr.start===under&&planets[under].owner===ME){
       ptr.mode='held';if(!sel.has(under)){sel.add(under);sfx.select();}buzz(20);}},HOLD_MS);
   }
 }
@@ -759,29 +817,34 @@ function onUp(sx,sy){
   if(state!=='play'){ptr.path.length=0;return;}
   ptr.x=sx;ptr.y=sy;
   if(mode==='held')return;
-  if(mode==='chip'){if(!ptr.moved||inRect(sx,sy,chip)){if(tryUpgrade(ptr.start,0))buzz(25);}return;}
+  if(mode==='chip'){if(!ptr.moved||inRect(sx,sy,chip)){if(playerUpgrade(ptr.start))buzz(25);}return;}
   if(mode==='badge'){if(!ptr.moved||badges.some(B=>B.p===ptr.start&&inRect(sx,sy,B)))defend(ptr.start);return;}
   if(!ptr.moved){
     const p=planetAt(sx,sy);
     if(p<0){if(sel.size){sel.clear();sfx.deselect();}return;}
     if(sel.has(p)){sel.delete(p);sfx.deselect();buzz(5);return;}
     if(sel.size){sendFrom(new Set(sel),p);return;}
-    if(planets[p].owner===0){sel.add(p);sfx.select();buzz(10);if(levelIdx===0&&hintStage===0){hintStage=1;toast('Now tap any planet to send units there',4000);}return;}
+    if(planets[p].owner===ME){sel.add(p);sfx.select();buzz(10);if(levelIdx===0&&hintStage===0){hintStage=1;toast('Now tap any planet to send units there',4000);}return;}
     const n=performance.now();if(n-lastNudge>2500){lastNudge=n;toast('First tap one of your cyan planets to select it',2200);}
-    for(const P of planets)if(P.owner===0)P.flash=1;sfx.deny();
+    for(const P of planets)if(P.owner===ME)P.flash=1;sfx.deny();
     return;
   }
   if(mode==='aim'){const t=aimTarget();if(t>=0){const src=aimSources();src.delete(t);sendFrom(src,t);}return;}
   if(mode==='lasso'){const picked=lassoPick();ptr.path.length=0;let added=0;for(const p of picked)if(!sel.has(p)){sel.add(p);added++;}
     if(added){sfx.select();buzz(12);}}
 }
+function doSend(f,src,t,pct,fx){let total=0;const T=planets[t];
+  for(const p of src){if(p===t||!planets[p]||planets[p].owner!==f)continue;const c=cnt[p*4+f];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
+    const s=sendUnits(p,t,n);if(s>0){total+=s;if(fx)beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}}
+  return total;}
 function sendFrom(src,t){
+  if(net.inMatch&&net.role==='client'){mpClientSend(src,t);return;}
   let total=0;const T=planets[t];
-  for(const p of src){if(p===t||planets[p].owner!==0)continue;const c=cnt[p*4];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
+  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*4+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
     const s=sendUnits(p,t,n);if(s>0){total+=s;beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}}
   sel.clear();
-  if(total>0){sfx.send();buzz(18);stats.sent+=total;rings.push({x:T.x,y:T.y,r:T.r*0.6,c:0,t:0,d:0.5});
-    floats.push({x:T.x,y:T.y,r:T.r,s:(T.owner===0?'reinforce +':(T.owner<0?'capture ':'attack '))+total,t:0,d:1});
+  if(total>0){sfx.send();buzz(18);stats.sent+=total;rings.push({x:T.x,y:T.y,r:T.r*0.6,c:ME,t:0,d:0.5});
+    floats.push({x:T.x,y:T.y,r:T.r,s:(T.owner===ME?'reinforce +':(T.owner<0?'capture ':'attack '))+total,t:0,d:1});
     if(levelIdx===0&&hintStage<2){hintStage=2;setTimeout(()=>{if(state==='play')toast('Tip: hold a 2nd planet to add it to the selection, or drag from a planet to a target',4500);},2500);}}
   else{sfx.deny();toast('No units to send yet',1500);}
 }
@@ -813,11 +876,12 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'||e.key==='p'){if(state
 
 /* ---------------- UI ---------------- */
 let toastT=0,introT=0;
-function showIntro(L,ms){const el=$('intro');
+function showIntro(L,ms,rows){const el=$('intro');
+  if(rows){el.innerHTML=`<h3>${L.name}</h3>`+rows.map(r=>{const c=FCOL[r.f];return `<div class="r"><i style="background:rgb(${c});box-shadow:0 0 10px rgb(${c})"></i><div><b style="color:rgb(${c})">${r.a}</b> — ${r.b}<small>${r.c||''}</small></div></div>`;}).join('');el.classList.add('on');clearTimeout(introT);introT=setTimeout(()=>el.classList.remove('on'),ms||4000);return;}
   el.innerHTML=`<h3>${L.name}</h3>`+L.ais.map(f=>{const c=FCOL[f];return `<div class="r"><i style="background:rgb(${c});box-shadow:0 0 10px rgb(${c})"></i><div><b style="color:rgb(${c})">${FNAME[f]}</b> — ${PERS[f].name}<small>${PERS[f].blurb}</small></div></div>`;}).join('');
   el.classList.add('on');clearTimeout(introT);introT=setTimeout(()=>el.classList.remove('on'),ms||3500);}
 function toast(msg,ms){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2000);}
-function show(id){['sTitle','sHow','sPause','sEnd'].forEach(s=>$(s).classList.toggle('hidden',s!==id));}
+function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby'].forEach(s=>$(s).classList.toggle('hidden',s!==id));}
 const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 function refreshUI(){
@@ -832,8 +896,9 @@ function refreshUI(){
 function play(i){ensureAudio();show(null);$('hud').classList.remove('hidden');state='play';startLevel(i,false);
   if(!save.howSeen){save.howSeen=true;persist();pauseHow=true;state='paused';show('sHow');}}
 let pauseHow=false;
-function pause(){if(state!=='play')return;$('intro').classList.remove('on');cancelPtr();state='paused';show('sPause');}
-function resume(){state='play';show(null);}
+function pause(){if(net.inMatch){if(state==='play'){$('bRestart').classList.add('hidden');$('bMenu').textContent='Leave match';show('sPause');}return;}
+  if(state!=='play')return;$('bRestart').classList.remove('hidden');$('bMenu').textContent='Menu';$('intro').classList.remove('on');cancelPtr();state='paused';show('sPause');}
+function resume(){if(net.inMatch){show(null);return;}state='play';show(null);}
 function toMenu(){state='title';$('hud').classList.add('hidden');refreshUI();show('sTitle');startLevel(0,true);}
 function showEnd(){
   state='end';const t=$('endT');const mm=Math.floor(time/60),ss=String(Math.floor(time%60)).padStart(2,'0');
@@ -841,6 +906,7 @@ function showEnd(){
     const b=save.best[levelIdx];if(!b||time<b)save.best[levelIdx]=Math.round(time);persist();}
   else{t.textContent='DEFEAT';t.className='lose';sfx.lose();}
   $('endS').innerHTML=`${curLevel.name} · ${save.diff}<br>Time ${mm}:${ss} · Planets captured ${stats.captured} · Units produced ${stats.produced}`+(endWin&&levelIdx===LEVELS-1?'<br><b>All sectors conquered!</b>':'');
+  $('bNext').textContent='Next sector';$('bMenu2').textContent='Menu';$('bRetry').classList.remove('hidden');
   $('bNext').classList.toggle('hidden',!endWin||levelIdx>=LEVELS-1);
   $('bRetry').textContent=endWin?'Replay':'Retry';
   show('sEnd');
@@ -855,24 +921,263 @@ $('bMute').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio
 $('bPause').onclick=()=>pause();
 $('bResume').onclick=()=>resume();
 $('bRestart').onclick=()=>play(levelIdx);
-$('bMenu').onclick=toMenu;$('bMenu2').onclick=toMenu;
-$('bRetry').onclick=()=>play(levelIdx);
-$('bNext').onclick=()=>play(Math.min(LEVELS-1,levelIdx+1));
+$('bMenu').onclick=()=>{if(net.on)mpLeave();else toMenu();};$('bMenu2').onclick=()=>{if(net.on)mpLeave();else toMenu();};
+$('bRetry').onclick=()=>{if(net.inMatch){if(net.endMode==='elim')show(null);else if(net.role==='host')mpToLobby();return;}play(levelIdx);};
+$('bNext').onclick=()=>{if(net.inMatch){if(net.role==='host')mpStart();return;}play(Math.min(LEVELS-1,levelIdx+1));};
 $('bPct').onclick=()=>{save.pct=save.pct===0.25?0.5:(save.pct===0.5?1:0.25);persist();refreshUI();sfx.select();};
-$('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===0).map(P=>P.id);
+$('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===ME).map(P=>P.id);
   if(mine.length&&mine.every(p=>sel.has(p))){sel.clear();sfx.deselect();}else{sel.clear();mine.forEach(p=>sel.add(p));sfx.select();buzz(10);}};
-document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&!net.inMatch)pause();});
+
+/* ---------------- multiplayer: PeerJS signaling, WebRTC data channels, host-authoritative ---------------- */
+const PEER_SRC=['https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js'];
+const PEER_SRI='sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu';
+const PEER_OPTS={debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}};
+const ROOM_PREFIX='lumen-mp-v1-',CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function loadPeer(){if(window.Peer)return Promise.resolve();return new Promise((res,rej)=>{let k=0;const next=()=>{if(k>=PEER_SRC.length)return rej(new Error('Could not load the multiplayer library. Are you online?'));
+  const sc=document.createElement('script');sc.src=PEER_SRC[k++];sc.integrity=PEER_SRI;sc.crossOrigin='anonymous';sc.onload=()=>window.Peer?res():next();sc.onerror=next;document.head.appendChild(sc);};next();});}
+function mpStatus(t,err){const el=$('mpStatus');el.textContent=t||'';el.classList.toggle('err',!!err);}
+function mpSendTo(c,m){try{if(c&&c.open){c.send(m);if(m instanceof ArrayBuffer)net.bytesOut+=m.byteLength;else net.bytesOut+=JSON.stringify(m).length;}}catch(e){}}
+function mpBroadcast(m){for(const c of net.conns.values())mpSendTo(c.conn,m);}
+function mpToHost(m){mpSendTo(net.hostConn,m);}
+function slotLabel(sl){if(sl.kind==='human')return sl.pid===net.myId?'You':(sl.pid==='host'||sl.host?'Host':'Player');if(sl.kind==='ai')return 'AI';return 'Empty';}
+function mapFactions(m){const L=getLevel(m);return [0].concat(L.ais);}
+function humansInOrder(){return net.slots.filter(s=>s.kind==='human').map(s=>({pid:s.pid,ready:s.ready,host:s.host}));}
+function buildSlots(m){const hs=humansInOrder();const old=net.slots;
+  net.slots=mapFactions(m).map((f,i)=>{if(i<hs.length)return{f,kind:'human',pid:hs[i].pid,ready:hs[i].ready,host:hs[i].host};const o=old[i];return{f,kind:o&&o.kind==='empty'?'empty':'ai',pid:null,ready:true};});}
+function mpReset(){FLIP=false;if(net.peer){try{net.peer.destroy();}catch(e){}}clearInterval(net.iv);
+  Object.assign(net,{on:false,role:'',inMatch:false,peer:null,hostConn:null,code:'',myId:'',slots:[],ready:false,pend:[],winner:-2,endShown:false,elimShown:false,endMode:''});net.conns=new Map();ME=0;HUM=new Set([0]);}
+function mpLeave(){mpReset();history.replaceState(null,'',location.pathname+location.hash);toMenu();}
+function mpCreate(){mpStatus('Connecting to the matchmaking server…');$('bCreate').disabled=true;
+  loadPeer().then(()=>{const tryOpen=(att)=>{const code=Array.from({length:4},()=>CODE_CH[(Math.random()*CODE_CH.length)|0]).join('');
+      const peer=new Peer(ROOM_PREFIX+code,PEER_OPTS);let opened=false;
+      const to=setTimeout(()=>{if(!opened){try{peer.destroy();}catch(e){}$('bCreate').disabled=false;mpStatus('The matchmaking server is not responding. Please try again in a minute.',true);}},20000);
+      peer.on('open',()=>{opened=true;clearTimeout(to);mpReset();net.on=true;net.role='host';net.peer=peer;net.code=code;net.myId='host';net.map=2;net.diff=save.diff;
+        net.slots=[{f:0,kind:'human',pid:'host',ready:true,host:true}];buildSlots(net.map);$('bCreate').disabled=false;
+        peer.on('connection',mpHostConn);peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
+        net.iv=setInterval(mpWatchdog,1000);showLobby();});
+      peer.on('error',e=>{clearTimeout(to);if(e.type==='unavailable-id'&&att<5){try{peer.destroy();}catch(_){}tryOpen(att+1);return;}
+        if(!opened){$('bCreate').disabled=false;mpStatus('Could not create a room ('+(e.type||e.message)+'). Try again.',true);}});};
+    tryOpen(0);}).catch(e=>{$('bCreate').disabled=false;mpStatus(e.message,true);});}
+function mpJoin(code){code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==4){mpStatus('Enter the 4-character room code.',true);return;}
+  mpStatus('Connecting to room '+code+'…');$('bJoin').disabled=true;
+  loadPeer().then(()=>{const peer=new Peer(PEER_OPTS);let done=false;
+    const fail=(m)=>{if(done)return;done=true;$('bJoin').disabled=false;try{peer.destroy();}catch(e){}mpStatus(m,true);};
+    const to=setTimeout(()=>fail('Could not reach that room. Check the code, or the host\'s network may block direct connections.'),25000);
+    peer.on('error',e=>{clearTimeout(to);fail(e.type==='peer-unavailable'?'Room '+code+' not found. Check the code.':'Connection error ('+(e.type||e.message)+').');});
+    peer.on('open',id=>{const conn=peer.connect(ROOM_PREFIX+code,{reliable:true});
+      conn.on('open',()=>{clearTimeout(to);done=true;$('bJoin').disabled=false;mpReset();net.on=true;net.role='client';net.peer=peer;net.hostConn=conn;net.code=code;net.myId=id;net.lastRx=performance.now();
+        mpToHost({t:'hello',v:1});net.iv=setInterval(mpWatchdog,1000);mpStatus('');});
+      conn.on('data',mpClientData);
+      conn.on('close',()=>{if(net.hostConn===conn)mpHostLost();});});
+  }).catch(e=>{$('bJoin').disabled=false;mpStatus(e.message,true);});}
+function mpHostConn(conn){
+  conn.on('open',()=>{const pid=conn.peer;
+    if(net.inMatch){mpSendTo(conn,{t:'deny',m:'That match has already started.'});setTimeout(()=>conn.close(),500);return;}
+    const sl=net.slots.find(s=>s.kind!=='human');
+    if(!sl){mpSendTo(conn,{t:'deny',m:'That room is full for the selected map.'});setTimeout(()=>conn.close(),500);return;}
+    sl.kind='human';sl.pid=pid;sl.ready=false;sl.host=false;net.conns.set(pid,{conn,lastRx:performance.now()});
+    buildSlots(net.map);mpLobbyBroadcast();toast('A player joined',1500);sfx.select();});
+  conn.on('data',d=>mpHostData(conn.peer,d));
+  conn.on('close',()=>mpPlayerLeft(conn.peer));
+  conn.on('error',()=>mpPlayerLeft(conn.peer));
+}
+function mpPlayerLeft(pid){if(!net.conns.has(pid))return;net.conns.delete(pid);const sl=net.slots.find(s=>s.pid===pid);if(!sl)return;
+  if(net.inMatch){sl.kind='ai';sl.pid=null;sl.left=true;HUM.delete(sl.f);if(aiList.indexOf(sl.f)<0)aiList.push(sl.f);
+    const D=curDiff();prodMul[sl.f]=D.prod;aiT[sl.f]=1;const m=CNAME[sl.f]+' disconnected — an AI takes over';toast(m,3000);mpBroadcast({t:'msg',m});}
+  else{sl.kind='ai';sl.pid=null;sl.ready=true;buildSlots(net.map);mpLobbyBroadcast();toast('A player left',1500);}}
+function mpLobbyState(){return{t:'lobby',slots:net.slots,map:net.map,diff:net.diff,code:net.code};}
+function mpLobbyBroadcast(){mpBroadcast(mpLobbyState());if(net.role==='host')renderLobby();}
+function mpHostData(pid,d){const c=net.conns.get(pid);if(c)c.lastRx=performance.now();if(!d||typeof d!=='object')return;
+  net.bytesIn+=JSON.stringify(d).length;
+  if(d.t==='hello'){mpSendTo(c&&c.conn,mpLobbyState());return;}
+  if(d.t==='ready'){const sl=net.slots.find(s=>s.pid===pid);if(sl&&!net.inMatch){sl.ready=!!d.v;mpLobbyBroadcast();}return;}
+  if(d.t==='cmd'&&net.inMatch){const sl=net.slots.find(s=>s.pid===pid&&s.kind==='human');if(!sl)return;const f=sl.f;
+    if(d.c==='send'&&Array.isArray(d.src)&&planets[d.dst])doSend(f,d.src.slice(0,NP),d.dst|0,Math.min(1,Math.max(0.05,+d.pct||0.5)),false);
+    else if(d.c==='up'&&planets[d.p])tryUpgrade(d.p|0,f);
+    else if(d.c==='def'&&planets[d.p])defendF(f,d.p|0,Math.min(1,Math.max(0.05,+d.pct||0.5)),false);
+    if(d.seq>net.ack[f])net.ack[f]=d.seq&0x7fff;}}
+function mpClientData(d){net.lastRx=performance.now();
+  if(d instanceof ArrayBuffer||ArrayBuffer.isView(d)){net.bytesIn+=d.byteLength;if(net.inMatch)mpApplySnap(d);return;}
+  if(!d||typeof d!=='object')return;net.bytesIn+=JSON.stringify(d).length;
+  if(d.t==='lobby'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;net.code=d.code;if(!net.inMatch){const me=net.slots.find(s=>s.pid===net.myId);net.ready=!!(me&&me.ready);showLobby();}}
+  else if(d.t==='deny'){mpReset();show('sMp');mpStatus(d.m,true);}
+  else if(d.t==='start'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;mpStartMatch();}
+  else if(d.t==='tolobby'){FLIP=false;net.inMatch=false;state='title';$('hud').classList.add('hidden');startLevel(0,true);net.ready=false;showLobby();}
+  else if(d.t==='msg')toast(d.m,3000);}
+function mpHostLost(){if(!net.on||net.role!=='client')return;const wasMatch=net.inMatch;mpReset();
+  if(wasMatch){state='end';$('endT').textContent='HOST LEFT';$('endT').className='lose';$('endS').innerHTML='The host closed the match or lost connection.';
+    $('bNext').classList.add('hidden');$('bRetry').classList.add('hidden');$('bMenu2').textContent='Menu';show('sEnd');}
+  else{toMenuQuiet();show('sMp');mpStatus('The host closed the room.',true);}}
+function toMenuQuiet(){state='title';$('hud').classList.add('hidden');refreshUI();startLevel(0,true);}
+function mpWatchdog(){const now=performance.now();
+  if(net.role==='client'){mpToHost({t:'p'});if(now-net.lastRx>8000)mpHostLost();}
+  else if(net.role==='host'){if(!net.inMatch)mpBroadcast({t:'p'});for(const [pid,c] of net.conns)if(now-c.lastRx>10000){try{c.conn.close();}catch(e){}mpPlayerLeft(pid);}
+    // keep the match alive briefly if the host tab is backgrounded (browsers throttle this heavily)
+    if(net.inMatch&&now-net.lastFrame>500){for(let k=0;k<20;k++)step(0.05);mpTick(0.08);}}}
+function showLobby(){show('sLobby');renderLobby();}
+function renderLobby(){const host=net.role==='host';
+  $('roomCode').textContent=net.code;
+  const ms=$('mapSel');if(!ms.options.length){for(let i=0;i<LEVELS;i++){const n=mapFactions(i).length;const o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${getLevel(i).name} — ${n} players`;ms.appendChild(o);}}
+  ms.value=net.map;ms.classList.toggle('hidden',!host);const L=getLevel(net.map);$('mapTxt').textContent=host?'':`${net.map+1}. ${L.name}`;
+  const nh=humansInOrder().length;for(const o of ms.options)o.disabled=mapFactions(+o.value).length<nh;
+  document.querySelectorAll('#mpDiff button').forEach(b=>{b.classList.toggle('on',b.dataset.d===net.diff);b.disabled=!host;});
+  const list=$('slotList');list.innerHTML='';
+  net.slots.forEach((sl,i)=>{const c=FCOL[sl.f];const row=document.createElement('div');row.className='slot';
+    let who=sl.kind==='human'?(sl.pid===net.myId?'You':(sl.host?'Host':'Player '+(i+1))):(sl.kind==='ai'?'AI · '+PERS[sl.f].name:'Empty slot');
+    if(sl.kind==='human'&&sl.host&&sl.pid===net.myId)who='You (host)';
+    let right='';if(sl.kind==='human')right=sl.ready?'<span class="ok">Ready ✓</span>':'<span class="wait">Not ready</span>';
+    row.innerHTML=`<i style="background:rgb(${c});box-shadow:0 0 10px rgb(${c})"></i><span>${who}<br><small>${CNAME[sl.f]}${sl.kind==='ai'?' · '+net.diff:''}</small></span>${right}`;
+    if(host&&sl.kind!=='human'){const b=document.createElement('button');b.textContent=sl.kind==='ai'?'Make empty':'Add AI';b.onclick=()=>{sl.kind=sl.kind==='ai'?'empty':'ai';mpLobbyBroadcast();};row.appendChild(b);}
+    list.appendChild(row);});
+  const others=net.slots.filter(s=>s.kind==='human'&&!s.host);const allReady=others.length>0&&others.every(s=>s.ready);
+  const br=$('bReady');
+  if(host){br.textContent='Start match';br.disabled=!allReady;$('lobbyNote').textContent=others.length?(allReady?'Everyone is ready.':'Waiting for players to tap Ready…'):'Share the code. Waiting for at least one friend to join…';}
+  else{br.disabled=false;br.textContent=net.ready?'Not ready':'Ready';$('lobbyNote').textContent='The host picks the map and starts the match.';}
+}
+function inviteUrl(){return location.origin+location.pathname+'?room='+net.code;}
+function mpStart(){if(net.role!=='host')return;const others=net.slots.filter(s=>s.kind==='human'&&!s.host);if(!others.length)return;
+  mpBroadcast({t:'start',slots:net.slots,map:net.map,diff:net.diff});mpStartMatch();}
+function mpToLobby(){FLIP=false;net.inMatch=false;state='title';$('hud').classList.add('hidden');startLevel(0,true);
+  net.slots.forEach(s=>{if(s.kind==='human'&&!s.host)s.ready=false;if(s.left){delete s.left;}});buildSlots(net.map);mpBroadcast({t:'tolobby'});mpLobbyBroadcast();showLobby();}
+function mpStartMatch(){
+  const L=getLevel(net.map);const empty=net.slots.filter(s=>s.kind==='empty').map(s=>s.f);
+  for(const q of L.planets)if(empty.indexOf(q[3])>=0)q[3]=-1;
+  L.ais=net.slots.filter(s=>s.kind==='ai').map(s=>s.f);L.aiMul=1;
+  const mine=net.slots.find(s=>s.pid===net.myId);ME=mine?mine.f:0;HUM=new Set(net.slots.filter(s=>s.kind==='human').map(s=>s.f));
+  Object.assign(net,{inMatch:true,winner:-2,endShown:false,elimShown:false,endMode:'',pend:[],seq:0,ack:[0,0,0,0],snapT:0});
+  show(null);$('hud').classList.remove('hidden');state='play';$('intro').classList.remove('on');
+  startLevel(net.map,false,L);levelIdx=net.map;{const h=planets.find(P=>P.owner===ME);FLIP=!!h&&h.y<MH/2;}hintStage=99;
+  $('lvlName').innerHTML=`${L.name}<b>Multiplayer · you are ${CNAME[ME]}</b>`;
+  showIntro({name:'Multiplayer'},4200,net.slots.filter(s=>s.kind!=='empty').map((s,i)=>({f:s.f,a:s.f===ME?'You':CNAME[s.f],b:s.kind==='human'?(s.f===ME?'your color':'player'):'AI · '+PERS[s.f].name,c:s.kind==='ai'?PERS[s.f].blurb:''})));
+}
+function mpHostCheck(){let mask=0;const alive=[];
+  for(const sl of net.slots){if(sl.kind==='empty')continue;const f=sl.f;if(ownP[f]>0||tot[f]>0){mask|=1<<f;alive.push(f);}}
+  net.alive=mask;
+  if(net.winner===-2&&alive.length<=1)net.winner=alive.length?alive[0]:-1;
+  mpCheckEnd();}
+function mpCheckEnd(){
+  if(net.winner!==-2&&!net.endShown){net.endShown=true;showMpEnd(net.winner===ME,true);}
+  else if(net.winner===-2&&!(net.alive&(1<<ME))&&!net.elimShown){net.elimShown=true;showMpEnd(false,false);}}
+function showMpEnd(win,over){
+  const t=$('endT');net.endMode=over?'over':'elim';
+  if(over)state='end';
+  t.textContent=win?'VICTORY':'DEFEAT';t.className=win?'win':'lose';(win?sfx.win:sfx.lose)();
+  const mm=Math.floor(time/60),ss=String(Math.floor(time%60)).padStart(2,'0');
+  const wn=net.winner>=0?CNAME[net.winner]:'Nobody';
+  $('endS').innerHTML=over?`${win?'You conquered the map!':wn+' wins.'}<br>Multiplayer · ${curLevel.name} · ${mm}:${ss}`+(net.role==='host'?'':'<br>Waiting for the host to start a rematch…'):'You have been eliminated. You can keep watching.';
+  const host=net.role==='host';
+  $('bNext').textContent='Rematch';$('bNext').classList.toggle('hidden',!(over&&host));
+  $('bRetry').textContent=over?'Back to lobby':'Watch';$('bRetry').classList.toggle('hidden',over&&!host);
+  $('bMenu2').textContent='Leave';
+  show('sEnd');}
+// host -> clients: compact binary snapshots (~12/s): planets + aggregated fleets ("lanes" per owner/target)
+function mpSnapshot(){
+  const sxa=new Float32Array(NP*4),sya=new Float32Array(NP*4);
+  for(let i=0;i<hiU;i++)if(us[i]===2){const k=up[i]*4+uo[i];sxa[k]+=ux[i];sya[k]+=uy[i];}
+  let nl=0;for(let k=0;k<NP*4;k++)if(inc[k]>0)nl++;
+  const H=10,a=new Int16Array(H+NP*9+nl*5);
+  a[0]=1;a[1]=NP;a[2]=nl;a[3]=net.alive;a[4]=net.winner;for(let f=0;f<4;f++)a[5+f]=net.ack[f];a[9]=Math.min(32767,Math.round(time*10)%32768);
+  let o=H;for(let p=0;p<NP;p++){const P=planets[p];a[o++]=P.owner;a[o++]=P.level;a[o++]=Math.round(P.hp*4);a[o++]=P.capOwner;a[o++]=P.capProg;
+    for(let f=0;f<4;f++)a[o++]=Math.min(32767,cnt[p*4+f]);}
+  for(let k=0;k<NP*4;k++)if(inc[k]>0){const n=inc[k];a[o++]=k&3;a[o++]=k>>2;a[o++]=Math.min(32767,n);a[o++]=Math.round(sxa[k]/n);a[o++]=Math.round(sya[k]/n);}
+  return a.buffer;}
+function mpTick(dt){
+  if(net.role==='host'&&net.inMatch){net.snapT-=dt;if(net.snapT<=0){net.snapT=0.08;const b=mpSnapshot();for(const c of net.conns.values())mpSendTo(c.conn,b);net.snaps++;}}}
+// client: apply snapshot, then reconcile the locally simulated (visual-only) units
+function mpApplySnap(d){
+  const a=new Int16Array((d instanceof ArrayBuffer?new Uint8Array(d):new Uint8Array(d.buffer,d.byteOffset,d.byteLength)).slice().buffer);
+  if(a[0]!==1||a[1]!==NP)return;net.snaps++;
+  const nl=a[2];net.alive=a[3];net.winner=a[4];net.ack=[a[5],a[6],a[7],a[8]];
+  let o=10;tot.fill(0);ownP.fill(0);
+  for(let p=0;p<NP;p++){const P=planets[p];const ow=a[o++],lv=a[o++],hp=a[o++]/4,co=a[o++],cp=a[o++];
+    if(ow!==P.owner){addRing(P,ow>=0?ow:P.owner,1);if(ow===ME)sfx.capture();else if(P.owner===ME)sfx.lost();
+      if(ow>=0)for(let k=0;k<14;k++){const an=k/14*TAU;addP(P.x+Math.cos(an)*P.r,P.y+Math.sin(an)*P.r,Math.cos(an)*80,Math.sin(an)*80,0.5,ow);}}
+    if(lv>P.level&&ow===P.owner){addRing(P,ow,1.2);P.flash=1;}
+    if(hp<P.hp-0.5){P.flash=1;P.lastHit=time;}
+    P.owner=ow;P.level=lv;P.hp=hp;P.capOwner=co;P.capProg=cp;if(ow>=0)ownP[ow]++;
+    for(let f=0;f<4;f++){cnt[p*4+f]=a[o++];tot[f]+=cnt[p*4+f];}}
+  inc.fill(0);const lanes=[];
+  for(let k=0;k<nl;k++){const f=a[o++],t=a[o++],n=a[o++],cx=a[o++],cy=a[o++];inc[t*4+f]=n;tot[f]+=n;lanes.push([f,t,n,cx,cy]);}
+  mpReconcile(lanes);mpCheckEnd();}
+function mpReconcile(lanes){
+  const now=time;net.pend=net.pend.filter(q=>q.seq>net.ack[ME]&&now-q.t0<1.5);
+  const wantO=new Int32Array(NP*4),wantL=new Int32Array(NP*4);for(let k=0;k<NP*4;k++)wantO[k]=cnt[k];
+  const cen={};for(const [f,t,n,cx,cy] of lanes){wantL[t*4+f]=n;cen[t*4+f]=[cx,cy];}
+  for(const q of net.pend){for(const [p,n] of q.src){const k=p*4+ME;wantO[k]=Math.max(0,wantO[k]-n);wantL[q.t*4+ME]+=n;}if(!cen[q.t*4+ME]){const P=planets[q.src[0][0]];cen[q.t*4+ME]=[P.x,P.y];}}
+  const orb=[],lan=[];for(let k=0;k<NP*4;k++){orb.push([]);lan.push([]);}
+  for(let i=0;i<hiU;i++){if(us[i]===1)orb[up[i]*4+uo[i]].push(i);else if(us[i]===2)lan[up[i]*4+uo[i]].push(i);}
+  burstBudget=60;
+  // fleets that need more units: launch them from surplus orbiters of that owner (looks like a real send), else spawn at the fleet centre
+  for(let k=0;k<NP*4;k++){let need=wantL[k]-lan[k].length;if(need<=0)continue;const f=k&3,t=k>>2,T=planets[t];const c=cen[k]||[T.x,T.y];
+    const srcs=[];for(let p=0;p<NP;p++){const kk=p*4+f;if(orb[kk].length>wantO[kk])srcs.push(p);}
+    srcs.sort((x,y)=>Math.hypot(planets[x].x-c[0],planets[x].y-c[1])-Math.hypot(planets[y].x-c[0],planets[y].y-c[1]));
+    for(const p of srcs){const kk=p*4+f;while(need>0&&orb[kk].length>wantO[kk]){const i=orb[kk].pop();mpLaunch(i,t);lan[k].push(i);need--;}if(need<=0)break;}
+    for(;need>0;need--){const i=allocU();if(i<0)break;us[i]=2;uo[i]=f;ux[i]=c[0]+(rand()-0.5)*30;uy[i]=c[1]+(rand()-0.5)*30;mpLaunch(i,t);lan[k].push(i);}}
+  // fleets with too many local units: the extras arrived or were destroyed
+  for(let k=0;k<NP*4;k++){let extra=lan[k].length-wantL[k];if(extra<=0)continue;const T=planets[k>>2];
+    lan[k].sort((x,y)=>((ux[x]-T.x)**2+(uy[x]-T.y)**2)-((ux[y]-T.x)**2+(uy[y]-T.y)**2));
+    for(let m=0;m<extra;m++){const i=lan[k][m];if(rand()<0.5)burst(ux[i],uy[i],uo[i],uo[i]);killU(i);}}
+  // orbit counts
+  for(let k=0;k<NP*4;k++){const d=orb[k].length-wantO[k];const p=k>>2,f=k&3;
+    if(d>0){for(let m=0;m<d;m++){const i=orb[k][m];if(us[i]!==1)continue;if(rand()<0.4)burst(ux[i],uy[i],f,f);killU(i);}}
+    else if(d<0&&planets[p].owner===f){for(let m=0;m<Math.min(-d,300);m++)spawnOrbiter(p,f,true);}}
+}
+function mpLaunch(i,t){const T=planets[t];us[i]=2;up[i]=t;const an=rand()*TAU,rr=Math.sqrt(rand())*T.r*0.6;ua[i]=Math.cos(an)*rr;ub[i]=Math.sin(an)*rr;}
+function clientStep(dt){time+=dt;
+  for(let i=0;i<hiU;i++){const s=us[i];if(!s)continue;const P=planets[up[i]];
+    if(s===1){if(P.owner!==uo[i]){killU(i);continue;}uc[i]+=(ub[i]-uc[i])*Math.min(1,dt*2.5);ua[i]+=uw[i]*dt*45/(uc[i]+10);ux[i]=P.x+Math.cos(ua[i])*uc[i];uy[i]=P.y+Math.sin(ua[i])*uc[i];}
+    else{const dx=P.x+ua[i]-ux[i],dy=P.y+ub[i]-uy[i];const d=Math.sqrt(dx*dx+dy*dy)||1;const m=Math.min(1,SPEED*dt/d);ux[i]+=dx*m;uy[i]+=dy*m;
+      const ex=ux[i]-P.x,ey=uy[i]-P.y;if(ex*ex+ey*ey<P.r*P.r*0.85){if(P.owner===uo[i]){us[i]=1;ua[i]=Math.atan2(ey,ex);uc[i]=Math.sqrt(ex*ex+ey*ey);ub[i]=orbitR(P);uw[i]=0.6+rand()*0.6;continue;}if(rand()<0.3)burst(ux[i],uy[i],uo[i],P.owner>=0?P.owner:4);killU(i);}}}
+  for(let p=0;p<NP;p++){const P=planets[p];P.flash=Math.max(0,P.flash-dt*3);P.spin+=dt*0.05;}
+  for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;pl[i]-=dt;px[i]+=pvx[i]*dt;py[i]+=pvy[i]*dt;pvx[i]*=0.96;pvy[i]*=0.96;}
+  for(let i=rings.length-1;i>=0;i--){rings[i].t+=dt;if(rings[i].t>rings[i].d)rings.splice(i,1);}
+  for(const A of [beams,floats])for(let i=A.length-1;i>=0;i--){A[i].t+=dt;if(A[i].t>A[i].d)A.splice(i,1);}
+  for(const p of sel)if(planets[p].owner!==ME)sel.delete(p);}
+// client commands with immediate local feedback
+function mpClientSend(src,t){const T=planets[t];const seq=++net.seq;const q={seq,t,src:[],t0:time};let total=0;
+  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*4+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
+    q.src.push([p,n]);total+=n;let k=0;for(let i=0;i<hiU&&k<n;i++)if(us[i]===1&&up[i]===p&&uo[i]===ME){mpLaunch(i,t);k++;}
+    beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}
+  sel.clear();
+  if(!total){sfx.deny();toast('No units to send yet',1500);return;}
+  net.pend.push(q);mpToHost({t:'cmd',c:'send',src:q.src.map(x=>x[0]),dst:t,pct:save.pct,seq});
+  sfx.send();buzz(18);rings.push({x:T.x,y:T.y,r:T.r*0.6,c:ME,t:0,d:0.5});
+  floats.push({x:T.x,y:T.y,r:T.r,s:(T.owner===ME?'reinforce +':(T.owner<0?'capture ':'attack '))+total,t:0,d:1});}
+function mpClientDefend(p){const P=planets[p];const seq=++net.seq;mpToHost({t:'cmd',c:'def',p,pct:save.pct,seq});sfx.send();buzz([15,40,15]);
+  floats.push({x:P.x,y:P.y,r:P.r,s:'defend!',t:0,d:1});save.defUsed=true;persist();}
+function playerUpgrade(p){if(net.inMatch&&net.role==='client'){const P=planets[p];if(!P||P.owner!==ME||P.level>=3)return false;const cost=upCost(P);
+    if(cnt[p*4+ME]<cost){sfx.deny();toast(`Upgrade needs ${cost} units here (${cnt[p*4+ME]})`,1800);return false;}
+    mpToHost({t:'cmd',c:'up',p,seq:++net.seq});sfx.upgrade();P.flash=1;return true;}
+  return tryUpgrade(p,ME);}
+$('bMulti').onclick=()=>{ensureAudio();mpStatus('');show('sMp');};
+$('bMpBack').onclick=()=>{mpReset();show('sTitle');};
+$('bCreate').onclick=()=>{ensureAudio();mpCreate();};
+$('bJoin').onclick=()=>{ensureAudio();mpJoin($('joinCode').value);};
+$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')mpJoin($('joinCode').value);});
+$('bLeave').onclick=()=>{mpReset();history.replaceState(null,'',location.pathname+location.hash);show('sMp');mpStatus('');};
+$('bReady').onclick=()=>{if(net.role==='host'){mpStart();return;}net.ready=!net.ready;mpToHost({t:'ready',v:net.ready});renderLobby();};
+$('mapSel').onchange=e=>{if(net.role!=='host')return;net.map=+e.target.value;buildSlots(net.map);mpLobbyBroadcast();};
+document.querySelectorAll('#mpDiff button').forEach(b=>b.onclick=()=>{if(net.role!=='host')return;net.diff=b.dataset.d;mpLobbyBroadcast();});
+$('bShare').onclick=()=>{const url=inviteUrl();if(navigator.share)navigator.share({title:'LUMEN',text:'Join my LUMEN match! Room '+net.code,url}).catch(()=>{});else{copyText(url);}};
+$('bCopy').onclick=()=>copyText(inviteUrl());
+function copyText(t){const ok=()=>toast('Invite link copied',1500);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,()=>prompt('Copy this link',t));else prompt('Copy this link',t);}
+// ?room=CODE auto-joins
+{const m=/[?&]room=([A-Za-z0-9]{4})/.exec(location.search);if(m)setTimeout(()=>{show('sMp');$('joinCode').value=m[1].toUpperCase();mpJoin(m[1]);},300);}
 
 /* ---------------- loop ---------------- */
 let last=performance.now();
 function frame(now){
   requestAnimationFrame(frame);
   let dt=(now-last)/1000;last=now;if(dt>0.1)dt=0.1;if(dt<0)dt=0;
-  if(state==='play'||state==='title'||state==='end'){const n=Math.min(3,Math.ceil(dt/(1/50)));for(let k=0;k<n;k++)step(dt/n);}
+  net.lastFrame=now;
+  if(net.inMatch&&net.role==='client'){if(state==='play'||state==='end')clientStep(dt);}
+  else if(state==='play'||state==='title'||state==='end'){const n=Math.min(3,Math.ceil(dt/(1/50)));for(let k=0;k<n;k++)step(dt/n);}
+  if(net.on)mpTick(dt);
   render();updateSelUI();
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
+if(location.hash==='#debug')window.__lumen={scr:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],forceEnd:f=>{net.winner=f;},mpSend:(src,t)=>sendFrom(src,t),mpDef:p=>defend(p),mpUp:p=>playerUpgrade(p),net:()=>({pos:planets.map(P=>[P.x,P.y]),role:net.role,inMatch:net.inMatch,code:net.code,state,ME,owners:planets.map(P=>P.owner).join(','),levels:planets.map(P=>P.level).join(''),bytesOut:net.bytesOut,bytesIn:net.bytesIn,snaps:net.snaps,units:aliveU,conns:net.conns.size,slots:net.slots.map(s=>s.kind[0]+s.f).join(' '),winner:net.winner,alive:net.alive,cnt:Array.from(cnt),inc:Array.from(inc),endT:$('endT').textContent,endShown:!$('sEnd').classList.contains('hidden')}),debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
     if(mode==='ffa'){const L=procLevel(5,seed,2);const perm=[1,2,3].sort(()=>rand()-0.5);for(const q of L.planets)if(q[3]>=0)q[3]=perm[q[3]];L.ais=[1,2,3];L.aiMul=1;startLevel(idx,false,L);}
     else startLevel(idx,false);
     metrReset();state='sim';let sampT=0;
