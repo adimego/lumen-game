@@ -497,7 +497,7 @@ function aiSwarms(f,D,Q,M,mine,avail,threat){
   if(M.picket>=0&&(!SWA[M.picket]||SWO[M.picket]!==f))M.picket=-1;
   for(const q of foe){const n=swc[q];let near=-1,nd=1e9;for(const i of mine){const d=Math.hypot(planets[i].x-SWX[q],planets[i].y-SWY[q]);if(d<nd){nd=d;near=i;}}
     if(near<0)continue;if(nd<330)threat[near]+=n*0.8;
-    const hunt=nd<380||ownP[SWO[q]]===0;if(!hunt||rand()>0.35+0.6*D.smart)continue;
+    const hunt=nd<380||ownP[SWO[q]]===0;if(!hunt||(nd>=330&&rand()>0.35+0.6*D.smart))continue;
     const need=Math.ceil(n*1.3+5);const srcs=mine.filter(i=>avail[i]>need*0.6).sort((a,b)=>Math.hypot(planets[a].x-SWX[q],planets[a].y-SWY[q])-Math.hypot(planets[b].x-SWX[q],planets[b].y-SWY[q]));
     let left=need;for(const i of srcs){if(left<=0)break;const give=Math.min(left,Math.floor(avail[i]*0.8));if(give<3)continue;moveTo(f,[i],[],SWX[q],SWY[q],give/cnt[i*4+f]);avail[i]-=mvN;left-=mvN;}
     break;}
