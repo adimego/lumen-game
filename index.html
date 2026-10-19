@@ -222,7 +222,7 @@ const SKEY='lumen_save_v1';
 const save={unlocked:1,diff:'normal',muted:false,pct:0.5,best:{},howSeen:false};
 try{const s=JSON.parse(localStorage.getItem(SKEY)||'null');if(s&&typeof s==='object')Object.assign(save,s);}catch(e){}
 if(!DIFF[save.diff])save.diff='normal';
-if([0.25,0.5,1].indexOf(save.pct)<0)save.pct=0.5;
+const PCTS=[0.25,0.5,0.75,1];if(PCTS.indexOf(save.pct)<0)save.pct=0.5;
 function persist(){try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}}
 
 /* ---------------- audio ---------------- */
@@ -1116,7 +1116,7 @@ $('bRestart').onclick=()=>play(levelIdx);
 $('bMenu').onclick=()=>{if(net.on)mpLeave();else toMenu();};$('bMenu2').onclick=()=>{if(net.on)mpLeave();else toMenu();};
 $('bRetry').onclick=()=>{if(net.inMatch){if(net.endMode==='elim')show(null);else if(net.role==='host')mpToLobby();return;}play(levelIdx);};
 $('bNext').onclick=()=>{if(net.inMatch){if(net.role==='host')mpStart();return;}play(Math.min(LEVELS-1,levelIdx+1));};
-$('bPct').onclick=()=>{save.pct=save.pct===0.25?0.5:(save.pct===0.5?1:0.25);persist();refreshUI();sfx.select();};
+$('bPct').onclick=()=>{save.pct=PCTS[(PCTS.indexOf(save.pct)+1)%PCTS.length];persist();refreshUI();sfx.select();};
 $('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===ME).map(P=>P.id);
   if(mine.length&&mine.every(p=>sel.has(p))){sel.clear();sfx.deselect();}else{sel.clear();mine.forEach(p=>sel.add(p));sfx.select();buzz(10);}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!net.inMatch)pause();});
@@ -1373,7 +1373,7 @@ function frame(now){
   render();updateSelUI();
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={play:i=>play(i),terr:()=>{let bad=0,routed=0;for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j]){routed++;const P=routePts(i,j);for(let k=0;k+3<P.length;k+=2)if(!clearLine([P[k],P[k+1]],[P[k+2],P[k+3]],0))bad++;}else if(TER.walls.length&&!clearLine([planets[i].x,planets[i].y],[planets[j].x,planets[j].y],0))bad++;}return{bad,routed,feats:levelFeats(curLevel),name:curLevel.name,NP};},holdT:()=>holdT.slice(),scr:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],forceEnd:f=>{net.winner=f;},mpSend:(src,t)=>sendFrom(src,t),mpDef:p=>defend(p),mpUp:p=>playerUpgrade(p),net:()=>({pos:planets.map(P=>[P.x,P.y]),role:net.role,inMatch:net.inMatch,code:net.code,state,ME,owners:planets.map(P=>P.owner).join(','),levels:planets.map(P=>P.level).join(''),bytesOut:net.bytesOut,bytesIn:net.bytesIn,snaps:net.snaps,units:aliveU,conns:net.conns.size,slots:net.slots.map(s=>s.kind[0]+s.f).join(' '),winner:net.winner,alive:net.alive,cnt:Array.from(cnt),inc:Array.from(inc),endT:$('endT').textContent,endShown:!$('sEnd').classList.contains('hidden')}),debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
+if(location.hash==='#debug')window.__lumen={pct:()=>save.pct,play:i=>play(i),terr:()=>{let bad=0,routed=0;for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j]){routed++;const P=routePts(i,j);for(let k=0;k+3<P.length;k+=2)if(!clearLine([P[k],P[k+1]],[P[k+2],P[k+3]],0))bad++;}else if(TER.walls.length&&!clearLine([planets[i].x,planets[i].y],[planets[j].x,planets[j].y],0))bad++;}return{bad,routed,feats:levelFeats(curLevel),name:curLevel.name,NP};},holdT:()=>holdT.slice(),scr:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],forceEnd:f=>{net.winner=f;},mpSend:(src,t)=>sendFrom(src,t),mpDef:p=>defend(p),mpUp:p=>playerUpgrade(p),net:()=>({pos:planets.map(P=>[P.x,P.y]),role:net.role,inMatch:net.inMatch,code:net.code,state,ME,owners:planets.map(P=>P.owner).join(','),levels:planets.map(P=>P.level).join(''),bytesOut:net.bytesOut,bytesIn:net.bytesIn,snaps:net.snaps,units:aliveU,conns:net.conns.size,slots:net.slots.map(s=>s.kind[0]+s.f).join(' '),winner:net.winner,alive:net.alive,cnt:Array.from(cnt),inc:Array.from(inc),endT:$('endT').textContent,endShown:!$('sEnd').classList.contains('hidden')}),debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
     if(mode==='ffa'){const L=procLevel(5,seed,2);const perm=[1,2,3].sort(()=>rand()-0.5);for(const q of L.planets)if(q[3]>=0)q[3]=perm[q[3]];L.ais=[1,2,3];L.aiMul=1;startLevel(idx,false,L);}
     else startLevel(idx,false);
     metrReset();state='sim';let sampT=0;
