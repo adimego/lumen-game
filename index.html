@@ -24,6 +24,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 .pill{min-width:76px;height:46px;padding:0 16px;border-radius:23px;background:rgba(20,40,70,.45);border:1px solid rgba(120,220,255,.35);font-weight:700;letter-spacing:.06em;font-size:16px;color:#dff6ff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 0 18px rgba(70,215,255,.15) inset}
 .pill:active,.ic:active{transform:scale(.94)}
 .pill small{font-size:10px;opacity:.6;display:block;font-weight:600;letter-spacing:.12em;margin-top:-2px}
+.selpill{pointer-events:auto;display:flex;align-items:center;gap:6px;height:40px;padding:0 4px 0 14px;border-radius:20px;background:rgba(30,110,160,.55);border:1px solid rgba(150,240,255,.7);box-shadow:0 0 18px rgba(70,215,255,.35);font-size:14px;font-weight:600;white-space:nowrap;transition:opacity .2s,transform .2s;max-width:calc(100vw - 200px)}
+.selpill span{overflow:hidden;text-overflow:ellipsis}
+.selpill button{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.14);font-size:15px;font-weight:700;flex:none}
+.selpill.off{opacity:0;transform:translateY(8px);pointer-events:none!important}
 #lvlName{text-align:center;font-size:13px;letter-spacing:.18em;text-transform:uppercase;opacity:.8;text-shadow:0 0 10px rgba(70,215,255,.6)}
 #lvlName b{display:block;font-size:10px;letter-spacing:.25em;opacity:.6;font-weight:500}
 #toast{position:fixed;left:50%;top:calc(var(--sat) + 92px);transform:translateX(-50%);padding:9px 16px;border-radius:18px;background:rgba(8,20,40,.72);border:1px solid rgba(120,220,255,.3);font-size:14px;text-align:center;max-width:88vw;opacity:0;transition:opacity .35s;pointer-events:none;z-index:8;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -48,7 +52,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;margin-bottom:12px}
 .how{text-align:left;font-size:14.5px;line-height:1.45;list-style:none}
 .how li{padding:7px 0 7px 26px;position:relative;opacity:.9}
-.how li::before{content:"";position:absolute;left:6px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.how li .i{position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:50%;background:rgba(70,215,255,.16);border:1px solid rgba(70,215,255,.5);display:flex;align-items:center;justify-content:center;font-size:13px;color:#8be8ff;font-weight:700}
+.how li{padding-left:34px!important}
 .how b{color:#8be8ff}
 #endT{font-size:34px;font-weight:200;letter-spacing:.25em;margin-right:-.25em}
 #endT.win{color:#8ff0ff;text-shadow:0 0 22px rgba(70,215,255,.8)}
@@ -67,6 +72,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
   </div>
   <div class="bot">
     <button id="bPct" class="pill">50%<small>SEND</small></button>
+    <div id="selPill" class="selpill off"><span id="selTxt">Tap a planet</span><button id="bClr" aria-label="Clear selection">✕</button></div>
     <button id="bAll" class="pill">ALL<small>SELECT</small></button>
   </div>
 </div>
@@ -88,12 +94,12 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
   <div class="panel">
     <h2>How to play</h2>
     <ul class="how">
-      <li><b>Tap</b> one of your cyan planets to select it, then <b>tap any planet</b> to send units there.</li>
-      <li><b>Drag</b> from your planet to a target to send directly. Drag across several of your planets to select them all (or press <b>ALL</b>).</li>
-      <li>The <b>%</b> button sets how many units leave each selected planet: 25 / 50 / 100%.</li>
-      <li><b>Neutral</b> planets fill a capture ring as your units arrive. <b>Enemy</b> planets must lose all defenders (units cancel 1:1) and then their shield ring before they fall.</li>
-      <li><b>Double-tap</b> your planet or press its <b>▲ chip</b> to upgrade it (levels 1–3) using the units orbiting it. Higher levels produce faster, hold more and are tougher.</li>
-      <li>Destroy every rival planet and unit to win. Lose all of yours and it's over.</li>
+      <li><span class="i">●</span><b>Tap your planet</b> to select it. Tap it again to deselect. Tap more of your planets to add them.</li>
+      <li><span class="i">➤</span>With planets selected, <b>tap an enemy or grey planet</b> to send units. The selection clears after each send.</li>
+      <li><span class="i">↗</span><b>Drag from your planet</b> to any planet to send in one move. This is also how you reinforce your own planets.</li>
+      <li><span class="i">◯</span><b>Draw a loop</b> on empty space to select several planets. <b>Tap empty space</b> to deselect all.</li>
+      <li><span class="i">▲</span>With one planet selected, tap <b>Upgrade</b> to spend its orbiting units on a level-up (max 3).</li>
+      <li><span class="i">%</span>The % button sets how much each planet sends. Destroy every rival planet and unit to win.</li>
     </ul>
     <button id="bHowOk" class="big">Got it</button>
   </div>
@@ -165,6 +171,7 @@ function tone(f,dur,type,vol,slide,delay){
 const sfx={
   send(){tone(420,0.16,'sine',0.12,760);},
   select(){tone(880,0.06,'sine',0.06);},
+  deselect(){tone(560,0.06,'sine',0.045,420);},
   capture(){[523,659,784,1046].forEach((f,i)=>tone(f,0.35,'sine',0.11,0,i*0.07));},
   lost(){tone(330,0.5,'triangle',0.14,110);},
   upgrade(){[440,554,659,880,1108].forEach((f,i)=>tone(f,0.3,'triangle',0.08,0,i*0.06));},
@@ -194,7 +201,7 @@ function burst(x,y,c1,c2){
   if(burstBudget<=0)return;burstBudget--;
   for(let k=0;k<4;k++){const a=rand()*TAU,s=25+rand()*55;addP(x,y,Math.cos(a)*s,Math.sin(a)*s,0.35+rand()*0.35,k<2?c1:c2);}
 }
-const rings=[];
+const rings=[],beams=[],floats=[];
 
 /* grid */
 const GC=16,GX0=-160,GY0=-160,GW=Math.ceil((MW+320)/GC),GH=Math.ceil((MH+320)/GC);
@@ -261,7 +268,7 @@ function getLevel(idx){return idx<HAND.length?HAND[idx]():procLevel(idx);}
 function startLevel(idx,isDemo){
   demo=!!isDemo;levelIdx=idx;
   const L=isDemo?procLevel(5,(Math.random()*1e9)|0,3):getLevel(idx);curLevel=L;
-  resetUnits();rings.length=0;for(let i=0;i<MAXP;i++)pl[i]=0;
+  resetUnits();rings.length=0;beams.length=0;floats.length=0;for(let i=0;i<MAXP;i++)pl[i]=0;
   planets=L.planets.map(makePlanet);NP=planets.length;
   cnt=new Int32Array(NP*4);inc=new Int32Array(NP*4);ph=new Int32Array(NP).fill(-1);
   distM=new Float32Array(NP*NP);
@@ -272,11 +279,11 @@ function startLevel(idx,isDemo){
   for(let f=0;f<4;f++){prodMul[f]=(isDemo||f===0)?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay)+rand()*D.think;}
   planets.forEach((P,i)=>{if(P.owner>=0)for(let k=0;k<16;k++)spawnOrbiter(i,P.owner,false);});
   sel.clear();time=0;endTimer=-1;stats={sent:0,killed:0,captured:0,lost:0,produced:0};
-  ptr.down=false;
+  cancelPtr();
   if(!isDemo){
     $('lvlName').innerHTML=`${L.name}<b>Sector ${idx+1} · ${save.diff}</b>`;
     hintStage=0;
-    if(idx===0)toast('Tap your planet, then tap a target',4000);
+    if(idx===0)toast('Tap your glowing cyan planet to select it',5000);
     else toast(`${L.name} — ${L.ais.length} rival${L.ais.length>1?'s':''}`,2500);
   }
 }
@@ -326,6 +333,7 @@ function step(dt){
   // particles
   for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;pl[i]-=dt;px[i]+=pvx[i]*dt;py[i]+=pvy[i]*dt;pvx[i]*=0.96;pvy[i]*=0.96;}
   for(let i=rings.length-1;i>=0;i--){rings[i].t+=dt;if(rings[i].t>rings[i].d)rings.splice(i,1);}
+  for(const A of [beams,floats])for(let i=A.length-1;i>=0;i--){A[i].t+=dt;if(A[i].t>A[i].d)A.splice(i,1);}
   // AI
   const D=DIFF[save.diff];
   for(const f of aiList){aiT[f]-=dt;if(aiT[f]<=0){aiT[f]=D.think*(0.75+rand()*0.5)/(demo?1:Math.max(0.6,aiMulCur));if(ownP[f]>0)aiThink(f,demo?DIFF.normal:D);}}
@@ -356,7 +364,7 @@ function capture(P,f){
   P.owner=f;P.capOwner=-1;P.capProg=0;P.hp=Math.max(1,maxHp(P)*0.5);P.prodAcc=0;P.lastHit=time;addRing(P,f,1.1);
   for(let k=0;k<18;k++){const a=k/18*TAU;addP(P.x+Math.cos(a)*P.r,P.y+Math.sin(a)*P.r,Math.cos(a)*90,Math.sin(a)*90,0.6,f);}
   if(!demo&&f===0){stats.captured++;sfx.capture();
-    if(hintStage===1&&levelIdx===0){hintStage=2;setTimeout(()=>{if(state==='play')toast('Double-tap your planet (or tap ▲) to upgrade it',4000);},1500);}}
+    if(hintStage===2&&levelIdx===0){hintStage=3;setTimeout(()=>{if(state==='play')toast('Select a single planet and tap ▲ Upgrade to level it up',4000);},1500);}}
 }
 function neutralize(P,by){
   const old=P.owner;P.owner=-1;P.capOwner=-1;P.capProg=0;P.hp=0;addRing(P,old,0.8);
@@ -451,9 +459,9 @@ function resize(){
 const SX=(x,y)=>rot?OX+y*S:OX+x*S;
 const SY=(x,y)=>rot?OY+(MW-x)*S:OY+y*S;
 function toWorld(sx,sy){return rot?[MW-(sy-OY)/S,(sx-OX)/S]:[(sx-OX)/S,(sy-OY)/S];}
-function planetAt(sx,sy,extra){
+function planetAt(sx,sy){
   let best=-1,bd=1e9;
-  for(let i=0;i<NP;i++){const P=planets[i];const d=Math.hypot(SX(P.x,P.y)-sx,SY(P.x,P.y)-sy);const r=P.r*S;const hr=r+(extra!=null?extra:Math.max(14,26-r*0.3));
+  for(let i=0;i<NP;i++){const P=planets[i];const d=Math.hypot(SX(P.x,P.y)-sx,SY(P.x,P.y)-sy);const r=P.r*S;const hr=Math.max(44,r+16);
     if(d<hr&&d-r<bd){bd=d-r;best=i;}}
   return best;
 }
@@ -466,13 +474,24 @@ function render(){
   for(const s of twk){ctx.globalAlpha=s.a*(0.15+0.85*Math.abs(Math.sin(now*s.sp+s.ph)));ctx.drawImage(starSpr,s.x-s.s/2,s.y-s.s/2,s.s,s.s);}
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   if(!NP)return;
-  // drag lines
-  if(state==='play'&&ptr.down&&ptr.moved&&sel.size){
-    const tp=planetAt(ptr.x,ptr.y);let ex=ptr.x,ey=ptr.y;
-    ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.lineDashOffset=-now*40;
-    for(const p of sel){if(p===tp)continue;const P=planets[p];ctx.strokeStyle='rgba(120,230,255,0.55)';ctx.beginPath();ctx.moveTo(SX(P.x,P.y),SY(P.x,P.y));ctx.lineTo(ex,ey);ctx.stroke();}
-    ctx.setLineDash([]);
+  const aiming=state==='play'&&ptr.down&&ptr.moved&&ptr.mode==='aim';
+  const lassoing=state==='play'&&ptr.down&&ptr.moved&&ptr.mode==='lasso';
+  const aimT=aiming?aimTarget():-1;
+  if(aiming){const src=aimSources();let ex=ptr.x,ey=ptr.y;if(aimT>=0){const T=planets[aimT];ex=SX(T.x,T.y);ey=SY(T.x,T.y);}
+    ctx.lineCap='round';
+    for(const p of src){if(p===aimT)continue;const P=planets[p];const x0=SX(P.x,P.y),y0=SY(P.x,P.y);
+      const dx=ex-x0,dy=ey-y0,L=Math.hypot(dx,dy)||1;const r0=P.r*S+4,r1=aimT>=0?planets[aimT].r*S+12:0;if(L<r0+r1+6)continue;
+      const ax=x0+dx/L*r0,ay=y0+dy/L*r0,bx=ex-dx/L*r1,by=ey-dy/L*r1;
+      ctx.strokeStyle=aimT>=0?'rgba(170,245,255,0.95)':'rgba(120,230,255,0.55)';ctx.lineWidth=aimT>=0?3:2;
+      ctx.setLineDash([8,7]);ctx.lineDashOffset=-now*50;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.setLineDash([]);
+      const ux2=dx/L,uy2=dy/L,hs=11;ctx.fillStyle=ctx.strokeStyle;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux2*hs-uy2*hs*0.6,by-uy2*hs+ux2*hs*0.6);ctx.lineTo(bx-ux2*hs+uy2*hs*0.6,by-uy2*hs-ux2*hs*0.6);ctx.closePath();ctx.fill();}
+    ctx.lineCap='butt';
+    if(aimT<0){ctx.strokeStyle='rgba(150,240,255,0.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(ptr.x,ptr.y,16,0,TAU);ctx.stroke();}
   }
+  let lassoSet=null;
+  if(lassoing&&ptr.path.length>1){lassoSet=new Set(lassoPick());
+    ctx.beginPath();ctx.moveTo(ptr.path[0][0],ptr.path[0][1]);for(const q of ptr.path)ctx.lineTo(q[0],q[1]);ctx.lineTo(ptr.x,ptr.y);
+    ctx.fillStyle='rgba(70,215,255,0.07)';ctx.fill();ctx.strokeStyle='rgba(150,240,255,0.8)';ctx.lineWidth=2;ctx.setLineDash([6,6]);ctx.lineDashOffset=-now*40;ctx.stroke();ctx.setLineDash([]);}
   // planets
   for(let p=0;p<NP;p++){const P=planets[p];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;const o=P.owner;const col=o>=0?FCOL[o]:NEUT;
     const hr=r*(o>=0?2.5+0.25*P.level:1.7);
@@ -493,17 +512,22 @@ function render(){
   // units
   const sz=Math.max(7,30*S),h=sz/2;
   ctx.globalCompositeOperation='lighter';
+  const selMask=new Uint8Array(NP);for(const p of sel)selMask[p]=1;if(lassoSet)for(const p of lassoSet)selMask[p]=1;
+  const sz2=sz*1.7,h2=sz2/2;
   for(let i=0;i<hiU;i++){if(!us[i])continue;const x=ux[i],y=uy[i];
-    const sx=rot?OX+y*S:OX+x*S,sy=rot?OY+(MW-x)*S:OY+y*S;ctx.drawImage(sprites[uo[i]],sx-h,sy-h,sz,sz);}
+    const sx=rot?OX+y*S:OX+x*S,sy=rot?OY+(MW-x)*S:OY+y*S;
+    if(us[i]===1&&selMask[up[i]]&&uo[i]===0){ctx.drawImage(sprites[0],sx-h2,sy-h2,sz2,sz2);ctx.drawImage(starSpr,sx-h,sy-h,sz,sz);}
+    else ctx.drawImage(sprites[uo[i]],sx-h,sy-h,sz,sz);}
   // particles
   for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;const k=pl[i]/pml[i];const s2=sz*(0.4+0.8*k);ctx.globalAlpha=k;
     ctx.drawImage(sprites[pc[i]<0?4:pc[i]],SX(px[i],py[i])-s2/2,SY(px[i],py[i])-s2/2,s2,s2);}
   ctx.globalAlpha=1;
   for(const R of rings){const k=R.t/R.d;const col=R.c>=0?FCOL[R.c]:NEUT;ctx.strokeStyle=rgb(col,(1-k)*0.8);ctx.lineWidth=3*(1-k)+0.5;
     ctx.beginPath();ctx.arc(SX(R.x,R.y),SY(R.x,R.y),(R.r+k*R.r*1.8)*S,0,TAU);ctx.stroke();}
+  for(const B of beams){const k=B.t/B.d;const a=SX(B.x1,B.y1),b=SY(B.x1,B.y1),c=SX(B.x2,B.y2),d=SY(B.x2,B.y2);
+    ctx.strokeStyle=`rgba(120,230,255,${(1-k)*0.7})`;ctx.lineWidth=3*(1-k)+1;ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(a+(c-a)*Math.min(1,k*2.5),b+(d-b)*Math.min(1,k*2.5));ctx.stroke();}
   ctx.globalCompositeOperation='source-over';
   // labels + selection
-  const tp=(state==='play'&&ptr.down&&ptr.moved)?planetAt(ptr.x,ptr.y):-1;
   ctx.textAlign='center';ctx.textBaseline='middle';
   for(let p=0;p<NP;p++){const P=planets[p];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
     let txt='',a=0.9;
@@ -511,17 +535,38 @@ function render(){
     else{const req=capReq(P);txt=String(P.capOwner>=0?Math.max(0,req-P.capProg):req);a=0.45;}
     ctx.font=`600 ${Math.max(10,Math.round(r*0.6))}px system-ui,-apple-system,sans-serif`;
     ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fillText(txt,x,y+1);
-    if(sel.has(p)){ctx.strokeStyle='rgba(150,240,255,0.9)';ctx.lineWidth=2;ctx.setLineDash([5,5]);ctx.lineDashOffset=now*20;
-      ctx.beginPath();ctx.arc(x,y,r+11+Math.sin(now*5)*1.5,0,TAU);ctx.stroke();ctx.setLineDash([]);}
-    if(p===tp&&sel.size&&!sel.has(p)){ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,r+13,0,TAU);ctx.stroke();}
   }
-  // upgrade chip
+  for(const F of floats){const k=F.t/F.d;ctx.globalAlpha=1-k*k;ctx.font='700 16px system-ui,-apple-system,sans-serif';ctx.fillStyle='#bff4ff';
+    ctx.fillText(F.s,SX(F.x,F.y),SY(F.x,F.y)-F.r*S-14-k*26);}
+  ctx.globalAlpha=1;
+  for(let p=0;p<NP;p++){const P=planets[p];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
+    if(sel.has(p)){const pu=0.5+0.5*Math.sin(now*6);const rr=r+12+pu*2.5;
+      ctx.strokeStyle=`rgba(90,220,255,${0.18+0.12*pu})`;ctx.lineWidth=9;ctx.beginPath();ctx.arc(x,y,rr,0,TAU);ctx.stroke();
+      ctx.strokeStyle=`rgba(190,250,255,${0.8+0.2*pu})`;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,rr,0,TAU);ctx.stroke();
+      for(let k=0;k<4;k++){const a=now*1.2+k*TAU/4;ctx.fillStyle='#e8fdff';ctx.beginPath();ctx.arc(x+Math.cos(a)*(rr+6),y+Math.sin(a)*(rr+6),2.2,0,TAU);ctx.fill();}}
+    else if(lassoSet&&lassoSet.has(p)){ctx.strokeStyle='rgba(190,250,255,0.6)';ctx.lineWidth=2;ctx.setLineDash([4,5]);ctx.beginPath();ctx.arc(x,y,r+12,0,TAU);ctx.stroke();ctx.setLineDash([]);}
+    if(p===aimT){const own=planets[p].owner===0;ctx.strokeStyle=own?'rgba(150,255,200,0.95)':'rgba(255,255,255,0.95)';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(x,y,r+14+Math.sin(now*10)*2,0,TAU);ctx.stroke();
+      let n=0;for(const q of aimSources()){if(q===p)continue;const c=cnt[q*4];n+=save.pct>=1?c:Math.round(c*save.pct);}
+      ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.fillStyle='#fff';ctx.fillText((own?'reinforce ':'send ')+n,x,y-r-26);}
+  }
+  // upgrade chip (big button)
   chip=null;
-  if(state==='play'&&sel.size===1){const p=sel.values().next().value;const P=planets[p];
-    if(P&&P.owner===0&&P.level<3){const cost=upCost(P),ok=cnt[p*4]>=cost;const x=SX(P.x,P.y);let y=SY(P.x,P.y)-P.r*S-34;if(y<SAT+70)y=SY(P.x,P.y)+P.r*S+34;
-      const w=64,hh=28;ctx.fillStyle=ok?'rgba(30,120,170,0.85)':'rgba(30,40,60,0.75)';ctx.strokeStyle=ok?'rgba(150,240,255,0.95)':'rgba(150,170,200,0.4)';ctx.lineWidth=1.5;
-      rrect(x-w/2,y-hh/2,w,hh,14);ctx.fill();ctx.stroke();ctx.fillStyle=ok?'#fff':'rgba(255,255,255,0.5)';ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.fillText('▲ '+cost,x,y+1);
-      chip={x,y,w:w+12,h:hh+14,p};}}
+  if(state==='play'&&sel.size===1&&!aiming){const p=sel.values().next().value;const P=planets[p];
+    if(P&&P.owner===0&&P.level<3){const cost=upCost(P),have=cnt[p*4],ok=have>=cost;const w=128,hh=44;const px0=SX(P.x,P.y),py0=SY(P.x,P.y),pr=P.r*S;
+      // pick the spot (above/below/left/right) that overlaps other planets least and stays on screen
+      const cands=[[px0,py0-pr-50],[px0,py0+pr+50],[px0-pr-w/2-22,py0],[px0+pr+w/2+22,py0]];let x=0,y=0,bestPen=1e9;
+      for(const c of cands){const cx2=Math.max(w/2+8,Math.min(CW-w/2-8,c[0])),cy2=Math.max(SAT+100,Math.min(CH-SAB-110,c[1]));let pen=0;
+        for(let q=0;q<NP;q++){const Q=planets[q];const qx=SX(Q.x,Q.y),qy=SY(Q.x,Q.y),qr=Q.r*S+10;
+          const dx=Math.max(Math.abs(qx-cx2)-w/2,0),dy=Math.max(Math.abs(qy-cy2)-hh/2,0);if(dx*dx+dy*dy<qr*qr)pen+=qr-Math.sqrt(dx*dx+dy*dy)+20;}
+        pen+=Math.hypot(cx2-c[0],cy2-c[1])*0.2;if(pen<bestPen-0.01){bestPen=pen;x=cx2;y=cy2;}}
+      const pressed=ptr.down&&ptr.mode==='chip';
+      ctx.fillStyle=ok?(pressed?'rgba(60,170,220,0.95)':'rgba(30,130,185,0.9)'):'rgba(30,40,60,0.85)';ctx.strokeStyle=ok?'rgba(170,245,255,1)':'rgba(150,170,200,0.45)';ctx.lineWidth=2;
+      rrect(x-w/2,y-hh/2,w,hh,hh/2);ctx.fill();ctx.stroke();
+      ctx.fillStyle=ok?'#fff':'rgba(255,255,255,0.6)';ctx.font='700 15px system-ui,-apple-system,sans-serif';
+      ctx.fillText(ok?`▲ Upgrade · ${cost}`:`▲ ${have}/${cost}`,x,y+1);
+      ctx.font='600 10px system-ui,-apple-system,sans-serif';ctx.fillStyle='rgba(255,255,255,0.55)';ctx.fillText(`LEVEL ${P.level} → ${P.level+1}`,x,y+hh/2+10);
+      chip={x,y,w:w+16,h:hh+16,p};}}
   // power bar
   if(state==='play'||state==='end'||state==='paused'){let sum=0;const val=[0,0,0,0];for(let f=0;f<4;f++){val[f]=tot[f];for(const P of planets)if(P.owner===f)val[f]+=8*P.sf*P.level;sum+=val[f];}
     if(sum>0){const bw=Math.min(CW-40,420),bx=(CW-bw)/2,by=SAT+(rot?50:60);let cx=bx;
@@ -530,57 +575,93 @@ function render(){
 function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
 /* ---------------- input ---------------- */
-const ptr={down:false,id:null,sx:0,sy:0,x:0,y:0,moved:false,start:-1,chip:false};
-let lastTap={p:-1,t:0};
+// Model: tap own planet = toggle select; tap other planet with selection = send + clear;
+// tap empty = clear; drag from own planet = aim & send (also reinforces own planets);
+// drag from empty space = lasso select. Movement under TAP_SLOP px counts as a tap.
+const TAP_SLOP=10;
+const ptr={down:false,id:null,sx:0,sy:0,x:0,y:0,moved:false,start:-1,mode:'',path:[]};
+let lastNudge=0;
+function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(_){}}
+function aimSources(){const s=new Set(sel);if(ptr.start>=0&&planets[ptr.start]&&planets[ptr.start].owner===0)s.add(ptr.start);return s;}
+function aimTarget(){const t=planetAt(ptr.x,ptr.y);return t===ptr.start?-1:t;}
+function inPoly(x,y,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];
+  if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))c=!c;}return c;}
+function lassoPick(){
+  const poly=ptr.path.concat([[ptr.x,ptr.y]]);const out=[];
+  for(let i=0;i<NP;i++){const P=planets[i];if(P.owner!==0)continue;const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
+    let hit=poly.length>2&&inPoly(x,y,poly);
+    if(!hit)for(const q of poly){if(Math.hypot(q[0]-x,q[1]-y)<r+10){hit=true;break;}}
+    if(hit)out.push(i);}
+  return out;
+}
 function onDown(sx,sy){
   ensureAudio();if(state!=='play')return;
-  if(chip&&Math.abs(sx-chip.x)<chip.w/2&&Math.abs(sy-chip.y)<chip.h/2){tryUpgrade(chip.p,0);ptr.down=true;ptr.chip=true;return;}
-  ptr.down=true;ptr.chip=false;ptr.sx=ptr.x=sx;ptr.sy=ptr.y=sy;ptr.moved=false;ptr.start=planetAt(sx,sy);
+  ptr.down=true;ptr.sx=ptr.x=sx;ptr.sy=ptr.y=sy;ptr.moved=false;ptr.path.length=0;
+  const under=planetAt(sx,sy);const onBody=under>=0&&Math.hypot(SX(planets[under].x,planets[under].y)-sx,SY(planets[under].x,planets[under].y)-sy)<planets[under].r*S+6;
+  if(chip&&!onBody&&Math.abs(sx-chip.x)<chip.w/2&&Math.abs(sy-chip.y)<chip.h/2){ptr.mode='chip';ptr.start=chip.p;return;}
+  ptr.start=planetAt(sx,sy);
+  ptr.mode=(ptr.start>=0&&planets[ptr.start].owner===0)?'aim':'lasso';
 }
 function onMove(sx,sy){
-  if(!ptr.down||ptr.chip||state!=='play')return;ptr.x=sx;ptr.y=sy;
-  if(!ptr.moved&&Math.hypot(sx-ptr.sx,sy-ptr.sy)>12){ptr.moved=true;
-    const s=ptr.start;if(s>=0&&planets[s].owner===0&&!sel.has(s)){sel.clear();sel.add(s);sfx.select();}}
-  if(ptr.moved){const p=planetAt(sx,sy,8);if(p>=0&&planets[p].owner===0&&!sel.has(p)){sel.add(p);sfx.select();}}
+  if(!ptr.down||state!=='play')return;ptr.x=sx;ptr.y=sy;
+  if(!ptr.moved&&Math.hypot(sx-ptr.sx,sy-ptr.sy)>TAP_SLOP){ptr.moved=true;
+    if(ptr.mode==='lasso')ptr.path.push([ptr.sx,ptr.sy]);
+    if(ptr.mode==='aim'){buzz(6);if(levelIdx===0&&hintStage<2)hintStage=2;}}
+  if(ptr.moved&&ptr.mode==='lasso'){const l=ptr.path[ptr.path.length-1];if(Math.hypot(sx-l[0],sy-l[1])>4)ptr.path.push([sx,sy]);}
 }
+function cancelPtr(){ptr.down=false;ptr.mode='';ptr.path.length=0;ptr.id=null;}
 function onUp(sx,sy){
-  if(!ptr.down)return;ptr.down=false;if(ptr.chip||state!=='play')return;
-  const p=planetAt(sx,sy);
+  if(!ptr.down)return;ptr.down=false;const mode=ptr.mode;ptr.mode='';
+  if(state!=='play'){ptr.path.length=0;return;}
+  ptr.x=sx;ptr.y=sy;
+  if(mode==='chip'){if(!ptr.moved||(chip&&Math.abs(sx-chip.x)<chip.w/2&&Math.abs(sy-chip.y)<chip.h/2)){if(tryUpgrade(ptr.start,0))buzz(25);}return;}
   if(!ptr.moved){
-    const now=performance.now();
-    if(p<0){sel.clear();return;}
-    const P=planets[p];
-    if(P.owner===0){
-      if(lastTap.p===p&&now-lastTap.t<380){lastTap.p=-1;sel.clear();sel.add(p);tryUpgrade(p,0);return;}
-      lastTap.p=p;lastTap.t=now;
-      if(sel.size===0){sel.add(p);sfx.select();}
-      else if(sel.has(p)){if(sel.size>1){sel.clear();sel.add(p);sfx.select();}else sel.clear();}
-      else{lastTap.p=-1;playerSend(p);}
-    }else if(sel.size)playerSend(p);
+    const p=planetAt(sx,sy);
+    if(p<0){if(sel.size){sel.clear();sfx.deselect();}return;}
+    if(planets[p].owner===0){
+      if(sel.has(p)){sel.delete(p);sfx.deselect();buzz(5);}
+      else{sel.add(p);sfx.select();buzz(10);if(levelIdx===0&&hintStage===0){hintStage=1;toast('Now tap a grey planet to send units there',4000);}}
+      return;
+    }
+    if(sel.size)sendFrom(new Set(sel),p);
+    else{const n=performance.now();if(n-lastNudge>2500){lastNudge=n;toast('First tap one of your cyan planets to select it',2200);}
+      for(const P of planets)if(P.owner===0)P.flash=1;sfx.deny();}
     return;
   }
-  if(p>=0){if(planets[p].owner===0){if(p===ptr.start&&sel.size===1)return;sel.delete(p);}if(sel.size)playerSend(p);}
+  if(mode==='aim'){const t=aimTarget();if(t>=0){const src=aimSources();src.delete(t);sendFrom(src,t);}return;}
+  if(mode==='lasso'){const picked=lassoPick();ptr.path.length=0;let added=0;for(const p of picked)if(!sel.has(p)){sel.add(p);added++;}
+    if(added){sfx.select();buzz(12);}}
 }
-function playerSend(t){
-  let total=0;
-  for(const p of sel){if(p===t||planets[p].owner!==0)continue;const c=cnt[p*4];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));total+=sendUnits(p,t,n);}
-  if(total>0){sfx.send();stats.sent+=total;rings.push({x:planets[t].x,y:planets[t].y,r:planets[t].r*0.6,c:0,t:0,d:0.5});
-    if(levelIdx===0&&hintStage===0){hintStage=1;setTimeout(()=>{if(state==='play'&&hintStage===1)toast('Capture neutrals to grow. Drag between planets works too!',3500);},2500);}}
+function sendFrom(src,t){
+  let total=0;const T=planets[t];
+  for(const p of src){if(p===t||planets[p].owner!==0)continue;const c=cnt[p*4];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
+    const s=sendUnits(p,t,n);if(s>0){total+=s;beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}}
+  sel.clear();
+  if(total>0){sfx.send();buzz(18);stats.sent+=total;rings.push({x:T.x,y:T.y,r:T.r*0.6,c:0,t:0,d:0.5});
+    floats.push({x:T.x,y:T.y,r:T.r,s:(T.owner===0?'+':'→ ')+total,t:0,d:0.9});
+    if(levelIdx===0&&hintStage<2){hintStage=2;setTimeout(()=>{if(state==='play')toast('Tip: drag from your planet straight to a target to send in one move',4000);},2500);}}
+  else{sfx.deny();toast('No units to send yet',1500);}
+}
+function updateSelUI(){
+  const key=sel.size+'|'+save.pct+'|'+state;if(key===updateSelUI.k)return;updateSelUI.k=key;
+  const pill=$('selPill');if(sel.size&&state==='play'){pill.classList.remove('off');$('selTxt').textContent=`${sel.size} selected · ${Math.round(save.pct*100)}%`;}else pill.classList.add('off');
 }
 if(window.PointerEvent){
-  cv.addEventListener('pointerdown',e=>{if(ptr.down&&ptr.id!==e.pointerId)return;ptr.id=e.pointerId;try{cv.setPointerCapture(e.pointerId);}catch(_){}onDown(e.clientX,e.clientY);e.preventDefault();});
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();if(ptr.down)return;if(e.pointerType==='mouse'&&e.button!==0)return;
+    ptr.id=e.pointerId;try{cv.setPointerCapture(e.pointerId);}catch(_){}onDown(e.clientX,e.clientY);});
   cv.addEventListener('pointermove',e=>{if(e.pointerId!==ptr.id)return;onMove(e.clientX,e.clientY);e.preventDefault();});
   cv.addEventListener('pointerup',e=>{if(e.pointerId!==ptr.id)return;onUp(e.clientX,e.clientY);ptr.id=null;e.preventDefault();});
-  cv.addEventListener('pointercancel',e=>{if(e.pointerId!==ptr.id)return;ptr.down=false;ptr.id=null;});
+  cv.addEventListener('pointercancel',e=>{if(e.pointerId!==ptr.id)return;cancelPtr();});
 }else{
-  cv.addEventListener('touchstart',e=>{const t=e.changedTouches[0];if(ptr.down)return;ptr.id=t.identifier;onDown(t.clientX,t.clientY);e.preventDefault();},{passive:false});
+  cv.addEventListener('touchstart',e=>{e.preventDefault();if(ptr.down)return;const t=e.changedTouches[0];ptr.id=t.identifier;onDown(t.clientX,t.clientY);},{passive:false});
   cv.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===ptr.id)onMove(t.clientX,t.clientY);e.preventDefault();},{passive:false});
   cv.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===ptr.id){onUp(t.clientX,t.clientY);ptr.id=null;}e.preventDefault();},{passive:false});
-  cv.addEventListener('touchcancel',()=>{ptr.down=false;ptr.id=null;});
-  cv.addEventListener('mousedown',e=>onDown(e.clientX,e.clientY));
-  window.addEventListener('mousemove',e=>onMove(e.clientX,e.clientY));
-  window.addEventListener('mouseup',e=>onUp(e.clientX,e.clientY));
+  cv.addEventListener('touchcancel',e=>{for(const t of e.changedTouches)if(t.identifier===ptr.id)cancelPtr();});
+  cv.addEventListener('mousedown',e=>{if(e.button===0&&!ptr.down){ptr.id='m';onDown(e.clientX,e.clientY);}});
+  window.addEventListener('mousemove',e=>{if(ptr.id==='m')onMove(e.clientX,e.clientY);});
+  window.addEventListener('mouseup',e=>{if(ptr.id==='m'){onUp(e.clientX,e.clientY);ptr.id=null;}});
 }
+$('bClr').onclick=()=>{sel.clear();sfx.deselect();buzz(5);};
 document.addEventListener('touchmove',e=>{if(!e.target.closest||!e.target.closest('.panel'))e.preventDefault();},{passive:false});
 ['gesturestart','gesturechange','gestureend'].forEach(n=>document.addEventListener(n,e=>e.preventDefault()));
 document.addEventListener('dblclick',e=>e.preventDefault());
@@ -605,7 +686,7 @@ function refreshUI(){
 function play(i){ensureAudio();show(null);$('hud').classList.remove('hidden');state='play';startLevel(i,false);
   if(!save.howSeen){save.howSeen=true;persist();pauseHow=true;state='paused';show('sHow');}}
 let pauseHow=false;
-function pause(){if(state!=='play')return;state='paused';show('sPause');}
+function pause(){if(state!=='play')return;cancelPtr();state='paused';show('sPause');}
 function resume(){state='play';show(null);}
 function toMenu(){state='title';$('hud').classList.add('hidden');refreshUI();show('sTitle');startLevel(0,true);}
 function showEnd(){
@@ -633,7 +714,7 @@ $('bRetry').onclick=()=>play(levelIdx);
 $('bNext').onclick=()=>play(Math.min(LEVELS-1,levelIdx+1));
 $('bPct').onclick=()=>{save.pct=save.pct===0.25?0.5:(save.pct===0.5?1:0.25);persist();refreshUI();sfx.select();};
 $('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===0).map(P=>P.id);
-  if(mine.length&&mine.every(p=>sel.has(p)))sel.clear();else{sel.clear();mine.forEach(p=>sel.add(p));}sfx.select();};
+  if(mine.length&&mine.every(p=>sel.has(p))){sel.clear();sfx.deselect();}else{sel.clear();mine.forEach(p=>sel.add(p));sfx.select();buzz(10);}};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 
 /* ---------------- loop ---------------- */
@@ -642,9 +723,10 @@ function frame(now){
   requestAnimationFrame(frame);
   let dt=(now-last)/1000;last=now;if(dt>0.1)dt=0.1;if(dt<0)dt=0;
   if(state==='play'||state==='title'||state==='end'){const n=Math.min(3,Math.ceil(dt/(1/50)));for(let k=0;k<n;k++)step(dt/n);}
-  render();
+  render();updateSelUI();
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
+if(location.hash==='#debug')window.__lumen={debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],stress:n=>{for(let k=0;k<n;k++)for(let i=0;i<NP;i++)if(planets[i].owner===0)spawnOrbiter(i,0,false);}};
 resize();refreshUI();startLevel(0,true);requestAnimationFrame(frame);
 })();
 </script>
