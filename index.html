@@ -173,7 +173,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
       <li><span class="i">◯</span><b>Draw a loop</b> on empty space to select several planets. <b>Tap empty space</b> to deselect all.</li>
       <li><span class="i">●</span>The three little bars on top of each planet show its level (1–3). A faint ring around your planet means it can still be upgraded; when it brightens a <b>▲ badge</b> pops up next to it: tap the badge to upgrade at once (no need to select the planet). A gold rim with three gold bars = fully upgraded.</li>
       <li><span class="i">▲</span>With one planet selected, tap <b>Upgrade</b> to spend its orbiting units on a level-up (max 3).</li>
-      <li><span class="i">◆</span><b>Rivals have personalities:</b> <b style="color:#ff6a78">Red</b> is aggressive and raids often, <b style="color:#9dff6a">Green</b> turtles, upgrades and counterattacks, <b style="color:#d48bff">Violet</b> is balanced and hunts whoever is winning.</li>
+      <li><span class="i">◆</span><b>Rivals have personalities:</b> <b style="color:#ff6a78">Red</b> is aggressive and raids often, <b style="color:#9dff6a">Green</b> turtles, upgrades and counterattacks, <b style="color:#d48bff">Violet</b> is balanced and hunts whoever is winning, <b style="color:#ff9826">Orange</b> expands fast and wide, <b style="color:#ff80de">Pink</b> waits and snipes weakened planets.</li>
       <li><span class="i">%</span>The % button sets how much each planet sends. Destroy every rival planet and unit to win.</li>
       <li><span class="i">↩</span><b>Change your mind:</b> tap one of your moving fleets (or draw a loop around part of it) to select it, then tap another planet to redirect it, or empty space to park it there. <b>↩ Recall</b> sends it back to your nearest planet.</li>
       <li><span class="i">?</span><b>Hold</b> a special planet (or hover it with a mouse) to see what it does.</li>
@@ -500,7 +500,14 @@ function genSkirm(cfg,seed){seed=seed>>>0;const rng=mulberry32(seed^0x5bd1e995);
   return out;}
 const FEAT_PROC={9:'forge',11:'gate',13:'crown',14:'last'};
 const FEAT_IDX=new Set([2,4,6,9,11,13,14]);
-function getLevel(idx){return idx<HAND.length?HAND[idx]():(FEAT_PROC[idx]?procFeat(idx,FEAT_PROC[idx]):procLevel(idx));}
+// campaign rival roster: rotates all five AI colours (1 Red, 2 Green, 3 Violet, 4 Orange, 5 Pink) across the sectors
+const CAMP_MUL=[1,1,1,0.92,1,0.9,0.9,0.85,1,1,1,1,1,1,1];   // eases levels where Orange/Pink replaced weaker rivals
+const CAMP_AIS=[[1],[2],[4],[3,5],[2],[4,5],[1,4],[2,3,5],[1,4,5],[2,3,4],[1,3,4,5],[1,2,5],[1,2,4,5],[3,4,5],[1,3,5]];
+function getLevel(idx){const want=CAMP_AIS[idx];
+  if(idx>=HAND.length&&!FEAT_PROC[idx]&&want&&want.length===4){const L=procLevel(idx,null,4,want.slice());L.aiMul=Math.min(1.5,1+0.05*(idx-4))*0.85;return L;}
+  const L=idx<HAND.length?HAND[idx]():(FEAT_PROC[idx]?procFeat(idx,FEAT_PROC[idx]):procLevel(idx));
+  if(want&&want.length===L.ais.length){const m={};L.ais.forEach((f,i)=>m[f]=want[i]);for(const q of L.planets)if(q[3]>0&&m[q[3]])q[3]=m[q[3]];L.ais=want.slice();}
+  if(CAMP_MUL[idx])L.aiMul*=CAMP_MUL[idx];return L;}
 // Feature maps from the generator: one corner quadrant, mirrored 4 ways, so every corner is identical (fair for multiplayer).
 function procFeat(idx,kind){
   const rng=mulberry32(idx*104729+77);const W=[];const T={};
