@@ -137,9 +137,9 @@ const FNAME=['You','Crimson','Verdant','Violet'];
 const SIZE_R=[34,48,66], SIZE_F=[1,1.6,2.4];
 const SPEED=86, CR=8, CR2=CR*CR;
 const DIFF={
-  easy:  {think:3.9,margin:1.6,upg:0.18,frac:0.55,prod:0.85,delay:10,hunt:1.0},
-  normal:{think:2.4,margin:1.3,upg:0.38,frac:0.7, prod:1.0, delay:4.2,hunt:1.15},
-  hard:  {think:1.33,margin:1.12,upg:0.6,frac:0.85,prod:1.15,delay:1.4,hunt:1.35}
+  easy:  {think:4.3,margin:1.6,upg:0.18,frac:0.55,prod:0.78,delay:10,hunt:1.0,noise:0.45,patience:4,smart:0.3,cool:10},
+  normal:{think:2.4,margin:1.3,upg:0.38,frac:0.7, prod:0.95,delay:4.2,hunt:1.15,noise:0.18,patience:2,smart:0.75,cool:16},
+  hard:  {think:1.33,margin:1.12,upg:0.6,frac:0.85,prod:1.15,delay:1.4,hunt:1.35,noise:0.05,patience:2,smart:1,cool:20}
 };
 const rgb=(c,a)=>a===undefined?`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`:`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
 const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
@@ -225,7 +225,7 @@ function upCost(P){return Math.round(20*P.sf*P.level);}
 function orbitR(P){return P.r+6+Math.pow(rand(),0.8)*(P.r*0.5+14);}
 
 function makePlanet(a,i){
-  const s=a[2];const P={id:i,x:a[0],y:a[1],s,r:SIZE_R[s],sf:SIZE_F[s],owner:a[3],level:a[4]||1,hp:0,capOwner:-1,capProg:0,prodAcc:rand(),lastHit:-99,flash:0,spin:rand()*TAU};
+  const s=a[2];const P={id:i,x:a[0],y:a[1],s,r:SIZE_R[s],sf:SIZE_F[s],owner:a[3],level:a[4]||1,hp:0,capOwner:-1,capProg:0,prodAcc:rand(),lastHit:-99,neutralAt:-99,flash:0,spin:rand()*TAU};
   P.hp=P.owner>=0?maxHp(P):0;return P;
 }
 
@@ -278,6 +278,7 @@ function startLevel(idx,isDemo){
   aiMulCur=isDemo?1:L.aiMul;
   for(let f=0;f<4;f++){prodMul[f]=(isDemo||f===0)?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay)+rand()*D.think;}
   planets.forEach((P,i)=>{if(P.owner>=0)for(let k=0;k<16;k++)spawnOrbiter(i,P.owner,false);});
+  aiInit();
   sel.clear();time=0;endTimer=-1;stats={sent:0,killed:0,captured:0,lost:0,produced:0};
   cancelPtr();
   if(!isDemo){
@@ -320,7 +321,7 @@ function step(dt){
       for(let xx=cx-1;xx<=cx+1;xx++){if(xx<0||xx>=GW)continue;let j=ghead[yy*GW+xx];
         while(j!==-1){if(us[j]&&uo[j]!==f){const dx=ux[j]-x,dy=uy[j]-y;if(dx*dx+dy*dy<CR2){hit=j;break;}}j=unext[j];}
         if(hit>=0)break;}}
-    if(hit>=0){burst((x+ux[hit])/2,(y+uy[hit])/2,f,uo[hit]);if(f===0||uo[hit]===0){stats.killed++;if(!demo)sfx.pop();}killU(i);killU(hit);}
+    if(hit>=0){if(METR)metrClash((x+ux[hit])/2,(y+uy[hit])/2);burst((x+ux[hit])/2,(y+uy[hit])/2,f,uo[hit]);if(f===0||uo[hit]===0){stats.killed++;if(!demo)sfx.pop();}killU(i);killU(hit);}
   }
   // arrivals
   for(let k=0;k<nArr;k++){const i=arrQ[k];if(us[i]===2)arrive(i);}
@@ -352,7 +353,7 @@ function arrive(i){
   killU(i);
   if(P.owner===-1){
     if(P.capOwner===-1||P.capOwner===f){P.capOwner=f;P.capProg++;if(P.capProg>=capReq(P))capture(P,f);}
-    else{P.capProg--;if(P.capProg<=0){P.capProg=0;P.capOwner=-1;}}
+    else{if(METR)metr.clash[p]+=2;P.capProg--;if(P.capProg<=0){P.capProg=0;P.capOwner=-1;}}
     P.flash=Math.min(1,P.flash+0.3);return;
   }
   let j=ph[p];while(j!==-1&&!(us[j]===1&&up[j]===p&&uo[j]===P.owner))j=upn[j];ph[p]=j;
@@ -361,19 +362,21 @@ function arrive(i){
 }
 function addRing(P,c,d){rings.push({x:P.x,y:P.y,r:P.r,c,t:0,d:d||0.9});}
 function capture(P,f){
+  if(METR)metrCaptured(f,P.id);
   P.owner=f;P.capOwner=-1;P.capProg=0;P.hp=Math.max(1,maxHp(P)*0.5);P.prodAcc=0;P.lastHit=time;addRing(P,f,1.1);
   for(let k=0;k<18;k++){const a=k/18*TAU;addP(P.x+Math.cos(a)*P.r,P.y+Math.sin(a)*P.r,Math.cos(a)*90,Math.sin(a)*90,0.6,f);}
   if(!demo&&f===0){stats.captured++;sfx.capture();
     if(hintStage===2&&levelIdx===0){hintStage=3;setTimeout(()=>{if(state==='play')toast('Select a single planet and tap ▲ Upgrade to level it up',4000);},1500);}}
 }
 function neutralize(P,by){
-  const old=P.owner;P.owner=-1;P.capOwner=-1;P.capProg=0;P.hp=0;addRing(P,old,0.8);
+  const old=P.owner;P.owner=-1;P.neutralAt=time;P.capOwner=-1;P.capProg=0;P.hp=0;addRing(P,old,0.8);
   if(!demo&&old===0){stats.lost++;sfx.lost();}
 }
 function sendUnits(from,to,n){
   if(from===to||n<=0)return 0;const P=planets[from],T=planets[to],f=P.owner;if(f<0)return 0;
   let j=ph[from],sent=0;
   while(j!==-1&&sent<n){if(us[j]===1&&up[j]===from&&uo[j]===f){us[j]=2;up[j]=to;const a=rand()*TAU,rr=Math.sqrt(rand())*T.r*0.6;ua[j]=Math.cos(a)*rr;ub[j]=Math.sin(a)*rr;sent++;}j=upn[j];}
+  if(METR&&sent&&T.owner!==f&&aiList.indexOf(f)>=0)metrWave(f,to);
   cnt[from*4+f]=Math.max(0,cnt[from*4+f]-sent);inc[to*4+f]+=sent;
   return sent;
 }
@@ -389,43 +392,114 @@ function tryUpgrade(p,f){
   return true;
 }
 
+/* ---------------- metrics (debug/sim only) ---------------- */
+let METR=false,thinkId=0;const metr={clash:null,rec:{},maxStreak:0,streaks:[],waves:0,lastThink:{}};
+function metrReset(){metr.clash=new Float64Array(NP);metr.rec={};metr.maxStreak=0;metr.waves=0;metr.lastThink={};metr.streaks=[];}
+function metrClash(x,y){for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==-1)continue;const dx=P.x-x,dy=P.y-y,R=P.r+120;if(dx*dx+dy*dy<R*R){metr.clash[p]+=2;return;}}}
+function progMetric(f,t){const T=planets[t];if(T.owner===-1)return T.capOwner===f?T.capProg:-T.capProg;if(T.owner===f)return 1e6;return -(cnt[t*4+T.owner]+T.hp);}
+function metrWave(f,t){const k=f*64+t;if(metr.lastThink[k]===thinkId)return;metr.lastThink[k]=thinkId;metr.waves++;
+  const pr=progMetric(f,t);let r=metr.rec[k];if(!r)r=metr.rec[k]={streak:0,last:null,lastT:-99};
+  if(time-r.lastT<6)return; // top-up of the same wave
+  if(r.last!==null&&time-r.lastT<40&&pr<=r.last+0.5)r.streak++;else r.streak=0;r.last=pr;r.lastT=time;
+  if(r.streak>metr.maxStreak){metr.maxStreak=r.streak;}}
+function metrCaptured(f,p){const r=metr.rec[f*64+p];if(r){r.streak=0;r.last=null;}}
+
 /* ---------------- AI ---------------- */
+// Per-AI memory: personality, per-target sunk-cost records, last-seen garrisons.
+const aiMem=[null,null,null,null];
+function aiInit(){
+  for(let f=0;f<4;f++){let hx=500,hy=800;const home=planets.find(P=>P.owner===f);if(home){hx=home.x;hy=home.y;}
+    aiMem[f]={reach:0.8+rand()*0.45,greed:0.85+rand()*0.3,aggr:0.8+rand()*0.45,hx,hy,tgt:{},prevCnt:new Float32Array(NP),focus:-1,n:0};}
+}
+function aiStrength(){const s=[0,0,0,0];for(let g=0;g<4;g++)s[g]=tot[g];for(const P of planets)if(P.owner>=0)s[P.owner]+=10*P.sf*P.level;return s;}
 function aiThink(f,D){
+  thinkId++;
+  const M=aiMem[f];if(!M)return;M.n++;
   const mine=[];for(let i=0;i<NP;i++)if(planets[i].owner===f)mine.push(i);
   if(!mine.length)return;
   const avail=new Float32Array(NP),threat=new Float32Array(NP);
   for(const i of mine){avail[i]=cnt[i*4+f];let t=0;for(let g=0;g<4;g++)if(g!==f)t+=inc[i*4+g];threat[i]=t;}
-  // 1. defend
+  // who is winning? ganging up on a runaway leader is strategic; ganging up on anyone else is not
+  const str=aiStrength();let leader=-1,ls=0,second=0;
+  for(let g=0;g<4;g++){if(str[g]>ls){second=ls;ls=str[g];leader=g;}else if(str[g]>second)second=str[g];}
+  const runaway=D.smart>=0.7&&leader>=0&&leader!==f&&ls>1.35*Math.max(1,second); // only smarter AIs coordinate against a runaway leader
+  // 1. defend threatened planets from nearby safe ones
   for(const i of mine){const def=avail[i]+inc[i*4+f]+planets[i].hp;
     if(threat[i]>0&&threat[i]>def*0.8){let need=threat[i]*1.2-def+4;
       const helpers=mine.filter(j=>j!==i&&threat[j]===0).sort((a,b)=>distM[a*NP+i]-distM[b*NP+i]);
       for(const j of helpers){if(need<=0)break;const give=Math.min(Math.floor(avail[j]*0.7),Math.ceil(need));if(give<3)continue;
         const s=sendUnits(j,i,give);avail[j]-=s;need-=s;}}}
-  // 2. upgrade
+  // 2. upgrade when safe
   for(const i of mine){const P=planets[i];if(P.level>=3||threat[i]>0)continue;const cost=upCost(P);
     if(avail[i]>=cost+6&&rand()<D.upg){if(tryUpgrade(i,f))avail[i]-=cost;}}
   // 3. expand / attack
   let total=0;for(const i of mine)total+=Math.max(0,avail[i]-4);
   let best=-1,bestScore=0,bestNeed=0;
   for(let t=0;t<NP;t++){const T=planets[t];if(T.owner===f)continue;
-    let need;
     let dmin=1e9;for(const i of mine){if(avail[i]>5){const d=distM[i*NP+t];if(d<dmin)dmin=d;}}
     if(dmin>=1e9)continue;
-    if(T.owner===-1){const req=capReq(T);need=T.capOwner===f?req-T.capProg:(T.capOwner===-1?req:req+T.capProg);
-      for(let g=0;g<4;g++)if(g!==f)need+=inc[t*4+g]*0.6;}
-    else{need=cnt[t*4+T.owner]+inc[t*4+T.owner]+T.hp+prodRate(T)*(dmin/SPEED)*0.8;for(let g=0;g<4;g++)if(g!==f&&g!==T.owner)need-=inc[t*4+g]*0.5;}
-    need-=inc[t*4+f];if(need<=0)continue;
-    let value=T.sf*(1+0.5*(T.level-1))*(T.owner===-1?1.25:1);
+    // every unit already heading there, from everyone
+    const ownInc=inc[t*4+f];let rivalInc=0;for(let g=0;g<4;g++)if(g!==f&&g!==T.owner)rivalInc+=inc[t*4+g];
+    let need;const neutral=T.owner===-1;const req=capReq(T);
+    if(neutral){
+      need=T.capOwner===f?req-T.capProg:(T.capOwner===-1?req:req+T.capProg);
+      need+=rivalInc;                 // rival units cancel ours 1:1 (in flight or by undoing capture progress)
+    }else{
+      const g=T.owner;need=cnt[t*4+g]+inc[t*4+g]+T.hp+prodRate(T)*(dmin/SPEED)*0.8;
+      need+=rivalInc*0.6*D.smart;     // a third party arriving too will fight us for the capture afterwards
+    }
+    need-=ownInc;if(need<=0)continue;
+    let value=T.sf*(1+0.5*(T.level-1))*(neutral?1.2:1)*M.greed;
+    // territory: prefer our own side of the map, avoid a rival's backyard
+    let dr=1e9;for(let q=0;q<NP;q++){const Q=planets[q];if(q!==t&&Q.owner>=0&&Q.owner!==f){const d=distM[q*NP+t];if(d<dr)dr=d;}}
+    if(dr<dmin*0.75)value*=1-0.4*D.smart;
+    // contested by another faction?
+    const contested=rivalInc>=4||(neutral&&T.capOwner>=0&&T.capOwner!==f&&T.capProg>=2);
+    const finishing=neutral&&T.capOwner===f&&T.capProg>=0.6*req;
+    const leaderTarget=runaway&&T.owner===leader;
+    if(contested&&!finishing&&!leaderTarget){
+      const canWin=total>=need*D.margin*1.35;
+      value*=canWin?(1-0.35*D.smart):(1-0.85*D.smart);
+    }
+    // opportunism: a garrison that just left, a planet someone else just drained, the runaway leader
+    if(T.owner>=0){const prev=M.prevCnt[t],now=cnt[t*4+T.owner];if(prev-now>Math.max(8,prev*0.4))value*=1+0.7*D.smart;}
+    if(neutral&&time-T.neutralAt<8&&rivalInc<need)value*=1+0.5*D.smart;
+    if(leaderTarget)value*=1+0.35*D.smart;
     if(T.owner===0)value*=D.hunt;
-    const score=value*100/((need+12)*(1+dmin/320));
+    if(T.owner>=0)value*=M.aggr;
+    // sunk cost: recently wasted waves here -> look elsewhere for a while
+    const rec=M.tgt[t];if(rec&&rec.coolUntil>time)value*=0.08;
+    if(M.focus===t)value*=1.12;     // a little commitment so we don't flip-flop
+    let score=value*100/((need+12)*(1+dmin/(320*M.reach)));
+    score*=1+(rand()*2-1)*D.noise;  // mistakes (big on Easy, tiny on Hard)
     if(score>bestScore){bestScore=score;best=t;bestNeed=need;}
   }
-  if(best<0)return;
-  const want=bestNeed*D.margin+3;if(total<want)return;
-  const srcs=mine.filter(i=>avail[i]>5).sort((a,b)=>distM[a*NP+best]-distM[b*NP+best]);
-  let rem=want;
-  for(const i of srcs){if(rem<=0)break;const reserve=threat[i]>0?avail[i]*0.5:3;const amt=Math.min(Math.floor((avail[i]-reserve)*D.frac+ (D.frac>0.8?reserve*0.3:0)),Math.ceil(rem));
-    if(amt<3)continue;const s=sendUnits(i,best,amt);avail[i]-=s;rem-=s;}
+  let launched=false;
+  if(best>=0){
+    const want=bestNeed*D.margin+3;
+    if(total>=want){
+      const srcs=mine.filter(i=>avail[i]>5).sort((a,b)=>distM[a*NP+best]-distM[b*NP+best]);
+      let rem=want,sentAll=0,dmin=1e9;
+      for(const i of srcs){if(rem<=0)break;const reserve=threat[i]>0?avail[i]*0.5:3;const amt=Math.min(Math.floor((avail[i]-reserve)*D.frac+(D.frac>0.8?reserve*0.3:0)),Math.ceil(rem));
+        if(amt<3)continue;const s=sendUnits(i,best,amt);avail[i]-=s;rem-=s;sentAll+=s;if(s)dmin=Math.min(dmin,distM[i*NP+best]);}
+      if(sentAll>0){launched=true;M.focus=best;
+        // sunk-cost bookkeeping: did the last wave here actually move the needle?
+        const prog=progMetric(f,best);const r=M.tgt[best]||(M.tgt[best]={last:null,lastT:-99,noProg:0,coolUntil:0});
+        if(r.last!==null&&time-r.lastT<30){if(time-r.lastT>dmin/SPEED*0.7){if(prog<=r.last+0.5)r.noProg++;else r.noProg=0;}}
+        else r.noProg=0;
+        r.last=prog;r.lastT=time;
+        if(r.noProg>=D.patience){r.coolUntil=time+D.cool*(0.8+rand()*0.4);r.noProg=0;r.last=null;if(M.focus===best)M.focus=-1;}
+      }
+    }
+  }
+  // 4. move idle back-line units to the front (Normal/Hard only)
+  if(!launched&&D.smart>=0.7&&M.n%3===0&&mine.length>1){
+    const fd=new Float32Array(NP).fill(1e9);let front=-1,fb=1e9;
+    for(const i of mine){for(let q=0;q<NP;q++){const Q=planets[q];if(Q.owner>=0&&Q.owner!==f){const d=distM[i*NP+q];if(d<fd[i])fd[i]=d;}}if(fd[i]<fb){fb=fd[i];front=i;}}
+    if(front>=0&&fb<1e9)for(const i of mine){const P=planets[i];if(i===front||threat[i]>0)continue;
+      if(avail[i]>=capOf(P)*0.7&&fd[i]>fb+150){const s=sendUnits(i,front,Math.floor(avail[i]*0.5));avail[i]-=s;}}
+  }
+  for(let q=0;q<NP;q++){const Q=planets[q];M.prevCnt[q]=Q.owner>=0?cnt[q*4+Q.owner]:0;}
 }
 
 /* ---------------- rendering ---------------- */
@@ -726,7 +800,21 @@ function frame(now){
   render();updateSelUI();
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],stress:n=>{for(let k=0;k<n;k++)for(let i=0;i<NP;i++)if(planets[i].owner===0)spawnOrbiter(i,0,false);}};
+if(location.hash==='#debug')window.__lumen={debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff)=>{save.diff=diff||'normal';METR=true;startLevel(idx,false);metrReset();state='sim';
+    if(mode==='ai'&&aiList.indexOf(0)<0){aiList.unshift(0);prodMul[0]=prodMul[1];aiT[0]=aiT[1];}
+    const dt=1/50;let t=0,botT=3,winner=-2;
+    const bot=()=>{const mine=[];for(let i=0;i<NP;i++)if(planets[i].owner===0)mine.push(i);if(!mine.length)return;
+      let best=-1,bs=-1;for(let t2=0;t2<NP;t2++){const T=planets[t2];if(T.owner===0)continue;let d=1e9;for(const i of mine)d=Math.min(d,distM[i*NP+t2]);
+        const need=T.owner<0?capReq(T)-(T.capOwner===0?T.capProg:-T.capProg):cnt[t2*4+T.owner]+T.hp;const sc=T.sf/((need-inc[t2*4]+15)*(1+d/300));if(sc>bs){bs=sc;best=t2;}}
+      if(best>=0)for(const i of mine){const c=cnt[i*4];if(c>8)sendUnits(i,best,Math.floor(c*0.7));}};
+    while(t<secs){step(dt);t+=dt;if(mode==='bot'){botT-=dt;if(botT<=0){botT=2.5;bot();}}
+      const alive=[];for(let f=0;f<4;f++)if(ownP[f]>0||tot[f]>0)alive.push(f);
+      if(mode==='bot'&&(alive.indexOf(0)<0||alive.length===1)){winner=alive.indexOf(0)<0?-1:0;break;}
+      if(mode==='ai'&&alive.length<=1){winner=alive[0];break;}}
+    METR=false;state='title';
+    const clash=Array.from(metr.clash);let cm=0,ct=0;for(const c of clash){ct+=c;if(c>cm)cm=c;}
+    return{t:Math.round(t),winner,clashMax:cm,clashTotal:ct,maxStreak:metr.maxStreak,waves:metr.waves,owners:planets.map(P=>P.owner).join('')};},
+  stress:n=>{for(let k=0;k<n;k++)for(let i=0;i<NP;i++)if(planets[i].owner===0)spawnOrbiter(i,0,false);}};
 resize();refreshUI();startLevel(0,true);requestAnimationFrame(frame);
 })();
 </script>
