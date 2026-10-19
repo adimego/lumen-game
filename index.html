@@ -64,13 +64,18 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 #joinCode{flex:1;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:700 22px system-ui,sans-serif;letter-spacing:.35em;text-align:center;text-transform:uppercase;-webkit-user-select:text;user-select:text;outline:none}
 .code{font:800 44px system-ui,sans-serif;letter-spacing:.3em;margin-right:-.3em;color:#9ff0ff;text-shadow:0 0 20px rgba(70,215,255,.6)}
 #mapSel{width:100%;height:42px;border-radius:21px;background:rgba(10,25,45,.7);color:#fff;border:1px solid rgba(120,220,255,.35);padding:0 14px;font:600 15px system-ui,sans-serif}
-.slot{display:flex;align-items:center;gap:10px;padding:9px 12px;margin:6px 0;border-radius:16px;background:rgba(20,40,70,.35);border:1px solid rgba(120,220,255,.15);text-align:left;font-size:15px}
+.slot{display:flex;align-items:center;gap:8px;padding:6px 10px;margin:4px 0;border-radius:14px;min-height:40px;background:rgba(20,40,70,.35);border:1px solid rgba(120,220,255,.15);text-align:left;font-size:15px}
 .slot i{width:16px;height:16px;border-radius:50%;flex:none}
 .slot span{flex:1}
 .slot small{opacity:.6;font-size:12px}
 .slot button{height:32px;padding:0 12px;border-radius:16px;border:1px solid rgba(120,220,255,.35);background:rgba(20,40,70,.5);font-size:13px;font-weight:600}
 .slot .ok{color:#9dff9d;font-weight:700;font-size:13px}
 .slot .wait{color:#ffd08a;font-size:13px}
+.slot.free{cursor:pointer}.slot.free:hover{border-color:rgba(120,220,255,.45)}.slot.mine{border-color:rgba(120,230,255,.6);background:rgba(30,70,110,.45)}
+.slot .tchip{flex:none;min-width:26px;height:26px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font:800 12px system-ui,sans-serif;border:1.5px solid currentColor;background:rgba(6,12,24,.6);padding:0 6px;cursor:pointer}
+.seg.sm button{height:32px;font-size:13px}#rndOpts{margin-top:6px}#rndOpts select{width:100%;height:38px;border-radius:19px;background:rgba(10,25,45,.7);color:#fff;border:1px solid rgba(120,220,255,.35);padding:0 12px;font:600 14px system-ui,sans-serif;margin-top:6px}
+#rnSeed{flex:1;height:38px;border-radius:19px;background:rgba(10,25,45,.7);color:#fff;border:1px solid rgba(120,220,255,.35);padding:0 14px;font:600 15px system-ui,sans-serif;min-width:0}
+#sLobby .panel{max-height:calc(100vh - 24px);overflow-y:auto}
 #intro .idea{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,220,130,.25);color:#ffe2a0;font-size:13px;line-height:1.4}
 #lvlGrid button.feat{box-shadow:inset 0 0 0 1px rgba(255,200,110,.55)}
 #lvlGrid button.feat::after{content:'✦';position:absolute;top:2px;right:5px;font-size:9px;color:#ffd27a}
@@ -174,8 +179,8 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
       <li><span class="i">?</span><b>Hold</b> a special planet (or hover it with a mouse) to see what it does.</li>
       <li><span class="i">◌</span><b>Swarms:</b> with something selected, tap empty space (or drag there) to park units as a hovering swarm. Swarms don't produce, and they fight any enemy they touch. Tap a swarm to select it, then tap a planet or another spot to move it. Drag back onto the start to cancel.</li>
       <li><span class="i">✦</span><b>Feature sectors</b> (marked ✦) add terrain: asteroid walls, nebulae, slingshot lanes, solar flares, special planets and objectives. A tip explains each one the first time you meet it.</li>
-      <li><span class="i">⚄</span><b>Skirmish</b> builds a fresh random map: pick size, rivals, terrain and start, or tap <b>Play random</b>. Type a seed to replay a map. <b>Endless</b> keeps going after each win with tougher rivals and counts your streak.</li>
-      <li><span class="i">⇄</span><b>Multiplayer:</b> one phone taps <b>Create room</b> and shares the 4-letter code or link; friends tap <b>Join</b>. Everyone taps Ready, the host starts. Your color is shown at the top and your home is always at the bottom.</li>
+      <li><span class="i">⚄</span><b>Skirmish</b> builds a fresh random map: pick size, rivals, terrain and start, or tap <b>Play random</b>. Up to 5 rivals, including <b>Orange</b> (expansionist) and <b>Pink</b> (sniper). Turn on <b>Teams</b> to fight with AI allies. Type a seed to replay a map. <b>Endless</b> keeps going after each win with tougher rivals and counts your streak.</li>
+      <li><span class="i">⇄</span><b>Multiplayer:</b> one phone taps <b>Create room</b> and shares the 4-letter code or link; friends tap <b>Join</b>. Up to 6 players: colors are handed out at random (tap a free color to switch; the host can shuffle) and spawns are shuffled each match. Pick a handmade map or <b>🎲 Random map</b> (same seed = same map for everyone). <b>Teams</b>: teammates can't hurt each other, can reinforce each other's planets, and share vision. Everyone taps Ready, the host starts. Your color is shown at the top and your home is always at the bottom.</li>
     </ul>
     <div id="howKeys" class="hidden"><div class="lbl">Keyboard &amp; mouse</div><p class="note">Q/W/E/R set send 25–100% · A all · Space units under attack · 1–9 control groups (Shift+number saves) · right-click sends/moves/redirects the selection · S parks selected moving fleets · U upgrade · D defend · Esc clear · P pause · M mute · <b>H</b> shows every shortcut.</p></div>
     <button id="bHowOk" class="big">Got it</button>
@@ -201,10 +206,19 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div class="row"><button id="bShare" class="ghost">Share invite</button><button id="bCopy" class="ghost">Copy link</button></div>
     <div class="lbl">Map</div>
     <select id="mapSel"></select><div id="mapTxt" class="note"></div>
+    <div id="rndOpts" class="hidden">
+      <div class="seg sm" id="rnSize"><button data-v="s">Small</button><button data-v="m">Medium</button><button data-v="l">Large</button></div>
+      <div class="seg sm" id="rnN"><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button></div>
+      <select id="rnTer"><option value="none">No terrain</option><option value="mix">Random features</option><option value="walls">Asteroid walls</option><option value="neb">Nebulae</option><option value="flares">Flares + lanes</option><option value="special">Special planets</option><option value="worm">Wormholes</option></select>
+      <div class="row" style="margin-top:6px"><input id="rnSeed" inputmode="numeric" maxlength="9" autocomplete="off" spellcheck="false" placeholder="seed"><button id="bRnRoll" class="ghost" style="flex:0 0 96px">🎲 Reroll</button></div>
+    </div>
     <div class="lbl">Bot skill</div>
     <div class="seg" id="mpDiff"><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
+    <div class="lbl">Mode</div>
+    <div class="seg" id="mpMode"><button data-m="0">Free-for-all</button><button data-m="2">2 teams</button><button data-m="3">3 teams</button></div>
     <div class="lbl">Players</div>
     <div id="slotList"></div>
+    <div class="row" id="slotTools" style="margin-top:4px"><button id="bShuffle" class="ghost">🔀 Shuffle colors</button><button id="bBal" class="ghost">⚖ Auto-balance</button></div>
     <button id="bReady" class="big">Ready</button>
     <div id="lobbyNote" class="note"></div>
     <div class="row"><button id="bLeave" class="ghost">Leave room</button></div>
@@ -215,8 +229,9 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
   <div class="panel">
     <h2>Skirmish</h2>
     <div class="lbl">Map size</div><div class="seg" id="skSize"><button data-v="s">Small</button><button data-v="m">Medium</button><button data-v="l">Large</button></div>
-    <div class="lbl">Rivals</div><div class="seg" id="skRiv"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button></div>
-    <div class="lbl">Who you face</div><div class="chips" id="skPers"><button data-v="0">Random</button><button data-v="1"><i style="background:#ff5464"></i>Red · Aggressive</button><button data-v="2"><i style="background:#96ff5f"></i>Green · Defensive</button><button data-v="3"><i style="background:#cd73ff"></i>Violet · Balanced</button></div>
+    <div class="lbl">Rivals</div><div class="seg" id="skRiv"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div>
+    <div class="lbl">Who you face</div><div class="chips" id="skPers"><button data-v="0">Random</button><button data-v="1"><i style="background:#ff5464"></i>Red · Aggressive</button><button data-v="2"><i style="background:#96ff5f"></i>Green · Defensive</button><button data-v="3"><i style="background:#cd73ff"></i>Violet · Balanced</button><button data-v="4"><i style="background:#ff9826"></i>Orange · Expansionist</button><button data-v="5"><i style="background:#ff80de"></i>Pink · Sniper</button></div>
+    <div class="lbl">Teams</div><div class="seg" id="skTeams"><button data-v="off">Free-for-all</button><button data-v="on">You + AI allies</button></div>
     <div class="lbl">Difficulty</div><div class="seg" id="skDiff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button></div>
     <div class="lbl">Terrain</div><select id="skTer"><option value="none">None (classic)</option><option value="mix">Random features</option><option value="walls">Asteroid walls</option><option value="neb">Nebulae</option><option value="flares">Flares + slingshot lanes</option><option value="special">Special planets</option><option value="worm">Wormholes</option></select>
     <div class="lbl">Start</div><div class="seg" id="skStart"><button data-v="even">Even</button><button data-v="outn">Outnumbered</button></div>
@@ -269,13 +284,21 @@ const bg=document.createElement('canvas');
 const TAU=Math.PI*2, rand=Math.random;
 let DPR=1,CW=1,CH=1,rot=false,FLIP=false,S=1,OX=0,OY=0,SAT=0,SAB=0;
 const MW=1000,MH=1600;
-const FCOL=[[70,215,255],[255,84,100],[150,255,95],[205,115,255]];
+const NF=6;   // max factions: cyan, red, green, violet, orange, pink
+const FCOL=[[70,215,255],[255,84,100],[150,255,95],[205,115,255],[255,152,38],[255,128,222]];
 const NEUT=[135,145,170];
-const FNAME=['You','Red','Green','Violet'];
-const CNAME=['Cyan','Red','Green','Violet'];
+const FNAME=['You','Red','Green','Violet','Orange','Pink'];
+const CNAME=['Cyan','Red','Green','Violet','Orange','Pink'];
+// teams: TEAM[f] = team id; everyone on their own team unless a team mode is on
+let TEAM=[0,1,2,3,4,5],TEAMS_ON=false;const TNAME=['A','B','C'],TCOL=[[255,255,255],[255,214,90],[110,255,225]];
+function teamName(f){return TNAME[TIDX[f]%3];}
+function teamOrder(){const fs=[];for(let f=0;f<NF;f++)if(ownP[f]>0||tot[f]>0||fst.init[f])fs.push(f);return fs.sort((a,b)=>TEAM[a]-TEAM[b]||a-b);}
+let TIDX=[0,1,2,3,4,5];function teamIdx(f){return TIDX[f];}
+function ally(a,b){return a===b||(a>=0&&b>=0&&TEAM[a]===TEAM[b]);}
+function setTeams(t){TEAMS_ON=!!t;TEAM=[0,1,2,3,4,5];if(t)for(let f=0;f<NF;f++)if(t[f]!=null&&t[f]>=0)TEAM[f]=100+t[f];TIDX=TEAM.map(v=>v>=100?v-100:0);}
 let ME=0,HUM=new Set([0]);   // local player's faction, and the set of human-controlled factions
-const net={on:false,role:'',inMatch:false,peer:null,conns:new Map(),hostConn:null,code:'',myId:'',slots:[],map:0,diff:'normal',ready:false,
-  seq:0,ack:[0,0,0,0],pend:[],winner:-2,alive:15,endShown:false,elimShown:false,endMode:'',snapT:0,lastRx:0,bytesOut:0,bytesIn:0,snaps:0,lastFrame:0};
+const net={on:false,role:'',inMatch:false,peer:null,conns:new Map(),hostConn:null,code:'',myId:'',slots:[],map:0,diff:'normal',ready:false,rnd:{size:'m',n:4,ter:'mix',seed:1},teams:0,
+  seq:0,ack:[0,0,0,0,0,0],pend:[],winner:-2,alive:63,endShown:false,elimShown:false,endMode:'',snapT:0,lastRx:0,bytesOut:0,bytesIn:0,snaps:0,lastFrame:0};
 let MODE='camp';const SK={cfg:null,seed:0,streak:0,endless:false,diff:'normal'};
 function diffKey(){return net.inMatch?net.diff:(MODE==='skirm'?SK.diff:save.diff);}
 function curDiff(){return DIFF[diffKey()]||DIFF.normal;}
@@ -284,7 +307,9 @@ const PERS=[
  {label:'BALANCED',  name:'Balanced',  blurb:'',                                 think:1,   delay:1,   defTh:0.8, defGive:0.7, upg:1,   upgRes:6,  attack:1,   hunt:1,   weak:1,   opp:1,   leader:1,   lead:1.35,marginN:1,   marginO:1,   frac:1,   keep:0.05,over:1,   reach:1,   safe:0,   front:true, revenge:1,rOwn:1,rOther:1,opT0:50,opT1:90,opN:6,opB:0.6},
  {label:'AGGRESSIVE',name:'Aggressive',blurb:'raids early and often, big waves', think:0.62,delay:0.4, defTh:1.15,defGive:0.5, upg:0.25,upgRes:16, attack:1.7, hunt:1.35,weak:1.6, opp:1.9, leader:0.8, lead:1.6, marginN:0.9, marginO:0.8, frac:1.25,keep:0,   over:1.7, reach:1.3, safe:0,   front:false,revenge:1.2,rOwn:0.7,rOther:1.05,opT0:30,opT1:65,opN:5,opB:0.8},
  {label:'DEFENSIVE', name:'Defensive', blurb:'turtles, upgrades, counterattacks',think:1.05,delay:1.4, defTh:0.5, defGive:0.9, upg:2.3, upgRes:0,  attack:0.35,hunt:0.9, weak:1,   opp:1,   leader:1,   lead:1.5, marginN:1.1, marginO:1.9, frac:0.8, keep:0.38,over:1,   reach:0.8, safe:1,   front:true, revenge:2.6,rOwn:0.9,rOther:1.45,opT0:65,opT1:115,opN:8,opB:0.6},
- {label:'BALANCED',  name:'Balanced',  blurb:'measured, opportunistic, hunts the leader',think:0.95,delay:1,defTh:0.8,defGive:0.7,upg:1.1,upgRes:6,attack:1,hunt:1,weak:1.1,opp:1.7,leader:1.8,lead:1.2,marginN:1,marginO:1,frac:1,keep:0.1,over:1.1,reach:1,safe:0.4,front:true,revenge:1.3,rOwn:1,rOther:0.9,opT0:48,opT1:88,opN:6,opB:0.65}
+ {label:'BALANCED',  name:'Balanced',  blurb:'measured, opportunistic, hunts the leader',think:0.95,delay:1,defTh:0.8,defGive:0.7,upg:1.1,upgRes:6,attack:1,hunt:1,weak:1.1,opp:1.7,leader:1.8,lead:1.2,marginN:1,marginO:1,frac:1,keep:0.1,over:1.1,reach:1,safe:0.4,front:true,revenge:1.3,rOwn:1,rOther:0.9,opT0:48,opT1:88,opN:6,opB:0.65},
+ {label:'EXPANSIONIST',name:'Expansionist',blurb:'grabs neutrals fast, spreads wide, quick small waves',think:0.78,delay:0.6,defTh:0.9,defGive:0.6,upg:0.5,upgRes:10,attack:1.05,hunt:1,weak:1.3,opp:1.2,leader:0.9,lead:1.4,marginN:0.85,marginO:1.1,frac:1.02,keep:0.04,over:0.9,reach:1.1,safe:0,front:false,revenge:1,rOwn:0.85,rOther:1.1,opT0:62,opT1:108,opN:8,opB:0.85},
+ {label:'SNIPER',name:'Sniper',blurb:'builds up, waits, then strikes weakened and emptied planets',think:0.72,delay:0.9,defTh:0.6,defGive:0.85,upg:1.6,upgRes:4,attack:1.15,hunt:1.4,weak:1.8,opp:2.4,leader:0.8,lead:1.3,marginN:1,marginO:1,frac:1.1,keep:0.18,over:1.25,reach:1.1,safe:0.5,front:true,revenge:1.6,rOwn:0.9,rOther:0.75,opT0:50,opT1:95,opN:7,opB:0.7}
 ];
 const SIZE_R=[34,48,66], SIZE_F=[1,1.6,2.4];
 const SPEED=86, CR=8, CR2=CR*CR;
@@ -360,9 +385,9 @@ const GC=16,GX0=-160,GY0=-160,GW=Math.ceil((MW+320)/GC),GH=Math.ceil((MH+320)/GC
 const ghead=new Int32Array(GW*GH);
 
 /* ---------------- game state ---------------- */
-let planets=[],NP=0,cnt=new Int32Array(4),inc=new Int32Array(4),ph=new Int32Array(1),distM=new Float32Array(1);
-const tot=new Int32Array(4),ownP=new Int32Array(4);
-let aiList=[],aiT=[0,0,0,0],prodMul=[1,1,1,1],aiMulCur=1;
+let planets=[],NP=0,cnt=new Int32Array(NF),inc=new Int32Array(NF),ph=new Int32Array(1),distM=new Float32Array(1);
+const tot=new Int32Array(NF),ownP=new Int32Array(NF);
+let aiList=[],aiT=[0,0,0,0,0,0],prodMul=[1,1,1,1,1,1],aiMulCur=1;
 let state='title',levelIdx=0,curLevel=null,time=0,endTimer=-1,endWin=false,demo=true;
 const sel=new Set(),selS=new Set();
 const selF=new Set();let fleetN=0;   // selected in-flight units of mine (local unit ids)
@@ -411,20 +436,23 @@ const HAND=[
    p.push([500,270,1,-1,1],[500,1330,1,-1,1],[120,800,1,-1,1],[880,800,1,-1,1]);return{name:'Quadrants',ais:[1,2,3],aiMul:1,planets:p};}
 ];
 const SECTOR_NAMES=['Ember Reach','Glass Expanse','Silent Choir','Vanta Drift','Iron Tide','Pale Crown','Last Horizon','Event Horizon'];
-function procLevel(idx,seed,nAIo,aisO){
+function procLevel(idx,seed,nAIo,aisO,fair){
   const rng=mulberry32(seed!=null?seed:(idx*7919+13));
-  const nAI=nAIo!=null?nAIo:(idx<7?2:3);const nf=nAI+1;let best=null;
+  const nAI=nAIo!=null?nAIo:(idx<7?2:3);const nf=nAI+1;let best=null,bestS=1e9;
   for(let attempt=0;attempt<60;attempt++){
     const p=[];const a0=(rng()-0.5)*0.25;
     for(let k=0;k<nf;k++){const a=Math.PI/2+a0+k*TAU/nf;p.push([500+Math.cos(a)*350,800+Math.sin(a)*600,1,k,1]);}
     p.push([500+(rng()-0.5)*80,800+(rng()-0.5)*120,2,-1,1+Math.floor(rng()*2)]);
-    const target=nf+1+10+Math.min(8,idx);let tries=0;
+    const target=nf+1+(fair?Math.max(10+Math.min(8,idx),nf*4-1):10+Math.min(8,idx));let tries=0;
     while(p.length<target&&tries<3000){tries++;const s=rng()<0.5?0:(rng()<0.75?1:2);const r=SIZE_R[s];
       const x=70+r+rng()*(860-2*r),y=90+r+rng()*(1420-2*r);let ok=true;
       for(const q of p){if(Math.hypot(q[0]-x,q[1]-y)<r+SIZE_R[q[2]]+55){ok=false;break;}}
       if(ok)p.push([x,y,s,-1,rng()<0.15?2:1]);}
-    let fair=true;for(let k=0;k<nf;k++){let c=0;for(const q of p){if(q[3]===-1&&Math.hypot(q[0]-p[k][0],q[1]-p[k][1])<420)c++;}if(c<2)fair=false;}
-    best=p;if(fair)break;
+    let fairOK=true;for(let k=0;k<nf;k++){let c=0;for(const q of p){if(q[3]===-1&&Math.hypot(q[0]-p[k][0],q[1]-p[k][1])<420)c++;}if(c<2)fairOK=false;}
+    if(!fair){best=p;if(fairOK)break;continue;}
+    // fair mode (skirmish / multiplayer random maps): keep the attempt where every home has the most equal neutral 'wealth' nearby
+    const val=[];for(let k=0;k<nf;k++){let v=0;for(const q of p)if(q[3]===-1){const d=Math.hypot(q[0]-p[k][0],q[1]-p[k][1]);v+=SIZE_F[q[2]]*Math.max(0,1-d/650);}val.push(v);}
+    const mx=Math.max(...val),mn=Math.min(...val),sc=(mx-mn)/((mx+mn)/2||1)+(fairOK?0:10);if(sc<bestS){bestS=sc;best=p;}
   }
   const ais=aisO||(nAI>=3?[1,2,3]:[[1,3],[2,3],[1,2]][idx%3].slice(0,nAI));
   for(const q of best)if(q[3]>0)q[3]=ais[q[3]-1];
@@ -434,11 +462,11 @@ function procLevel(idx,seed,nAIo,aisO){
 const SK_FEATS=['walls','neb','flares','special','worm'];
 const SK_IDEA={walls:'Asteroid walls block fleets, so they fly around them.',neb:'Nebulae slow fleets and hide numbers.',flares:'Solar flares pulse and burn fleets inside; slingshot lanes run along the edges.',special:'Core at the centre (+10% production), plus a Factory and a Fortress.',worm:'Two linked wormholes: own both and fleets jump instantly.'};
 function skShuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function genSkirm(cfg,seed){seed=seed>>>0;const rng=mulberry32(seed^0x5bd1e995);const riv=Math.max(1,Math.min(3,cfg.riv|0||2));
-  const S=(cfg.pers||[]).filter(f=>f>=1&&f<=3);const pool=skShuffle([1,2,3],rng);
+function genSkirm(cfg,seed){seed=seed>>>0;const rng=mulberry32(seed^0x5bd1e995);const riv=Math.max(1,Math.min(5,cfg.riv|0||2));
+  const S=(cfg.pers||[]).filter(f=>f>=1&&f<=5);const pool=skShuffle([1,2,3,4,5],rng);
   const ais=pool.filter(f=>S.indexOf(f)>=0).concat(pool.filter(f=>S.indexOf(f)<0)).slice(0,riv).sort();
   const sz={s:0,m:4,l:8}[cfg.size]!=null?{s:0,m:4,l:8}[cfg.size]:4;
-  const L=procLevel(sz,seed,riv,ais);const P=L.planets;const nf=riv+1;
+  const L=procLevel(sz,seed,riv,ais,true);const P=L.planets;const nf=riv+1;
   let feats=cfg.ter==='mix'?skShuffle(SK_FEATS.slice(),rng).slice(0,1+(rng()<0.5?1:0)):(SK_FEATS.indexOf(cfg.ter)>=0?[cfg.ter]:[]);
   const T={};const homes=P.slice(0,nf);
   const bal=q=>{const d=homes.map(h=>Math.hypot(h[0]-q[0],h[1]-q[1]));const mx=Math.max(...d),mn=Math.min(...d);return (mx-mn)/((mx+mn)/2||1);};
@@ -463,7 +491,13 @@ function genSkirm(cfg,seed){seed=seed>>>0;const rng=mulberry32(seed^0x5bd1e995);
   feats=feats.filter(k=>k==='walls'?T.walls:k==='neb'?T.neb:true);
   if(cfg.start==='outn')T.outn=true;
   const idea=feats.map(k=>SK_IDEA[k]).concat(T.outn?['You start outnumbered: rivals begin with 50% more units.']:[]).join(' ');if(idea)T.idea=idea;
-  return{name:SECTOR_NAMES[seed%SECTOR_NAMES.length],ais,aiMul:T.outn?0.85:1,T:Object.keys(T).length?T:undefined,planets:P,feats,seed};}
+  const out={name:SECTOR_NAMES[seed%SECTOR_NAMES.length],ais,aiMul:T.outn?0.85:1,T:Object.keys(T).length?T:undefined,planets:P,feats,seed};
+  // skirmish teams: you + floor(n/2)-1 AI allies against the rest
+  if(cfg.teams==='on'&&riv>=2){const n=riv+1,mineN=Math.floor(n/2);const tm=new Array(NF).fill(-1);tm[0]=0;ais.forEach((f,i)=>tm[f]=i<mineN-1?0:1);out.teams=tm;}
+  // multiplayer random map: seeded random colors for the n homes (all peers derive the same ones from the seed)
+  if(cfg.mp){const cols=skShuffle([0,1,2,3,4,5],mulberry32(seed^0x2545f491)).slice(0,nf);const map=o=>o<0?o:cols[o===0?0:ais.indexOf(o)+1];
+    for(const q of P)q[3]=map(q[3]);out.mpF=cols.slice().sort((a,b)=>a-b);out.ais=out.mpF.slice();}
+  return out;}
 const FEAT_PROC={9:'forge',11:'gate',13:'crown',14:'last'};
 const FEAT_IDX=new Set([2,4,6,9,11,13,14]);
 function getLevel(idx){return idx<HAND.length?HAND[idx]():(FEAT_PROC[idx]?procFeat(idx,FEAT_PROC[idx]):procLevel(idx));}
@@ -498,8 +532,8 @@ function procFeat(idx,kind){
   return{name:NM[kind][0],ais:[1,2,3],aiMul:Math.min(1.5,1+0.05*(idx-4))*(kind==='last'?0.75:1),T,planets:p};}
 
 /* ---------------- terrain: walls (routing), nebulae, slingshot lanes, flares, objectives ---------------- */
-let TER={walls:[],neb:[],sling:[],flares:[],obj:null,fog:0,on:false},ROUTE=null,HAZ=null,holdT=[0,0,0,0],objWin=-2;
-const uf=new Int16Array(MAXU),uk=new Uint8Array(MAXU),ut=new Float32Array(MAXU),coreB=[1,1,1,1];
+let TER={walls:[],neb:[],sling:[],flares:[],obj:null,fog:0,on:false},ROUTE=null,HAZ=null,holdT=[0,0,0,0,0,0],objWin=-2;
+const uf=new Int16Array(MAXU),uk=new Uint8Array(MAXU),ut=new Float32Array(MAXU),coreB=[1,1,1,1,1,1];
 function segPt(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy;let t=l?((px-ax)*dx+(py-ay)*dy)/l:0;t=t<0?0:t>1?1:t;const x=ax+dx*t-px,y=ay+dy*t-py;return Math.sqrt(x*x+y*y);}
 function segX(a,b,c,d){const o=(p,q,r)=>Math.sign((q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]));return o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0;}
 function segSeg(a,b,c,d){if(segX(a,b,c,d))return 0;return Math.min(segPt(a[0],a[1],c[0],c[1],d[0],d[1]),segPt(b[0],b[1],c[0],c[1],d[0],d[1]),segPt(c[0],c[1],a[0],a[1],b[0],b[1]),segPt(d[0],d[1],a[0],a[1],b[0],b[1]));}
@@ -514,7 +548,7 @@ function flareAt(F,tt){const ph=((tt+F[5])%F[3]+F[3])%F[3];if(ph<F[4])return 2;i
 function routePts(i,j){const P=planets[i],T=planets[j];const R=ROUTE&&ROUTE[i*NP+j];const a=[P.x,P.y];if(R)for(const v of R)a.push(v);a.push(T.x,T.y);return a;}
 function buildTerrain(L){
   const T=L.T||{};TER={walls:T.walls||[],neb:T.neb||[],sling:T.sling||[],flares:T.flares||[],obj:T.obj||null,fog:T.fog||0};
-  TER.on=!!(TER.neb.length||TER.sling.length);holdT=[0,0,0,0];objWin=-2;ROUTE=null;NAV=null;NAV2=null;GAPS=[];
+  TER.on=!!(TER.neb.length||TER.sling.length);holdT=[0,0,0,0,0,0];objWin=-2;ROUTE=null;NAV=null;NAV2=null;GAPS=[];
   {const E2=[];for(const w of TER.walls){E2.push([w[0],w[1],w[4]]);E2.push([w[2],w[3],w[4]]);}
    for(let a=0;a<E2.length;a++)for(let b=a+1;b<E2.length;b++){const d=Math.hypot(E2[a][0]-E2[b][0],E2[a][1]-E2[b][1]);if(d>60&&d<300&&(a>>1)!==(b>>1))GAPS.push([(E2[a][0]+E2[b][0])/2,(E2[a][1]+E2[b][1])/2]);}
    for(const e of E2){for(const [ex,ey] of [[0,e[1]],[MW,e[1]],[e[0],0],[e[0],MH]]){const d=Math.hypot(e[0]-ex,e[1]-ey);if(d>60&&d<300)GAPS.push([(e[0]+ex)/2,(e[1]+ey)/2]);}}}
@@ -558,7 +592,7 @@ function moveT(i,dt){let tx,ty,wp=false;const st=us[i];if(st===4){if(!SWA[up[i]]
   else if(st===4&&!wp&&d<3+sp*dt){const q=up[i];us[i]=3;const ex=ux[i]-SWX[q],ey=uy[i]-SWY[q];ua[i]=Math.atan2(ey,ex);uc[i]=Math.hypot(ex,ey);ub[i]=Math.sqrt(rand());uw[i]=(rand()<0.5?-1:1)*(0.3+rand()*0.4);}}
 function flareBurn(){for(const F of TER.flares){if(flareAt(F,time)!==2)continue;const r2=F[2]*F[2];
   for(let i=0;i<hiU;i++){if(us[i]<2)continue;const ex=ux[i]-F[0],ey=uy[i]-F[1];if(ex*ex+ey*ey<r2){if(rand()<0.35)addP(ux[i],uy[i],(rand()-0.5)*90,(rand()-0.5)*90,0.6,uo[i]);killU(i);}}}}
-function objStep(dt){if(!TER.obj||demo)return;const P=planets[TER.obj.hold];for(let f=0;f<4;f++)holdT[f]=P.owner===f?holdT[f]+dt:0;
+function objStep(dt){if(!TER.obj||demo)return;const P=planets[TER.obj.hold];for(let f=0;f<NF;f++)holdT[f]=P.owner===f?holdT[f]+dt:0;
   if(objWin===-2&&P.owner>=0&&holdT[P.owner]>=TER.obj.secs)objWin=P.owner;}
 /* ---------------- free swarms: units parked at any point in space ---------------- */
 const MAXS=96;let NAV=null,NAV2=null,GAPS=[],mvN=0;
@@ -589,16 +623,16 @@ function hoverU(i,dt){const q=up[i];if(!SWA[q]){killU(i);return;}const tr=ub[i]*
   const wob=Math.sin(time*0.7+i)*2.5;ux[i]=SWX[q]+Math.cos(ua[i])*(uc[i]+wob);uy[i]=SWY[q]+Math.sin(ua[i])*(uc[i]+wob);}
 // move units of faction f (pct of each planet's garrison + whole swarms) to a point; returns the swarm id there, mvN = units moved
 function moveTo(f,srcP,srcS,x,y,pct){mvN=0;[x,y]=clampPt(x,y);let q=swarmNear(f,x,y,45);if(q<0)q=newSwarm(f,x,y);if(q<0)return -1;const tx=SWX[q],ty=SWY[q];
-  for(const p of srcP){const P=planets[p];if(!P||P.owner!==f)continue;const c=cnt[p*4+f];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
+  for(const p of srcP){const P=planets[p];if(!P||P.owner!==f)continue;const c=cnt[p*NF+f];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
     const o=newOrd(pathPts(P.x,P.y,tx,ty));let j=ph[p],k=0;while(j!==-1&&k<n){if(us[j]===1&&up[j]===p&&uo[j]===f){toSwarmU(j,q,o);k++;}j=upn[j];}
-    cnt[p*4+f]=Math.max(0,cnt[p*4+f]-k);swi[q]+=k;mvN+=k;}
+    cnt[p*NF+f]=Math.max(0,cnt[p*NF+f]-k);swi[q]+=k;mvN+=k;}
   for(const r of srcS){if(r===q||r<0||r>=MAXS||!SWA[r]||SWO[r]!==f)continue;const o=newOrd(pathPts(SWX[r],SWY[r],tx,ty));let k=0;
     for(let j=0;j<hiU;j++)if((us[j]===3||us[j]===4)&&up[j]===r&&uo[j]===f){toSwarmU(j,q,us[j]===3?o:newOrd(pathPts(ux[j],uy[j],tx,ty)));k++;}swc[r]=0;swi[r]=0;swi[q]+=k;mvN+=k;}
   if(!mvN&&swc[q]+swi[q]===0){SWA[q]=0;return -1;}return q;}
 function swarmsToPlanet(f,srcS,t){const T=planets[t];let total=0;
   for(const r of srcS){if(r<0||r>=MAXS||!SWA[r]||SWO[r]!==f)continue;const o=newOrd(pathPts(SWX[r],SWY[r],T.x,T.y));let k=0;
     for(let j=0;j<hiU;j++)if((us[j]===3||us[j]===4)&&up[j]===r&&uo[j]===f){us[j]=2;up[j]=t;uf[j]=-1;uq[j]=us[j]===3?o:o;uk[j]=0;ut[j]=time;const a=rand()*TAU,rr=Math.sqrt(rand())*T.r*0.6;ua[j]=Math.cos(a)*rr;ub[j]=Math.sin(a)*rr;k++;}
-    if(k)noteLaunch(f,t);swc[r]=0;swi[r]=0;inc[t*4+f]+=k;total+=k;}
+    if(k)noteLaunch(f,t);swc[r]=0;swi[r]=0;inc[t*NF+f]+=k;total+=k;}
   if(total&&T.owner!==f)waveAdd(f,t,total);
   if(total&&T.owner>=0&&T.owner!==f&&aiMem[T.owner])aiMem[T.owner].hitBy[t]=time;
   return total;}
@@ -614,7 +648,7 @@ function aiSwarms(f,D,Q,M,mine,avail,threat){
     if(near<0)continue;if(nd<330)threat[near]+=n*0.8;
     const hunt=nd<380||ownP[SWO[q]]===0;if(!hunt||(nd>=330&&rand()>0.35+0.6*D.smart))continue;
     const need=Math.ceil(n*1.3+5);const srcs=mine.filter(i=>avail[i]>need*0.6).sort((a,b)=>Math.hypot(planets[a].x-SWX[q],planets[a].y-SWY[q])-Math.hypot(planets[b].x-SWX[q],planets[b].y-SWY[q]));
-    let left=need;for(const i of srcs){if(left<=0)break;const give=Math.min(left,Math.floor(avail[i]*0.8));if(give<3)continue;moveTo(f,[i],[],SWX[q],SWY[q],give/cnt[i*4+f]);avail[i]-=mvN;left-=mvN;}
+    let left=need;for(const i of srcs){if(left<=0)break;const give=Math.min(left,Math.floor(avail[i]*0.8));if(give<3)continue;moveTo(f,[i],[],SWX[q],SWY[q],give/cnt[i*NF+f]);avail[i]-=mvN;left-=mvN;}
     break;}
   // Defensive: park a small picket at the chokepoint closest to home
   if(Q.defTh<=0.5&&GAPS.length&&M.picket<0){let g=null,gd=1e9;for(const G of GAPS){let dm=1e9,de=1e9;for(let i=0;i<NP;i++){const P=planets[i],d=Math.hypot(P.x-G[0],P.y-G[1]);if(P.owner===f)dm=Math.min(dm,d);else if(P.owner>=0)de=Math.min(de,d);}
@@ -639,14 +673,15 @@ function startLevel(idx,isDemo,custom){
   demo=!!isDemo;levelIdx=idx;
   const L=custom||(isDemo?procLevel(5,(Math.random()*1e9)|0,3):getLevel(idx));curLevel=L;
   resetUnits();SWA.fill(0);uq.fill(-1);rings.length=0;beams.length=0;floats.length=0;for(let i=0;i<MAXP;i++)pl[i]=0;
+  setTeams(isDemo?null:L.teams);
   planets=L.planets.map(makePlanet);NP=planets.length;
-  cnt=new Int32Array(NP*4);inc=new Int32Array(NP*4);ph=new Int32Array(NP).fill(-1);
+  cnt=new Int32Array(NP*NF);inc=new Int32Array(NP*NF);ph=new Int32Array(NP).fill(-1);
   distM=new Float32Array(NP*NP);buildTerrain(L);
   const outn=!!(L.T&&L.T.outn&&!isDemo&&!net.inMatch);
   const D=curDiff();
   aiList=isDemo?[0,1,2,3]:L.ais.slice();
   aiMulCur=isDemo?1:L.aiMul;
-  for(let f=0;f<4;f++){prodMul[f]=(isDemo||HUM.has(f))?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay*PERS[f].delay)+rand()*D.think*PERS[f].think;}
+  for(let f=0;f<NF;f++){prodMul[f]=(isDemo||HUM.has(f))?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay*PERS[f].delay)+rand()*D.think*PERS[f].think;}
   planets.forEach((P,i)=>{if(P.owner>=0)for(let k=0;k<(outn&&P.owner!==ME?24:16);k++)spawnOrbiter(i,P.owner,false);});
   aiInit();
   clearSel();time=0;endTimer=-1;stats={sent:0,killed:0,captured:0,lost:0,produced:0};
@@ -682,9 +717,9 @@ function step(dt){
   cnt.fill(0);inc.fill(0);ph.fill(-1);tot.fill(0);ownP.fill(0);ghead.fill(-1);swc.fill(0);swi.fill(0);
   let nArr=0;
   for(let i=0;i<hiU;i++){if(!us[i])continue;const p=up[i],f=uo[i];tot[f]++;
-    if(us[i]===1){cnt[p*4+f]++;upn[i]=ph[p];ph[p]=i;}
+    if(us[i]===1){cnt[p*NF+f]++;upn[i]=ph[p];ph[p]=i;}
     else if(us[i]===3)swc[p]++;else if(us[i]===4)swi[p]++;
-    else{inc[p*4+f]++;const P=planets[p];const dx=ux[i]-P.x,dy=uy[i]-P.y;if(dx*dx+dy*dy<P.r*P.r*0.85)arrQ[nArr++]=i;}
+    else{inc[p*NF+f]++;const P=planets[p];const dx=ux[i]-P.x,dy=uy[i]-P.y;if(dx*dx+dy*dy<P.r*P.r*0.85)arrQ[nArr++]=i;}
     let cx=((ux[i]-GX0)/GC)|0,cy=((uy[i]-GY0)/GC)|0;if(cx<0)cx=0;else if(cx>=GW)cx=GW-1;if(cy<0)cy=0;else if(cy>=GH)cy=GH-1;
     const g=cy*GW+cx;unext[i]=ghead[g];ghead[g]=i;}
   for(const P of planets)if(P.owner>=0)ownP[P.owner]++;
@@ -694,7 +729,7 @@ function step(dt){
     let cx=((x-GX0)/GC)|0,cy=((y-GY0)/GC)|0;let hit=-1;
     for(let yy=cy-1;yy<=cy+1&&hit<0;yy++){if(yy<0||yy>=GH)continue;
       for(let xx=cx-1;xx<=cx+1;xx++){if(xx<0||xx>=GW)continue;let j=ghead[yy*GW+xx];
-        while(j!==-1){if(us[j]&&uo[j]!==f){const dx=ux[j]-x,dy=uy[j]-y;if(dx*dx+dy*dy<CR2){hit=j;break;}}j=unext[j];}
+        while(j!==-1){if(us[j]&&uo[j]!==f&&TEAM[uo[j]]!==TEAM[f]){const dx=ux[j]-x,dy=uy[j]-y;if(dx*dx+dy*dy<CR2){hit=j;break;}}j=unext[j];}
         if(hit>=0)break;}}
     if(hit>=0){if(METR)metrClash((x+ux[hit])/2,(y+uy[hit])/2);burst((x+ux[hit])/2,(y+uy[hit])/2,f,uo[hit]);if(f===ME||uo[hit]===ME){stats.killed++;if(!demo)sfx.pop();}killU(i);killU(hit);}
   }
@@ -704,7 +739,7 @@ function step(dt){
   coreB.fill(1);for(const P of planets)if(P.type==='C'&&P.owner>=0)coreB[P.owner]*=1.10;
   for(let p=0;p<NP;p++){const P=planets[p];P.flash=Math.max(0,P.flash-dt*3);P.spin+=dt*0.05;
     if(P.owner<0)continue;const mh=maxHp(P);
-    if(cnt[p*4+P.owner]<capOf(P)){P.prodAcc+=prodRate(P)*prodMul[P.owner]*coreB[P.owner]*dt;
+    if(cnt[p*NF+P.owner]<capOf(P)){P.prodAcc+=prodRate(P)*prodMul[P.owner]*coreB[P.owner]*dt;
       while(P.prodAcc>=1){P.prodAcc-=1;if(spawnOrbiter(p,P.owner,true)>=0){if(P.owner===ME)stats.produced++;if(!demo)fst.prod[P.owner]++;}}}
     if(P.hp<mh&&time-P.lastHit>3.5)P.hp=Math.min(mh,P.hp+mh*0.08*dt);}
   // particles
@@ -721,17 +756,19 @@ function step(dt){
   // end check
   if(net.inMatch){if(net.role==='host')mpHostCheck();}
   else if(state==='play'&&endTimer<0){
-    const meAlive=ownP[0]>0||tot[0]>0;let foes=false;for(const f of aiList)if(ownP[f]>0||tot[f]>0)foes=true;
-    if(!meAlive||!foes||objWin>=0){endWin=objWin>=0?objWin===ME:meAlive;endTimer=1.4;}
+    const meAlive=ownP[0]>0||tot[0]>0;let foes=false;for(const f of aiList)if(!ally(f,ME)&&(ownP[f]>0||tot[f]>0))foes=true;
+    if(!meAlive||!foes||objWin>=0){endWin=objWin>=0?ally(objWin,ME):meAlive;endTimer=1.4;}
   }else if(!net.inMatch&&state==='play'&&endTimer>0){endTimer-=dt;if(endTimer<=0)showEnd();}
-  if(demo&&state!=='play'){let alive=0;for(let f=0;f<4;f++)if(ownP[f]>0)alive++;if(alive<=1&&time>5)startLevel(0,true);if(time>240)startLevel(0,true);}
+  if(demo&&state!=='play'){let alive=0;for(let f=0;f<NF;f++)if(ownP[f]>0)alive++;if(alive<=1&&time>5)startLevel(0,true);if(time>240)startLevel(0,true);}
 }
 function arrive(i){
   const p=up[i],P=planets[p],f=uo[i];
-  if(P.owner===f){us[i]=1;const dx=ux[i]-P.x,dy=uy[i]-P.y;ua[i]=Math.atan2(dy,dx);uc[i]=Math.sqrt(dx*dx+dy*dy);ub[i]=orbitR(P);uw[i]=0.6+rand()*0.6;return;}
+  if(P.owner!==f&&P.owner>=0&&TEAM[P.owner]===TEAM[f]){uo[i]=P.owner;f2Reinf(f,P);}   // reinforcing a teammate: units join their garrison
+  if(P.owner===uo[i]){us[i]=1;const dx=ux[i]-P.x,dy=uy[i]-P.y;ua[i]=Math.atan2(dy,dx);uc[i]=Math.sqrt(dx*dx+dy*dy);ub[i]=orbitR(P);uw[i]=0.6+rand()*0.6;return;}
   killU(i);
   if(P.owner===-1){
-    if(P.capOwner===-1||P.capOwner===f){P.capOwner=f;P.capProg++;if(P.capProg>=capReq(P))capture(P,f);}
+    if(P.capOwner>=0&&P.capOwner!==f&&TEAM[P.capOwner]===TEAM[f]){P.capProg++;if(P.capProg>=capReq(P))capture(P,P.capOwner);}   // help a teammate's capture
+    else if(P.capOwner===-1||P.capOwner===f){P.capOwner=f;P.capProg++;if(P.capProg>=capReq(P))capture(P,f);}
     else{if(METR)metr.clash[p]+=2;P.capProg--;if(P.capProg<=0){P.capProg=0;P.capOwner=-1;}}
     P.flash=Math.min(1,P.flash+0.3);return;
   }
@@ -739,6 +776,7 @@ function arrive(i){
   if(j!==-1){burst((ux[i]+ux[j])/2,(uy[i]+uy[j])/2,f,uo[j]);if(f===ME||P.owner===ME){stats.killed++;if(!demo)sfx.pop();}killU(j);ph[p]=upn[j];}
   else{P.hp-=1;P.lastHit=time;P.flash=1;if(P.hp<=0)neutralize(P,f);}
 }
+let reinfT=0;function f2Reinf(f,P){if(!demo&&f===ME&&time-reinfT>1.2){reinfT=time;addRing(P,f,0.7);}}
 function addRing(P,c,d){rings.push({x:P.x,y:P.y,r:P.r,c,t:0,d:d||0.9});}
 function capture(P,f){
   if(METR)metrCaptured(f,P.id);
@@ -760,12 +798,13 @@ function sendUnits(from,to,n){
   while(j!==-1&&sent<n){if(us[j]===1&&up[j]===from&&uo[j]===f){
       if(warp){up[j]=to;ua[j]=rand()*TAU;ub[j]=orbitR(T);uc[j]=T.r*0.5;ux[j]=T.x;uy[j]=T.y;}
       else{us[j]=2;up[j]=to;uf[j]=from;uq[j]=-1;uk[j]=0;ut[j]=time;const a=rand()*TAU,rr=Math.sqrt(rand())*T.r*0.6;ua[j]=Math.cos(a)*rr;ub[j]=Math.sin(a)*rr;}sent++;}j=upn[j];}
-  if(warp){if(sent){cnt[from*4+f]=Math.max(0,cnt[from*4+f]-sent);cnt[to*4+f]+=sent;if(!demo){addRing(P,f,0.6);addRing(T,f,0.9);}}return sent;}
-  if(sent&&T.owner>=0&&T.owner!==f&&aiMem[T.owner])aiMem[T.owner].hitBy[from]=time;
-  if(METR&&sent&&T.owner!==f&&inc[to*4+f]===0)metr.starts.push([to,f,time,T.owner]);
+  if(warp){if(sent){cnt[from*NF+f]=Math.max(0,cnt[from*NF+f]-sent);cnt[to*NF+f]+=sent;if(!demo){addRing(P,f,0.6);addRing(T,f,0.9);}}return sent;}
+  if(sent&&T.owner>=0&&!ally(T.owner,f)&&aiMem[T.owner])aiMem[T.owner].hitBy[from]=time;
+  if(METR&&sent&&T.owner!==f&&inc[to*NF+f]===0)metr.starts.push([to,f,time,T.owner]);
+  if(METR&&sent&&T.owner>=0&&T.owner!==f&&ally(T.owner,f)&&aiList.indexOf(f)>=0&&threatFor(T.owner,to)<6)metr.allyAtk=(metr.allyAtk||0)+1;
   if(METR&&sent&&T.owner!==f&&aiList.indexOf(f)>=0){metrWave(f,to);const F=metr.fs[f];if(metr.waveKey[f*64+to]!==thinkId){metr.waveKey[f*64+to]=thinkId;F.waves++;if(T.owner>=0)F.attacks++;}F.sent+=sent;}
   if(sent){if(T.owner!==f)waveAdd(f,to,sent);noteLaunch(f,to);}
-  cnt[from*4+f]=Math.max(0,cnt[from*4+f]-sent);inc[to*4+f]+=sent;
+  cnt[from*NF+f]=Math.max(0,cnt[from*NF+f]-sent);inc[to*NF+f]+=sent;
   return sent;
 }
 function tryUpgrade(p,f){
@@ -774,7 +813,7 @@ function tryUpgrade(p,f){
   if(have<cost){if(f===ME){sfx.deny();toast(`Upgrade needs ${cost} units here (${have})`,1800);}return false;}
   let k=0;for(let j=ph[p];j!==-1&&k<cost;j=upn[j]){if(us[j]===1&&up[j]===p&&uo[j]===f){
     if(k%2===0)addP(ux[j],uy[j],(P.x-ux[j])*2,(P.y-uy[j])*2,0.45,f);killU(j);k++;}}
-  cnt[p*4+f]=Math.max(0,cnt[p*4+f]-cost);
+  cnt[p*NF+f]=Math.max(0,cnt[p*NF+f]-cost);
   P.level++;P.hp=maxHp(P);P.flash=1;addRing(P,f,1.2);
   if(f===ME&&!demo){sfx.upgrade();if(hintStage<3&&levelIdx===0){hintStage=3;}}
   return true;
@@ -782,9 +821,9 @@ function tryUpgrade(p,f){
 
 /* ---------------- metrics (debug/sim only) ---------------- */
 let METR=false,thinkId=0;const metr={clash:null,rec:{},maxStreak:0,streaks:[],waves:0,lastThink:{}};
-function metrReset(){metr.fs=[0,1,2,3].map(()=>({waves:0,attacks:0,sent:0,lvl:0,lvlN:0,gar:0,garN:0,alive:0}));metr.waveKey={};metr.clash=new Float64Array(NP);metr.rec={};metr.maxStreak=0;metr.waves=0;metr.lastThink={};metr.streaks=[];metr.starts=[];metr.lastStart={};}
+function metrReset(){metr.fs=[0,1,2,3,4,5].map(()=>({waves:0,attacks:0,sent:0,lvl:0,lvlN:0,gar:0,garN:0,alive:0}));metr.waveKey={};metr.clash=new Float64Array(NP);metr.rec={};metr.maxStreak=0;metr.waves=0;metr.lastThink={};metr.streaks=[];metr.starts=[];metr.lastStart={};}
 function metrClash(x,y){for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==-1)continue;const dx=P.x-x,dy=P.y-y,R=P.r+120;if(dx*dx+dy*dy<R*R){metr.clash[p]+=2;return;}}}
-function progMetric(f,t){const T=planets[t];if(T.owner===-1)return T.capOwner===f?T.capProg:-T.capProg;if(T.owner===f)return 1e6;return -(cnt[t*4+T.owner]+T.hp);}
+function progMetric(f,t){const T=planets[t];if(T.owner===-1)return T.capOwner===f?T.capProg:-T.capProg;if(T.owner===f)return 1e6;return -(cnt[t*NF+T.owner]+T.hp);}
 function metrWave(f,t){const k=f*64+t;if(metr.lastThink[k]===thinkId)return;metr.lastThink[k]=thinkId;metr.waves++;
   const pr=progMetric(f,t);let r=metr.rec[k];if(!r)r=metr.rec[k]={streak:0,last:null,lastT:-99};
   if(time-r.lastT<6)return; // top-up of the same wave
@@ -793,12 +832,12 @@ function metrWave(f,t){const k=f*64+t;if(metr.lastThink[k]===thinkId)return;metr
 function metrCaptured(f,p){const r=metr.rec[f*64+p];if(r){r.streak=0;r.last=null;}}
 
 /* ---------------- AI perception: AIs see other factions through a delayed snapshot ---------------- */
-const PERC={on:true},OPEN={on:true};const PRC_DT=0.25,PRC_N=72;let prcBuf=[],prcHead=0,prcAcc=0,prcCnt=0,launchT=new Float32Array(4);
-function prcReset(){prcBuf=[];for(let k=0;k<PRC_N;k++)prcBuf.push({inc:new Int16Array(NP*4),gar:new Int16Array(NP)});prcHead=0;prcAcc=PRC_DT;prcCnt=0;launchT=new Float32Array(NP*4).fill(-99);}
+const PERC={on:true},OPEN={on:true};const PRC_DT=0.25,PRC_N=72;let prcBuf=[],prcHead=0,prcAcc=0,prcCnt=0,launchT=new Float32Array(NF);
+function prcReset(){prcBuf=[];for(let k=0;k<PRC_N;k++)prcBuf.push({inc:new Int16Array(NP*NF),gar:new Int16Array(NP)});prcHead=0;prcAcc=PRC_DT;prcCnt=0;launchT=new Float32Array(NP*NF).fill(-99);}
 function prcTick(dt){prcAcc+=dt;if(prcAcc<PRC_DT&&prcCnt)return;prcAcc=0;prcHead=(prcHead+1)%PRC_N;const B=prcBuf[prcHead];
-  for(let k=0;k<NP*4;k++)B.inc[k]=Math.min(32767,inc[k]);for(let p=0;p<NP;p++){const o=planets[p].owner;B.gar[p]=o>=0?Math.min(32767,cnt[p*4+o]):0;}prcCnt++;}
+  for(let k=0;k<NP*NF;k++)B.inc[k]=Math.min(32767,inc[k]);for(let p=0;p<NP;p++){const o=planets[p].owner;B.gar[p]=o>=0?Math.min(32767,cnt[p*NF+o]):0;}prcCnt++;}
 function prcAt(lag){const k=Math.max(0,Math.min(prcCnt-1,PRC_N-1,Math.round(lag/PRC_DT)));return prcBuf[(prcHead-k+PRC_N)%PRC_N];}
-function noteLaunch(f,to){if(inc[to*4+f]===0&&planets[to].owner!==f)launchT[to*4+f]=time;}
+function noteLaunch(f,to){if(inc[to*NF+f]===0&&planets[to].owner!==f)launchT[to*NF+f]=time;}
 // how long until AI f has noticed + processed what other factions do at planet t
 function perceiveLag(f,t,D,M){const Q=PERS[f],own=planets[t].owner===f;if(!M.jit||M.jitT<time){M.jit=new Float32Array(NP);for(let k=0;k<NP;k++)M.jit[k]=0.8+rand()*0.45;M.jitT=time+8;}
   if(own)return D.pOwn*Q.rOwn*M.jit[t];
@@ -809,11 +848,11 @@ function perceiveLag(f,t,D,M){const Q=PERS[f],own=planets[t].owner===f;if(!M.jit
 
 /* ---------------- AI ---------------- */
 // Per-AI memory: per-target sunk-cost records, last-seen garrisons, who hit us from where.
-const aiMem=[null,null,null,null];
+const aiMem=[null,null,null,null,null,null];
 function aiInit(){prcReset();
-  for(let f=0;f<4;f++)aiMem[f]={tgt:{},prevCnt:new Float32Array(NP),hitBy:new Float32Array(NP).fill(-99),focus:-1,n:0};
+  for(let f=0;f<NF;f++)aiMem[f]={tgt:{},prevCnt:new Float32Array(NP),hitBy:new Float32Array(NP).fill(-99),focus:-1,n:0};
 }
-function aiStrength(){const s=[0,0,0,0];for(let g=0;g<4;g++)s[g]=tot[g];for(const P of planets)if(P.owner>=0)s[P.owner]+=10*P.sf*P.level;return s;}
+function aiStrength(){const s=[0,0,0,0,0,0];for(let g=0;g<NF;g++)s[g]=tot[g];for(const P of planets)if(P.owner>=0)s[P.owner]+=10*P.sf*P.level;return s;}
 function aiThink(f,D){
   thinkId++;
   const M=aiMem[f];if(!M)return;M.n++;const Q=PERS[f];
@@ -822,20 +861,25 @@ function aiThink(f,D){
   const avail=new Float32Array(NP),threat=new Float32Array(NP);
   const PO=PERC.on;const lagT=new Float32Array(NP);for(let t=0;t<NP;t++)lagT[t]=PO?perceiveLag(f,t,D,M):0;
   // belief: other factions' fleets appear only after the lag (but vanish at once), garrisons are as seen lag seconds ago
-  const bInc=(t,g)=>PO&&g!==f?Math.min(inc[t*4+g],prcAt(lagT[t]).inc[t*4+g]):inc[t*4+g];
-  const bGar=t=>PO&&planets[t].owner!==f?prcAt(lagT[t]).gar[t]:cnt[t*4+planets[t].owner];
-  for(const i of mine){avail[i]=cnt[i*4+f];let t=0;for(let g=0;g<4;g++)if(g!==f)t+=bInc(i,g);threat[i]=t;}
+  const bInc=(t,g)=>PO&&g!==f?Math.min(inc[t*NF+g],prcAt(lagT[t]).inc[t*NF+g]):inc[t*NF+g];
+  const bGar=t=>PO&&planets[t].owner!==f?prcAt(lagT[t]).gar[t]:cnt[t*NF+planets[t].owner];
+  for(const i of mine){avail[i]=cnt[i*NF+f];let t=0;for(let g=0;g<NF;g++)if(!ally(g,f))t+=bInc(i,g);threat[i]=t;}
   if(M.picket==null)M.picket=-1;aiSwarms(f,D,Q,M,mine,avail,threat);
   // who is winning? ganging up on a runaway leader is strategic; ganging up on anyone else is not
   const str=aiStrength();let leader=-1,ls=0,second=0;
-  for(let g=0;g<4;g++){if(str[g]>ls){second=ls;ls=str[g];leader=g;}else if(str[g]>second)second=str[g];}
+  for(let g=0;g<NF;g++){if(ally(g,f)&&g!==f)continue;if(str[g]>ls){second=ls;ls=str[g];leader=g;}else if(str[g]>second)second=str[g];}
   const runaway=(D.smart>=0.7||Q.leader>1.5)&&leader>=0&&leader!==f&&ls>Q.lead*Math.max(1,second);
   // 1. defend threatened planets (Defensive reacts early and gives a lot; Aggressive barely bothers)
-  for(const i of mine){const def=avail[i]+inc[i*4+f]+planets[i].hp;
+  for(const i of mine){const def=avail[i]+inc[i*NF+f]+planets[i].hp;
     if(threat[i]>0&&threat[i]>def*Q.defTh){let need=threat[i]*1.2-def+4;
       const helpers=mine.filter(j=>j!==i&&threat[j]===0).sort((a,b)=>distM[a*NP+i]-distM[b*NP+i]);
       for(const j of helpers){if(need<=0)break;const give=Math.min(Math.floor(avail[j]*Q.defGive),Math.ceil(need));if(give<3)continue;
         const s=sendUnits(j,i,give);avail[j]-=s;need-=s;}}}
+  // 1b. teams: help a teammate whose planet is about to fall (light coordination)
+  if(TEAMS_ON&&M.n%2===0){for(let p=0;p<NP;p++){const P=planets[p];if(P.owner<0||P.owner===f||!ally(P.owner,f))continue;
+      const th=threatFor(P.owner,p);if(th<6)continue;const def=cnt[p*NF+P.owner]+inc[p*NF+P.owner]+P.hp;let need=th*1.15-def;if(need<=3)continue;
+      const helpers=mine.filter(j=>threat[j]===0&&distM[j*NP+p]<650).sort((a,b)=>distM[a*NP+p]-distM[b*NP+p]);
+      for(const j of helpers){if(need<=0)break;const give=Math.min(Math.floor(avail[j]*Q.defGive*0.6),Math.ceil(need));if(give<4)continue;const s=sendUnits(j,p,give);avail[j]-=s;need-=s;}}}
   // 2. upgrade when safe
   const upP=Math.min(0.95,D.upg*Q.upg);
   for(const i of mine){const P=planets[i];if(P.level>=3||threat[i]>0)continue;const cost=upCost(P);
@@ -850,13 +894,13 @@ function aiThink(f,D){
     op*=Math.min(1,nearN/2);if(mine.length>=Q.opN)op*=0.35;}
   M.op=op;
   let best=-1,bestScore=0,bestNeed=0,bestMargin=1;
-  for(let t=0;t<NP;t++){const T=planets[t];if(T.owner===f)continue;
+  for(let t=0;t<NP;t++){const T=planets[t];if(T.owner===f||(T.owner>=0&&ally(T.owner,f)))continue;
     let dmin=1e9;for(const i of mine){if(avail[i]>5&&!hazNow(i,t)){const d=distM[i*NP+t];if(d<dmin)dmin=d;}}
     if(dmin>=1e9)continue;
     // every unit already heading there, from everyone
-    const ownInc=inc[t*4+f];let rivalInc=0;for(let g=0;g<4;g++)if(g!==f&&g!==T.owner)rivalInc+=bInc(t,g);
+    let ownInc=inc[t*NF+f],allyInc=0;let rivalInc=0;for(let g=0;g<NF;g++){if(g===f||g===T.owner)continue;if(ally(g,f))allyInc+=inc[t*NF+g];else rivalInc+=bInc(t,g);}
     // someone else just started on this target: we haven't noticed/decided yet (unless we were already en route)
-    if(PO&&ownInc===0){const gap=Math.max(lagT[t],D.gap*(0.9+0.2*M.jit[t]));let fresh=false;for(let g=0;g<4;g++)if(g!==f&&g!==T.owner&&time-launchT[t*4+g]<gap){fresh=true;break;}if(fresh)continue;}
+    if(PO&&ownInc===0){const gap=Math.max(lagT[t],D.gap*(0.9+0.2*M.jit[t]));let fresh=false;for(let g=0;g<NF;g++)if(!ally(g,f)&&g!==T.owner&&time-launchT[t*NF+g]<gap){fresh=true;break;}if(fresh)continue;}
     let need;const neutral=T.owner===-1;const req=capReq(T);
     if(neutral){
       need=T.capOwner===f?req-T.capProg:(T.capOwner===-1?req:req+T.capProg);
@@ -865,17 +909,17 @@ function aiThink(f,D){
       const g=T.owner;need=bGar(t)+bInc(t,g)+T.hp+prodRate(T)*(dmin/SPEED)*0.8;
       need+=rivalInc*0.6*D.smart;     // a third party arriving too will fight us for the capture afterwards
     }
-    need-=ownInc;if(need<=0)continue;
+    need-=ownInc+allyInc;if(need<=0)continue;
     let value=T.sf*(1+0.5*(T.level-1))*(neutral?1.2:Q.attack);
     if(T.type)value*=T.type==='C'?1.4:T.type==='X'?1.35:T.type==='W'?1.25:1.1;
     if(TER.obj&&t===TER.obj.hold)value*=2.5;
     let margin=neutral?Q.marginN:Q.marginO;
     // territory: prefer our own side of the map, avoid a rival's backyard
-    let dr=1e9;for(let q=0;q<NP;q++){const R=planets[q];if(q!==t&&R.owner>=0&&R.owner!==f){const d=distM[q*NP+t];if(d<dr)dr=d;}}
+    let dr=1e9;for(let q=0;q<NP;q++){const R=planets[q];if(q!==t&&R.owner>=0&&!ally(R.owner,f)){const d=distM[q*NP+t];if(d<dr)dr=d;}}
     if(dr<dmin*0.75)value*=1-0.4*D.smart;
     if(neutral&&Q.safe>0&&dr<420)value*=1-0.5*Q.safe;   // Defensive: only expand where it's safe
     // contested by another faction?
-    const contested=rivalInc>=4||(neutral&&T.capOwner>=0&&T.capOwner!==f&&T.capProg>=2);
+    const contested=rivalInc>=4||(neutral&&T.capOwner>=0&&!ally(T.capOwner,f)&&T.capProg>=2);
     const finishing=neutral&&T.capOwner===f&&T.capProg>=0.6*req;
     const leaderTarget=runaway&&T.owner===leader;
     if(contested&&!finishing&&!leaderTarget){
@@ -890,6 +934,7 @@ function aiThink(f,D){
     if(T.owner>=0&&time-M.hitBy[t]<15){value*=Q.revenge;if(Q.revenge>2)margin=Math.min(margin,1.05);}
     if(T.owner>=0&&need<15)value*=Q.weak;
     if(HUM.has(T.owner))value*=D.hunt*Q.hunt;
+    if(allyInc>=4&&T.owner>=0)value*=1.45;   // gang up with teammates on a shared enemy
     if(op>0){if(neutral)value*=1+Q.opB*op;else value*=need<6?1-0.5*op:1-0.92*op;}   // owned targets only if nearly free
     // sunk cost: recently wasted waves here -> look elsewhere for a while
     const rec=M.tgt[t];if(rec&&rec.coolUntil>time)value*=0.08;
@@ -919,7 +964,7 @@ function aiThink(f,D){
   // 4. move idle back-line units to the front (Normal/Hard, and personalities that hold lines)
   if(!launched&&Q.front&&D.smart>=0.7&&M.n%3===0&&mine.length>1){
     const fd=new Float32Array(NP).fill(1e9);let front=-1,fb=1e9;
-    for(const i of mine){for(let q=0;q<NP;q++){const R=planets[q];if(R.owner>=0&&R.owner!==f){const d=distM[i*NP+q];if(d<fd[i])fd[i]=d;}}if(fd[i]<fb){fb=fd[i];front=i;}}
+    for(const i of mine){for(let q=0;q<NP;q++){const R=planets[q];if(R.owner>=0&&!ally(R.owner,f)){const d=distM[i*NP+q];if(d<fd[i])fd[i]=d;}}if(fd[i]<fb){fb=fd[i];front=i;}}
     if(front>=0&&fb<1e9)for(const i of mine){const P=planets[i];if(i===front||threat[i]>0)continue;
       if(avail[i]>=capOf(P)*0.7&&fd[i]>fb+150){const s=sendUnits(i,front,Math.floor(avail[i]*0.5));avail[i]-=s;}}
   }
@@ -973,10 +1018,10 @@ const VG=new Uint8Array(20*32);let vgOn=false;
 function computeVis(){vgOn=!demo&&!!(TER.fog||TER.neb.length);if(!vgOn)return;const R2=TER.fog*TER.fog;
   for(let cy=0;cy<32;cy++)for(let cx=0;cx<20;cx++){const x=cx*50+25,y=cy*50+25;let v=1;
     for(const n of TER.neb){const ex=x-n[0],ey=y-n[1];if(ex*ex+ey*ey<n[2]*n[2]){v=0;break;}}
-    if(v&&TER.fog){v=2;for(const P of planets)if(P.owner===ME){const ex=x-P.x,ey=y-P.y;if(ex*ex+ey*ey<R2){v=1;break;}}}
+    if(v&&TER.fog){v=2;for(const P of planets)if(P.owner>=0&&ally(P.owner,ME)){const ex=x-P.x,ey=y-P.y;if(ex*ex+ey*ey<R2){v=1;break;}}}
     VG[cy*20+cx]=v;}}
 function visAt(x,y){if(!vgOn)return true;let cx=(x/50)|0,cy=(y/50)|0;cx=cx<0?0:cx>19?19:cx;cy=cy<0?0:cy>31?31:cy;return VG[cy*20+cx]===1;}
-function pHidden(P){return vgOn&&P.owner>=0&&P.owner!==ME&&!visAt(P.x,P.y);}
+function pHidden(P){return vgOn&&P.owner>=0&&!ally(P.owner,ME)&&!visAt(P.x,P.y);}
 function buildTerLayer(){
   terC.width=CW*DPR;terC.height=CH*DPR;const c=terC.getContext('2d');c.setTransform(DPR,0,0,DPR,0,0);c.clearRect(0,0,CW,CH);
   for(const n of TER.neb){const x=SX(n[0],n[1]),y=SY(n[0],n[1]),r=n[2]*S;const rg=mulberry32(n[0]*7+n[1]);
@@ -1026,7 +1071,7 @@ function drawSpecial(P,x,y,r,col,now){
 }
 // level pips on every owned planet; on your own planets a soft halo = "can still be upgraded", brighter + ▲ when affordable now; maxed = gold rim
 function drawLevel(P,p,x,y,r,col,now){const mine=P.owner===ME,L=P.level,maxed=L>=3;
-  if(mine&&!maxed){const can=cnt[p*4+ME]>=upCost(P);const pu=0.5+0.5*Math.sin(now*(can?3.4:1.5)+p);const hr=r+15;
+  if(mine&&!maxed){const can=cnt[p*NF+ME]>=upCost(P);const pu=0.5+0.5*Math.sin(now*(can?3.4:1.5)+p);const hr=r+15;
     const g=ctx.createRadialGradient(x,y,r,x,y,hr+6);g.addColorStop(0,rgb(col,0));g.addColorStop(0.7,rgb(col,can?0.22+0.14*pu:0.07+0.05*pu));g.addColorStop(1,rgb(col,0));
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,hr+6,0,TAU);ctx.fill();
     ctx.strokeStyle=rgb(mix(col,WHITE,can?0.6:0.3),can?0.55+0.35*pu:0.22+0.14*pu);ctx.lineWidth=can?1.8:1.2;ctx.beginPath();ctx.arc(x,y,hr,0,TAU);ctx.stroke();
@@ -1070,7 +1115,7 @@ function render(){
     if(aimPt&&!aimCancel){const x=SX(aimPt[0],aimPt[1]),y=SY(aimPt[0],aimPt[1]);const pu=0.5+0.5*Math.sin(now*9);
       ctx.strokeStyle='rgba(170,245,255,0.95)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,14+pu*3,0,TAU);ctx.stroke();
       ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.moveTo(x,y-6);ctx.lineTo(x,y+6);ctx.stroke();
-      let n=0;for(const p of aimSources()){const c=cnt[p*4+ME];n+=save.pct>=1?c:Math.round(c*save.pct);}for(const q of aimSwarms())n+=swc[q]+swi[q];
+      let n=0;for(const p of aimSources()){const c=cnt[p*NF+ME];n+=save.pct>=1?c:Math.round(c*save.pct);}for(const q of aimSwarms())n+=swc[q]+swi[q];
       ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText('move '+n,Math.max(42,Math.min(CW-42,x)),y-30);}
     if(aimCancel){const sx0=ptr.start>=0?SX(planets[ptr.start].x,planets[ptr.start].y):SX(SWX[ptr.startS],SWY[ptr.startS]),sy0=ptr.start>=0?SY(planets[ptr.start].x,planets[ptr.start].y):SY(SWX[ptr.startS],SWY[ptr.startS]);
       const rr=ptr.start>=0?planets[ptr.start].r*S:swR(ptr.startS)*S;ctx.font='700 13px system-ui,-apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='rgba(220,230,240,0.85)';ctx.fillText('release to cancel',sx0,sy0-rr-26);}
@@ -1114,8 +1159,13 @@ function render(){
   ctx.globalCompositeOperation='source-over';drawFog();ctx.globalCompositeOperation='lighter';
   // particles
   for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;const k=pl[i]/pml[i];const s2=sz*(0.4+0.8*k);ctx.globalAlpha=k;
-    ctx.drawImage(sprites[pc[i]<0?4:pc[i]],SX(px[i],py[i])-s2/2,SY(px[i],py[i])-s2/2,s2,s2);}
+    ctx.drawImage(sprites[pc[i]<0?NF:pc[i]],SX(px[i],py[i])-s2/2,SY(px[i],py[i])-s2/2,s2,s2);}
   ctx.globalAlpha=1;
+  // team accents: faint team-colored outline + tiny team letter on every owned planet
+  if(TEAMS_ON){ctx.font='800 9px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    for(const P of planets){if(P.owner<0)continue;const ids=teamIdx(P.owner);const tc=TCOL[ids%3];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
+      ctx.strokeStyle=rgb(tc,ally(P.owner,ME)?0.5:0.3);ctx.lineWidth=1.3;ctx.setLineDash([5,4]);ctx.beginPath();ctx.arc(x,y,r+10,0,TAU);ctx.stroke();ctx.setLineDash([]);
+      const bx=x+r*0.78,by=y+r*0.78;ctx.fillStyle='rgba(6,12,24,0.85)';ctx.beginPath();ctx.arc(bx,by,6.5,0,TAU);ctx.fill();ctx.strokeStyle=rgb(tc,0.9);ctx.lineWidth=1.2;ctx.stroke();ctx.fillStyle=rgb(tc);ctx.fillText(TNAME[ids%3],bx,by+0.5);}}
   for(const R of rings){const k=R.t/R.d;const col=R.c>=0?FCOL[R.c]:NEUT;ctx.strokeStyle=rgb(col,(1-k)*0.8);ctx.lineWidth=3*(1-k)+0.5;
     ctx.beginPath();ctx.arc(SX(R.x,R.y),SY(R.x,R.y),(R.r+k*R.r*1.8)*S,0,TAU);ctx.stroke();}
   for(const B of beams){const k=B.t/B.d;const a=SX(B.x1,B.y1),b=SY(B.x1,B.y1),c=SX(B.x2,B.y2),d=SY(B.x2,B.y2);
@@ -1125,13 +1175,13 @@ function render(){
   ctx.textAlign='center';ctx.textBaseline='middle';
   for(let p=0;p<NP;p++){const P=planets[p];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
     let txt='',a=0.9;
-    if(P.owner>=0){txt=pHidden(P)?'?':String(cnt[p*4+P.owner]);a=P.owner===ME?0.95:0.7;}
+    if(P.owner>=0){txt=pHidden(P)?'?':String(cnt[p*NF+P.owner]);a=P.owner===ME?0.95:0.7;}
     else{const req=capReq(P);txt=String(P.capOwner>=0?Math.max(0,req-P.capProg):req);a=0.45;}
     ctx.font=`600 ${Math.max(10,Math.round(r*0.6))}px system-ui,-apple-system,sans-serif`;
     ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fillText(txt,x,y+1);
     if(P.type){ctx.font='700 9px system-ui,-apple-system,sans-serif';ctx.fillStyle=P.type==='C'?'rgba(255,220,130,0.85)':P.type==='W'?'rgba(215,175,255,0.85)':'rgba(220,235,255,0.7)';ctx.fillText(TLABEL[P.type],x,y+r+(P.type==='C'?30:20));}
   }
-  if(TER.obj&&state!=='title'){const P=planets[TER.obj.hold];let best=-1;for(let f=0;f<4;f++)if(holdT[f]>0)best=f;
+  if(TER.obj&&state!=='title'){const P=planets[TER.obj.hold];let best=-1;for(let f=0;f<NF;f++)if(holdT[f]>0)best=f;
     ctx.font='700 13px system-ui,-apple-system,sans-serif';ctx.fillStyle=best>=0?rgb(FCOL[best],0.95):'rgba(255,220,130,0.85)';
     ctx.fillText(best>=0?`${best===ME?'You hold':CNAME[best]+' holds'} the Core · ${Math.ceil(TER.obj.secs-holdT[best])}s`:`Hold the Core ${TER.obj.secs}s to win`,CW/2,CH-SAB-(rot?40:96));}
   for(const F of floats){const k=F.t/F.d;ctx.globalAlpha=1-k*k;ctx.font='700 16px system-ui,-apple-system,sans-serif';ctx.fillStyle='#bff4ff';
@@ -1150,13 +1200,13 @@ function render(){
     else if(lassoSet&&lassoSet.has(p)){ctx.strokeStyle='rgba(190,250,255,0.6)';ctx.lineWidth=2;ctx.setLineDash([4,5]);ctx.beginPath();ctx.arc(x,y,r+12,0,TAU);ctx.stroke();ctx.setLineDash([]);}
     if(p===aimT){const own=planets[p].owner===ME;ctx.strokeStyle=own?'rgba(150,255,200,0.95)':'rgba(255,255,255,0.95)';ctx.lineWidth=3;
       ctx.beginPath();ctx.arc(x,y,r+14+Math.sin(now*10)*2,0,TAU);ctx.stroke();
-      let n=0;for(const q of aimSources()){if(q===p)continue;const c=cnt[q*4+ME];n+=save.pct>=1?c:Math.round(c*save.pct);}for(const q of aimSwarms())n+=swc[q]+swi[q];
+      let n=0;for(const q of aimSources()){if(q===p)continue;const c=cnt[q*NF+ME];n+=save.pct>=1?c:Math.round(c*save.pct);}for(const q of aimSwarms())n+=swc[q]+swi[q];
       ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.fillStyle='#fff';ctx.fillText((own?'reinforce ':(planets[p].owner<0?'capture ':'attack '))+n,x,y-r-26);}
   }
   // upgrade chip (big button)
   chip=null;
   if(state==='play'&&sel.size===1&&!selS.size&&!aiming){const p=sel.values().next().value;const P=planets[p];
-    if(P&&P.owner===ME&&P.level<3&&cnt[p*4+ME]<upCost(P)){const cost=upCost(P),have=cnt[p*4+ME],ok=have>=cost;const w=128,hh=44;const px0=SX(P.x,P.y),py0=SY(P.x,P.y),pr=P.r*S;
+    if(P&&P.owner===ME&&P.level<3&&cnt[p*NF+ME]<upCost(P)){const cost=upCost(P),have=cnt[p*NF+ME],ok=have>=cost;const w=128,hh=44;const px0=SX(P.x,P.y),py0=SY(P.x,P.y),pr=P.r*S;
       // pick the spot (above/below/left/right) that overlaps other planets least and stays on screen
       const cands=[[px0,py0-pr-50],[px0,py0+pr+50],[px0-pr-w/2-22,py0],[px0+pr+w/2+22,py0]];let x=0,y=0,bestPen=1e9;
       for(const c of cands){const cx2=Math.max(w/2+8,Math.min(CW-w/2-8,c[0])),cy2=Math.max(SAT+100,Math.min(CH-SAB-110,c[1]));let pen=0;
@@ -1174,7 +1224,7 @@ function render(){
   badges.length=0;
   if(state==='play'){
     for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==ME)continue;const th=threatOn(p);if(th<3)continue;
-      const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;const covered=cnt[p*4+ME]+inc[p*4+ME]+P.hp>=th*1.1;const pu=0.5+0.5*Math.sin(now*8);
+      const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;const covered=cnt[p*NF+ME]+inc[p*NF+ME]+P.hp>=th*1.1;const pu=0.5+0.5*Math.sin(now*8);
       ctx.strokeStyle=covered?`rgba(255,190,90,${0.45+0.4*pu})`:`rgba(255,70,90,${0.55+0.45*pu})`;ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.lineDashOffset=-now*30;
       ctx.beginPath();ctx.arc(x,y,r+7+pu*3,0,TAU);ctx.stroke();ctx.setLineDash([]);
       const w=92,hh=34;
@@ -1193,7 +1243,7 @@ function render(){
     }
     // one-tap upgrade badges: a ▲ pill next to each of your planets that can afford its next level right now
     upBadges.length=0;
-    if(!aiming)for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==ME||P.level>=3||cnt[p*4+ME]<upCost(P))continue;
+    if(!aiming)for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==ME||P.level>=3||cnt[p*NF+ME]<upCost(P))continue;
       const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;const w=40,hh=24,o=r*0.72+17;
       const cands=[[x+o,y-o],[x-o,y-o],[x,y-r-hh/2-16],[x+r+w/2+10,y],[x-r-w/2-10,y],[x+o,y+o]];let bx=0,by=0,bp=1e9;
       for(const c of cands){const cx2=Math.max(w/2+6,Math.min(CW-w/2-6,c[0])),cy2=Math.max(SAT+70,Math.min(CH-SAB-80,c[1]));let pen=Math.hypot(cx2-c[0],cy2-c[1])*0.5;
@@ -1203,7 +1253,7 @@ function render(){
         for(const U of upBadges)if(Math.abs(U.x-cx2)<w+6&&Math.abs(U.y-cy2)<hh+6)pen+=200;
         if(tipS.p===p&&cy2<y-r)pen+=60;
         if(pen<bp){bp=pen;bx=cx2;by=cy2;}}
-      const pressed=ptr.down&&ptr.mode==='upb'&&ptr.start===p;const pu=0.5+0.5*Math.sin(now*4+p);
+      const pressed=ptr.down&&ptr.mode==='upb'&&ptr.start===p;const pu=0.5+0.5*Math.sin(now*NF+p);
       ctx.save();ctx.shadowColor=rgb(FCOL[ME],0.8);ctx.shadowBlur=8+6*pu;
       ctx.fillStyle=pressed?'rgba(255,255,255,0.95)':rgb(mix(FCOL[ME],[10,40,70],0.35),0.92);ctx.strokeStyle='rgba(230,252,255,0.95)';ctx.lineWidth=1.5;
       rrect(bx-w/2,by-hh/2,w,hh,hh/2);ctx.fill();ctx.stroke();ctx.restore();
@@ -1211,9 +1261,12 @@ function render(){
       upBadges.push({x:bx,y:by,w:w+16,h:hh+16,p});}
   }
   // power bar
-  if(state==='play'||state==='end'||state==='paused'){let sum=0;const val=[0,0,0,0];for(let f=0;f<4;f++){val[f]=tot[f];for(const P of planets)if(P.owner===f)val[f]+=8*P.sf*P.level;sum+=val[f];}
+  if(state==='play'||state==='end'||state==='paused'){let sum=0;const val=[0,0,0,0,0,0];for(let f=0;f<NF;f++){val[f]=tot[f];for(const P of planets)if(P.owner===f)val[f]+=8*P.sf*P.level;sum+=val[f];}
     if(sum>0){const bw=Math.min(CW-40,420),bx=(CW-bw)/2,by=SAT+(rot?50:60);let cx=bx;
-      for(let f=0;f<4;f++){if(!val[f])continue;const w=bw*val[f]/sum;ctx.fillStyle=rgb(FCOL[f],0.85);ctx.fillRect(cx,by,Math.max(0,w-1),4);cx+=w;}}}
+      const ord=[0,1,2,3,4,5].filter(f=>val[f]).sort((a,b)=>TEAM[a]-TEAM[b]||a-b);let lastT=null,t0=cx,ti=0;
+      const tLab=(x0,x1)=>{if(!TEAMS_ON)return;ctx.font='700 9px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle=rgb(TCOL[ti%3],0.85);ctx.fillText('TEAM '+TNAME[ti%3],(x0+x1)/2,by+7);ctx.fillRect(x0,by+5,Math.max(0,x1-x0-2),1);};
+      for(const f of ord){if(TEAMS_ON&&lastT!==null&&TEAM[f]!==lastT){tLab(t0,cx);ti++;cx+=4;t0=cx;}lastT=TEAM[f];const w=(bw-(TEAMS_ON?8:0))*val[f]/sum;ctx.fillStyle=rgb(FCOL[f],0.85);ctx.fillRect(cx,by,Math.max(0,w-1),4);cx+=w;}
+      if(ord.length)tLab(t0,cx);}}
 }
 function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
@@ -1247,7 +1300,7 @@ function aimSwarms(){const s=new Set(selS);if(ptr.startS>=0&&SWA[ptr.startS]&&SW
 function isSource(pk){return pk&&((pk.k==='p'&&pk.i===ptr.start)||(pk.k==='s'&&pk.i===ptr.startS));}
 function moveFrom(srcP,srcS,x,y){
   srcP=[...srcP].filter(p=>planets[p]&&planets[p].owner===ME);srcS=[...srcS].filter(q=>SWA[q]&&SWO[q]===ME);
-  let n=0;for(const p of srcP){const c=cnt[p*4+ME];n+=c?(save.pct>=1?c:Math.max(1,Math.round(c*save.pct))):0;}for(const q of srcS)n+=swc[q]+swi[q];
+  let n=0;for(const p of srcP){const c=cnt[p*NF+ME];n+=c?(save.pct>=1?c:Math.max(1,Math.round(c*save.pct))):0;}for(const q of srcS)n+=swc[q]+swi[q];
   clearSel();[x,y]=clampPt(x,y);
   if(!n){if(!fleetN){sfx.deny();toast('No units to move yet',1500);}return;}
   if(net.inMatch&&net.role==='client'){mpToHost({t:'cmd',c:'move',src:srcP,sw:srcS,x:Math.round(x),y:Math.round(y),pct:save.pct,seq:++net.seq});}
@@ -1256,20 +1309,20 @@ function moveFrom(srcP,srcS,x,y){
   sfx.send();buzz(14);stats.sent+=n;rings.push({x,y,r:18,c:ME,t:0,d:0.7});rings.push({x,y,r:8,c:ME,t:0,d:0.45});
   floats.push({x,y,r:10,s:'move '+n,t:0,d:1});}
 function aimTarget(){const t=planetAt(ptr.x,ptr.y);return t===ptr.start?-1:t;}
-function threatFor(f,p){let t=0;for(let g=0;g<4;g++)if(g!==f)t+=inc[p*4+g];return t;}
-function threatOn(p){let t=0;for(let g=0;g<4;g++)if(g!==ME)t+=inc[p*4+g];return t;}
+function threatFor(f,p){let t=0;for(let g=0;g<NF;g++)if(!ally(g,f))t+=inc[p*NF+g];return t;}
+function threatOn(p){let t=0;for(let g=0;g<NF;g++)if(!ally(g,ME))t+=inc[p*NF+g];return t;}
 function defend(p){
   if(net.inMatch&&net.role==='client'){mpClientDefend(p);return;}
   defendF(ME,p,save.pct,true);
 }
 function defendF(f,p,pct,fx){
-  const P=planets[p];if(!P||P.owner!==f)return;let th=0;for(let g=0;g<4;g++)if(g!==f)th+=inc[p*4+g];
-  let need=Math.ceil(th*1.2+4-(cnt[p*4+f]+inc[p*4+f]+P.hp));
+  const P=planets[p];if(!P||P.owner!==f)return;let th=0;for(let g=0;g<NF;g++)if(!ally(g,f))th+=inc[p*NF+g];
+  let need=Math.ceil(th*1.2+4-(cnt[p*NF+f]+inc[p*NF+f]+P.hp));
   if(need<=0){if(!fx)return;sfx.select();floats.push({x:P.x,y:P.y,r:P.r,s:'✓ covered',t:0,d:1});toast('Covered: your garrison and incoming units can hold',1800);return;}
-  const srcs=[];for(let q=0;q<NP;q++)if(q!==p&&planets[q].owner===f&&threatFor(f,q)<3&&cnt[q*4+f]>0)srcs.push(q);
+  const srcs=[];for(let q=0;q<NP;q++)if(q!==p&&planets[q].owner===f&&threatFor(f,q)<3&&cnt[q*NF+f]>0)srcs.push(q);
   srcs.sort((a,b)=>distM[a*NP+p]-distM[b*NP+p]);
   let total=0;
-  for(const q of srcs){if(need<=0)break;const c=cnt[q*4+f];const cap=pct>=1?c:Math.max(1,Math.round(c*pct));const give=Math.min(cap,need);
+  for(const q of srcs){if(need<=0)break;const c=cnt[q*NF+f];const cap=pct>=1?c:Math.max(1,Math.round(c*pct));const give=Math.min(cap,need);
     const s2=sendUnits(q,p,give);if(s2>0){total+=s2;need-=s2;if(fx)beams.push({x1:planets[q].x,y1:planets[q].y,x2:P.x,y2:P.y,t:0,d:0.5});}}
   if(!fx)return;
   save.defUsed=true;persist();
@@ -1387,14 +1440,14 @@ function onUp(sx,sy){
     if(added){sfx.select();buzz(12);}}
 }
 function doSend(f,src,t,pct,fx){let total=0;const T=planets[t];
-  for(const p of src){if(p===t||!planets[p]||planets[p].owner!==f)continue;const c=cnt[p*4+f];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
+  for(const p of src){if(p===t||!planets[p]||planets[p].owner!==f)continue;const c=cnt[p*NF+f];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
     const s=sendUnits(p,t,n);if(s>0){total+=s;if(fx)beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}}
   return total;}
 function sendFrom(src,t,srcS){srcS=(srcS||[]).filter(q=>SWA[q]&&SWO[q]===ME);
   if(net.inMatch&&net.role==='client'){mpClientSend(src,t,srcS);return;}
   let total=swarmsToPlanet(ME,srcS,t);const T=planets[t];
   for(const q of srcS)beams.push({x1:SWX[q],y1:SWY[q],x2:T.x,y2:T.y,t:0,d:0.45});
-  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*4+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
+  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*NF+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
     const s=sendUnits(p,t,n);if(s>0){total+=s;beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}}
   clearSel();
   if(total>0){sfx.send();buzz(18);stats.sent+=total;rings.push({x:T.x,y:T.y,r:T.r*0.6,c:ME,t:0,d:0.5});
@@ -1470,19 +1523,19 @@ window.addEventListener('keydown',e=>{
   if(lk==='u'){let p=-1;if(sel.size===1&&!selS.size)p=sel.values().next().value;else{const h=hoverPlanet();if(h>=0&&planets[h].owner===ME)p=h;}
     if(p<0){toast('Select one of your planets to upgrade',1300);sfx.deny();return;}if(playerUpgrade(p))buzz(25);return;}
   if(lk==='d'){let p=-1;const h=hoverPlanet();if(h>=0&&planets[h].owner===ME&&threatOn(h)>0)p=h;
-    else{let bs=0;for(let q=0;q<NP;q++){const P=planets[q];if(P.owner!==ME)continue;const t=threatOn(q);if(t<=0)continue;const sc=t-(cnt[q*4+ME]+inc[q*4+ME]+P.hp);const v=sc+t*0.01;if(p<0||v>bs){bs=v;p=q;}}}
+    else{let bs=0;for(let q=0;q<NP;q++){const P=planets[q];if(P.owner!==ME)continue;const t=threatOn(q);if(t<=0)continue;const sc=t-(cnt[q*NF+ME]+inc[q*NF+ME]+P.hp);const v=sc+t*0.01;if(p<0||v>bs){bs=v;p=q;}}}
     if(p<0){toast('No planet under attack',1100);return;}defend(p);return;}
 });
 
 /* ---------------- match history (sampled ~1 s) + end-of-match graph ---------------- */
-let hist={t:[],u:[[],[],[],[]],p:[[],[],[],[]],ev:[],src:'local'},fst={prod:[0,0,0,0],init:[0,0,0,0],cap:[0,0,0,0],wave:[0,0,0,0]},histT=0,histAlive=0,waveA=[null,null,null,null];
-function histReset(){hist={t:[],u:[[],[],[],[]],p:[[],[],[],[]],ev:[],src:'local'};fst={prod:[0,0,0,0],init:[0,0,0,0],cap:[0,0,0,0],wave:[0,0,0,0]};histT=0;waveA=[null,null,null,null];
-  for(let i=0;i<hiU;i++)if(us[i])fst.init[uo[i]]++;histAlive=0;for(let f=0;f<4;f++)if(fst.init[f])histAlive|=1<<f;
-  if(!demo){hist.t.push(0);for(let f=0;f<4;f++){hist.u[f].push(fst.init[f]);hist.p[f].push(planets.filter(P=>P.owner===f).length);}}}
+let hist={t:[],u:[[],[],[],[],[],[]],p:[[],[],[],[],[],[]],ev:[],src:'local'},fst={prod:[0,0,0,0,0,0],init:[0,0,0,0,0,0],cap:[0,0,0,0,0,0],wave:[0,0,0,0,0,0]},histT=0,histAlive=0,waveA=[null,null,null,null,null,null];
+function histReset(){hist={t:[],u:[[],[],[],[],[],[]],p:[[],[],[],[],[],[]],ev:[],src:'local'};fst={prod:[0,0,0,0,0,0],init:[0,0,0,0,0,0],cap:[0,0,0,0,0,0],wave:[0,0,0,0,0,0]};histT=0;waveA=[null,null,null,null,null,null];
+  for(let i=0;i<hiU;i++)if(us[i])fst.init[uo[i]]++;histAlive=0;for(let f=0;f<NF;f++)if(fst.init[f])histAlive|=1<<f;
+  if(!demo){hist.t.push(0);for(let f=0;f<NF;f++){hist.u[f].push(fst.init[f]);hist.p[f].push(planets.filter(P=>P.owner===f).length);}}}
 function histEv(k,f,p){if(demo||hist.ev.length>4000)return;hist.ev.push([Math.round(time*10)/10,k,f,p]);}
 function waveAdd(f,to,n){if(demo)return;const w=waveA[f];if(w&&w.to===to&&time-w.t<0.3)w.n+=n;else waveA[f]={to,t:time,n};if(waveA[f].n>fst.wave[f])fst.wave[f]=waveA[f].n;}
 function histSample(){if(hist.t.length>=7200)return;hist.t.push(Math.round(time*10)/10);
-  for(let f=0;f<4;f++){hist.u[f].push(tot[f]);hist.p[f].push(ownP[f]);if((histAlive>>f&1)&&hist.t.length>1&&ownP[f]===0&&tot[f]===0){histAlive&=~(1<<f);histEv(2,f,-1);}}}
+  for(let f=0;f<NF;f++){hist.u[f].push(tot[f]);hist.p[f].push(ownP[f]);if((histAlive>>f&1)&&hist.t.length>1&&ownP[f]===0&&tot[f]===0){histAlive&=~(1<<f);histEv(2,f,-1);}}}
 function histTick(dt){if(demo||state!=='play')return;histT+=dt;if(histT>=1){histT-=1;histSample();}}
 function histFinal(){const n=hist.t.length;if(!n||time-hist.t[n-1]>0.4)histSample();}
 const mmss=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
@@ -1494,7 +1547,12 @@ function drawGraph(){const r=gc.getBoundingClientRect();const W=Math.max(200,Mat
   const g=gc.getContext('2d');g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,W,H);
   const T=hist.t,n=T.length;g.font='10px system-ui,sans-serif';
   if(n<2){g.fillStyle='rgba(220,240,255,.5)';g.textAlign='center';g.fillText('Not enough data yet',W/2,H/2);return;}
-  const A=gMode==='u'?hist.u:hist.p;const fs=[0,1,2,3].filter(f=>A[f].some(v=>v>0)).sort((a,b)=>(a===ME)-(b===ME));
+  let A=gMode==='u'?hist.u:hist.p;let fs=[0,1,2,3,4,5].filter(f=>A[f]&&A[f].some(v=>v>0));
+  // teams: one summed line per team, drawn in the color of its first member (your team uses your color)
+  gLead=null;if(TEAMS_ON){const lead={};for(const f of fs){const k=TEAM[f];if(lead[k]==null||f===ME)lead[k]=f;}const B=[[],[],[],[],[],[]];
+    for(const k in lead){const Lf=lead[k];B[Lf]=new Array(n).fill(0);for(const f of fs)if(TEAM[f]==k)for(let i=0;i<n;i++)B[Lf][i]+=A[f][i]||0;}
+    gLead=f=>lead[TEAM[f]];A=B;fs=Object.values(lead);}
+  fs.sort((a,b)=>(a===ME)-(b===ME));
   let mx=1;for(const f of fs)for(const v of A[f])if(v>mx)mx=v;mx=niceMax(mx*1.05);
   const L=32,R=8,Tp=10,B=20,pw=W-L-R,phh=H-Tp-B,t1=T[n-1]||1;const X=t=>L+pw*t/t1,Y=v=>Tp+phh*(1-v/mx);
   g.strokeStyle='rgba(150,210,255,.1)';g.lineWidth=1;g.fillStyle='rgba(200,230,255,.55)';g.textAlign='right';g.textBaseline='middle';
@@ -1507,14 +1565,15 @@ function drawGraph(){const r=gc.getBoundingClientRect();const W=Math.max(200,Mat
   const idx=t=>{let lo=0,hi=n-1;while(lo<hi){const m=(lo+hi)>>1;if(T[m]<t)lo=m+1;else hi=m;}return lo;};
   for(const [t,k,f,p] of hist.ev){const x=X(Math.min(t,t1));if(k===2){g.strokeStyle=rgb(FCOL[f],0.7);g.setLineDash([3,3]);g.lineWidth=1.2;g.beginPath();g.moveTo(x,Tp);g.lineTo(x,Tp+phh);g.stroke();g.setLineDash([]);
       g.fillStyle=rgb(FCOL[f]);g.textAlign='center';g.textBaseline='top';g.font='bold 11px system-ui,sans-serif';g.fillText('✕',x,Tp-1);g.font='10px system-ui,sans-serif';continue;}
-    if(fs.indexOf(f)<0)continue;const y=Y(A[f][idx(t)]);g.fillStyle=rgb(FCOL[f]);g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=1;g.beginPath();
+    const fm=gLead?gLead(f):f;if(fs.indexOf(fm)<0)continue;const y=Y(A[fm][idx(t)]);g.fillStyle=rgb(FCOL[f]);g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=1;g.beginPath();
     if(k===0){g.moveTo(x,y-7);g.lineTo(x+3.5,y-1.5);g.lineTo(x-3.5,y-1.5);}else{g.moveTo(x,y+7);g.lineTo(x+3.5,y+1.5);g.lineTo(x-3.5,y+1.5);}g.closePath();g.fill();g.stroke();}
   if(gHover>=0&&gHover<n){const x=X(T[gHover]);g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=1;g.beginPath();g.moveTo(x,Tp);g.lineTo(x,Tp+phh);g.stroke();
     for(const f of fs){g.fillStyle=rgb(FCOL[f]);g.beginPath();g.arc(x,Y(A[f][gHover]),3.6,0,TAU);g.fill();g.strokeStyle='#fff';g.stroke();}}
   gInfo(fs,A);}
+let gLead=null;function gName(f){return gLead?('Team '+teamName(f)+(ally(f,ME)?' (you)':'')):fName(f);}
 function gInfo(fs,A){const el=$('gInfo');const T=hist.t;if(gHover<0||gHover>=T.length){el.innerHTML='<span style="opacity:.6">Tap or drag on the graph to see values · ▲ planet captured · ▼ lost · ✕ eliminated</span>';return;}
   const t=T[gHover];const ev=hist.ev.filter(e=>Math.abs(e[0]-t)<=1.5).slice(0,3).map(([,k,f])=>`${fName(f)} ${k===0?'captured a planet':k===1?'lost a planet':'eliminated'}`);
-  el.innerHTML=`<b>${mmss(t)}</b> · `+fs.slice().sort((a,b)=>a-b).map(f=>`<b style="color:${rgb(mix(FCOL[f],WHITE,0.2))}">${fName(f)} ${A[f][gHover]}</b>`).join(' · ')+(ev.length?`<br><span style="opacity:.75">${ev.join(' · ')}</span>`:'');}
+  el.innerHTML=`<b>${mmss(t)}</b> · `+fs.slice().sort((a,b)=>a-b).map(f=>`<b style="color:${rgb(mix(FCOL[f],WHITE,0.2))}">${gName(f)} ${A[f][gHover]}</b>`).join(' · ')+(ev.length?`<br><span style="opacity:.75">${ev.join(' · ')}</span>`:'');}
 function gScrub(e){const r=gc.getBoundingClientRect();const T=hist.t,n=T.length;if(n<2)return;const t=Math.max(0,Math.min(1,(e.clientX-r.left-32)/(r.width-40)))*T[n-1];
   let b=0,bd=1e9;for(let i=0;i<n;i++){const dd=Math.abs(T[i]-t);if(dd<bd){bd=dd;b=i;}}gHover=b;drawGraph();}
 let gDown=false;
@@ -1588,17 +1647,17 @@ $('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.o
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!net.inMatch)pause();});
 
 /* ---------------- skirmish setup / endless ---------------- */
-const SK_DEF={size:'m',riv:2,pers:[],diff:'normal',ter:'none',start:'even',mode:'one',seed:''};
+const SK_DEF={size:'m',riv:2,pers:[],diff:'normal',ter:'none',start:'even',mode:'one',seed:'',teams:'off'};
 function skCfg(){const c=Object.assign({},SK_DEF,save.sk||{});if(!Array.isArray(c.pers))c.pers=[];if(!DIFF[c.diff])c.diff='normal';save.sk=c;return c;}
 function skParseSeed(v){v=String(v||'').trim();if(!v)return null;if(/^\d+$/.test(v))return (+v)>>>0;let h=2166136261;for(const ch of v){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0)%1e9;}
 function skRandSeed(){return 1+Math.floor(Math.random()*999999998);}
-function skRender(){const c=skCfg();const segs={skSize:c.size,skRiv:String(c.riv),skDiff:c.diff,skStart:c.start,skMode:c.mode};
+function skRender(){const c=skCfg();const segs={skSize:c.size,skRiv:String(c.riv),skDiff:c.diff,skStart:c.start,skMode:c.mode,skTeams:c.teams||'off'};
   for(const id in segs)document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===segs[id]));
   document.querySelectorAll('#skPers button').forEach(b=>{const v=+b.dataset.v;b.classList.toggle('on',v===0?!c.pers.length:c.pers.indexOf(v)>=0);});
   $('skTer').value=c.ter;$('skSeed').value=c.seed||'';
-  const best=save.skBest||0;$('skNote').textContent=c.mode==='endless'?`Endless: win and a fresh map follows at once, with rivals a little stronger each time. Best streak: ${best}.`:'One random map. Leave the seed empty for a new map, or type one to replay it.';}
+  const best=save.skBest||0;$('skNote').textContent=c.mode==='endless'?`Endless: win and a fresh map follows at once, with rivals a little stronger each time. Best streak: ${best}.`:'One random map. Leave the seed empty for a new map, or type one to replay it.'+(c.teams==='on'?(c.riv>=2?` Teams: you + ${Math.floor((c.riv+1)/2)-1} AI ${Math.floor((c.riv+1)/2)-1===1?'ally':'allies'} vs ${c.riv+1-Math.floor((c.riv+1)/2)}.`:' Teams need at least 2 rivals.'):'');}
 function skBind(id,key,num){document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>{const c=skCfg();c[key]=num?+b.dataset.v:b.dataset.v;persist();skRender();sfx.select();});}
-skBind('skSize','size');skBind('skRiv','riv',true);skBind('skDiff','diff');skBind('skStart','start');skBind('skMode','mode');
+skBind('skSize','size');skBind('skRiv','riv',true);skBind('skDiff','diff');skBind('skStart','start');skBind('skMode','mode');skBind('skTeams','teams');
 document.querySelectorAll('#skPers button').forEach(b=>b.onclick=()=>{const c=skCfg();const v=+b.dataset.v;if(v===0)c.pers=[];else{const k=c.pers.indexOf(v);if(k>=0)c.pers.splice(k,1);else c.pers.push(v);c.pers.sort();}persist();skRender();sfx.select();});
 $('skTer').onchange=()=>{skCfg().ter=$('skTer').value;persist();};
 $('skSeed').addEventListener('input',()=>{const el=$('skSeed');el.value=el.value.replace(/[^0-9]/g,'').slice(0,9);skCfg().seed=el.value;persist();});
@@ -1607,7 +1666,7 @@ $('bSkirm').onclick=()=>{ensureAudio();skRender();show('sSkirm');};
 $('skBack').onclick=()=>show('sTitle');
 $('skGo').onclick=()=>{const c=skCfg();const sd=skParseSeed(c.seed);startSkirm(Object.assign({},c),sd!=null?sd:skRandSeed(),false);};
 $('skQuick').onclick=()=>{const seed=skRandSeed();const r=mulberry32(seed^0x9e3779b9);const c=skCfg();
-  startSkirm({size:['s','m','l'][Math.floor(r()*3)],riv:1+Math.floor(r()*3),pers:[],diff:c.diff,ter:r()<0.35?'none':'mix',start:r()<0.15?'outn':'even',mode:'one',seed:''},seed,false);};
+  startSkirm({size:['s','m','l'][Math.floor(r()*3)],riv:1+Math.floor(r()*4),pers:[],diff:c.diff,ter:r()<0.35?'none':'mix',start:r()<0.15?'outn':'even',mode:'one',seed:''},seed,false);};
 function startSkirm(cfg,seed,keepStreak){MODE='skirm';if(keepStreak===false)SK.streak=0;
   SK.cfg=cfg;SK.seed=seed>>>0;SK.endless=cfg.mode==='endless';const DK=['easy','normal','hard'];const base=Math.max(0,DK.indexOf(cfg.diff));
   SK.diff=DK[Math.min(2,base+(SK.endless?Math.floor(SK.streak/3):0))];
@@ -1655,19 +1714,37 @@ function mpSendTo(c,m){try{if(c&&c.open){c.send(m);if(m instanceof ArrayBuffer)n
 function mpBroadcast(m){for(const c of net.conns.values())mpSendTo(c.conn,m);}
 function mpToHost(m){mpSendTo(net.hostConn,m);}
 function slotLabel(sl){if(sl.kind==='human')return sl.pid===net.myId?'You':(sl.pid==='host'||sl.host?'Host':'Player');if(sl.kind==='ai')return 'AI';return 'Empty';}
-function mapFactions(m){const L=getLevel(m);return [0].concat(L.ais);}
+// random map: seed + settings are all peers need; every peer generates the identical map locally
+function mpRandLevel(c){const n=Math.max(2,Math.min(6,c.n|0||4));const L=genSkirm({size:c.size||'m',riv:n-1,pers:[],ter:c.ter||'mix',start:'even',mp:true},c.seed>>>0);L.name='Random · '+L.name;return L;}
+function mpLevel(m){return m==='R'?mpRandLevel(net.rnd):getLevel(m);}
+function mapFactions(m){const L=mpLevel(m);return L.mpF?L.mpF.slice():[0].concat(L.ais);}
 function humansInOrder(){return net.slots.filter(s=>s.kind==='human').map(s=>({pid:s.pid,ready:s.ready,host:s.host}));}
-function buildSlots(m){const hs=humansInOrder();const old=net.slots;
-  net.slots=mapFactions(m).map((f,i)=>{if(i<hs.length)return{f,kind:'human',pid:hs[i].pid,ready:hs[i].ready,host:hs[i].host};const o=old[i];return{f,kind:o&&o.kind==='empty'?'empty':'ai',pid:null,ready:true};});}
+const rndPick=a=>a[(Math.random()*a.length)|0];
+function freeSlots(){return net.slots.filter(s=>s.kind!=='human');}
+function occupy(sl,h){Object.assign(sl,{kind:'human',pid:h.pid,ready:!!h.ready,host:!!h.host});if(h.team!=null)sl.team=h.team;}
+function buildSlots(m){const old=net.slots;const hs=old.filter(s=>s.kind==='human');
+  net.slots=mapFactions(m).map(f=>{const o=old.find(s=>s.f===f&&s.kind!=='human');return{f,kind:o&&o.kind==='empty'?'empty':'ai',pid:null,ready:true,host:false,team:o&&o.team!=null?o.team:0};});
+  const left=[];for(const h of hs){const sl=net.slots.find(s=>s.f===h.f&&s.kind!=='human');if(sl)occupy(sl,h);else left.push(h);}
+  for(const h of left){const fr=freeSlots();if(fr.length)occupy(rndPick(fr),h);}   // color not on this map: random free one
+  fixTeams();}
+// teams: keep every slot on a valid team; auto-balance spreads humans first, then AIs, round-robin
+function teamsMax(){return net.slots.filter(s=>s.kind!=='empty').length>=6?3:2;}
+function fixTeams(){if(!net.teams)return;if(net.teams>teamsMax())net.teams=teamsMax();for(const s of net.slots)if(!(s.team>=0&&s.team<net.teams))s.team=0;
+  const act=net.slots.filter(s=>s.kind!=='empty');if(new Set(act.map(s=>s.team)).size<Math.min(net.teams,act.length))autoBalance();}
+function autoBalance(){if(!net.teams)return;const act=net.slots.filter(s=>s.kind!=='empty');const hs=skShuffle(act.filter(s=>s.kind==='human'),Math.random),as=skShuffle(act.filter(s=>s.kind==='ai'),Math.random);
+  hs.concat(as).forEach((s,i)=>s.team=i%net.teams);}
+function slotPick(pid,f){if(net.inMatch)return false;const me=net.slots.find(s=>s.pid===pid&&s.kind==='human');const to=net.slots.find(s=>s.f===f);if(!me||!to||to.kind==='human')return false;
+  const k=to.kind,tt=to.team;occupy(to,{pid:me.pid,ready:me.ready,host:me.host,team:me.team});Object.assign(me,{kind:k==='empty'?'empty':'ai',pid:null,ready:true,host:false,team:tt});return true;}
+function mpShuffle(){const occ=net.slots.map(s=>({kind:s.kind,pid:s.pid,ready:s.ready,host:s.host,team:s.team}));skShuffle(occ,Math.random);net.slots.forEach((s,i)=>Object.assign(s,occ[i]));}
 function mpReset(){FLIP=false;if(net.peer){try{net.peer.destroy();}catch(e){}}clearInterval(net.iv);
-  Object.assign(net,{on:false,role:'',inMatch:false,peer:null,hostConn:null,code:'',myId:'',slots:[],ready:false,pend:[],winner:-2,endShown:false,elimShown:false,endMode:''});net.conns=new Map();ME=0;HUM=new Set([0]);}
+  Object.assign(net,{on:false,role:'',inMatch:false,peer:null,hostConn:null,code:'',myId:'',slots:[],ready:false,teams:0,map:0,pend:[],winner:-2,endShown:false,elimShown:false,endMode:''});net.conns=new Map();ME=0;HUM=new Set([0]);}
 function mpLeave(){mpReset();history.replaceState(null,'',location.pathname+location.hash);toMenu();}
 function mpCreate(){mpStatus('Connecting to the matchmaking server…');$('bCreate').disabled=true;
   loadPeer().then(()=>{const tryOpen=(att)=>{const code=Array.from({length:4},()=>CODE_CH[(Math.random()*CODE_CH.length)|0]).join('');
       const peer=new Peer(ROOM_PREFIX+code,PEER_OPTS);let opened=false;
       const to=setTimeout(()=>{if(!opened){try{peer.destroy();}catch(e){}$('bCreate').disabled=false;mpStatus('The matchmaking server is not responding. Please try again in a minute.',true);}},20000);
       peer.on('open',()=>{opened=true;clearTimeout(to);mpReset();net.on=true;net.role='host';net.peer=peer;net.code=code;net.myId='host';net.map=7;net.diff=save.diff;
-        net.slots=[{f:0,kind:'human',pid:'host',ready:true,host:true}];buildSlots(net.map);$('bCreate').disabled=false;
+        net.slots=[];buildSlots(net.map);occupy(rndPick(net.slots),{pid:'host',ready:true,host:true});net.rnd.seed=skRandSeed();$('bCreate').disabled=false;
         peer.on('connection',mpHostConn);peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
         net.iv=setInterval(mpWatchdog,1000);showLobby();});
       peer.on('error',e=>{clearTimeout(to);if(e.type==='unavailable-id'&&att<5){try{peer.destroy();}catch(_){}tryOpen(att+1);return;}
@@ -1688,10 +1765,11 @@ function mpJoin(code){code=(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(
 function mpHostConn(conn){
   conn.on('open',()=>{const pid=conn.peer;
     if(net.inMatch){mpSendTo(conn,{t:'deny',m:'That match has already started.'});setTimeout(()=>conn.close(),500);return;}
-    const sl=net.slots.find(s=>s.kind!=='human');
+    const fr=freeSlots();const sl=fr.length?rndPick(fr):null;
     if(!sl){mpSendTo(conn,{t:'deny',m:'That room is full for the selected map.'});setTimeout(()=>conn.close(),500);return;}
-    sl.kind='human';sl.pid=pid;sl.ready=false;sl.host=false;net.conns.set(pid,{conn,lastRx:performance.now()});
-    buildSlots(net.map);mpLobbyBroadcast();toast('A player joined',1500);sfx.select();});
+    const wasEmpty=sl.kind==='empty';occupy(sl,{pid,ready:false,host:false});net.conns.set(pid,{conn,lastRx:performance.now()});
+    if(net.teams){const c=[0,0,0];for(const s of net.slots)if(s!==sl&&s.kind==='human')c[s.team]++;let b=0;for(let t=1;t<net.teams;t++)if(c[t]<c[b])b=t;sl.team=b;}
+    mpLobbyBroadcast();toast('A player joined',1500);sfx.select();});
   conn.on('data',d=>mpHostData(conn.peer,d));
   conn.on('close',()=>mpPlayerLeft(conn.peer));
   conn.on('error',()=>mpPlayerLeft(conn.peer));
@@ -1699,13 +1777,15 @@ function mpHostConn(conn){
 function mpPlayerLeft(pid){if(!net.conns.has(pid))return;net.conns.delete(pid);const sl=net.slots.find(s=>s.pid===pid);if(!sl)return;
   if(net.inMatch){sl.kind='ai';sl.pid=null;sl.left=true;HUM.delete(sl.f);if(aiList.indexOf(sl.f)<0)aiList.push(sl.f);
     const D=curDiff();prodMul[sl.f]=D.prod;aiT[sl.f]=1;const m=CNAME[sl.f]+' disconnected — an AI takes over';toast(m,3000);mpBroadcast({t:'msg',m});}
-  else{sl.kind='ai';sl.pid=null;sl.ready=true;buildSlots(net.map);mpLobbyBroadcast();toast('A player left',1500);}}
-function mpLobbyState(){return{t:'lobby',slots:net.slots,map:net.map,diff:net.diff,code:net.code};}
+  else{sl.kind='ai';sl.pid=null;sl.ready=true;sl.host=false;mpLobbyBroadcast();toast('A player left',1500);}}
+function mpLobbyState(){return{t:'lobby',slots:net.slots,map:net.map,diff:net.diff,code:net.code,rnd:net.rnd,teams:net.teams};}
 function mpLobbyBroadcast(){mpBroadcast(mpLobbyState());if(net.role==='host')renderLobby();}
 function mpHostData(pid,d){const c=net.conns.get(pid);if(c)c.lastRx=performance.now();if(!d||typeof d!=='object')return;
   net.bytesIn+=JSON.stringify(d).length;
   if(d.t==='hello'){mpSendTo(c&&c.conn,mpLobbyState());return;}
   if(d.t==='ready'){const sl=net.slots.find(s=>s.pid===pid);if(sl&&!net.inMatch){sl.ready=!!d.v;mpLobbyBroadcast();}return;}
+  if(d.t==='pick'){if(slotPick(pid,d.f|0))mpLobbyBroadcast();return;}
+  if(d.t==='team'){const sl=net.slots.find(s=>s.pid===pid);if(sl&&!net.inMatch&&net.teams){sl.team=((d.v|0)%net.teams+net.teams)%net.teams;mpLobbyBroadcast();}return;}
   if(d.t==='cmd'&&net.inMatch){const sl=net.slots.find(s=>s.pid===pid&&s.kind==='human');if(!sl)return;const f=sl.f;
     const swl=Array.isArray(d.sw)?d.sw.slice(0,MAXS).map(x=>x|0):[];
     if(d.c==='send'&&Array.isArray(d.src)&&planets[d.dst]){doSend(f,d.src.slice(0,NP),d.dst|0,Math.min(1,Math.max(0.05,+d.pct||0.5)),false);swarmsToPlanet(f,swl,d.dst|0);}
@@ -1719,9 +1799,9 @@ function mpHostData(pid,d){const c=net.conns.get(pid);if(c)c.lastRx=performance.
 function mpClientData(d){net.lastRx=performance.now();
   if(d instanceof ArrayBuffer||ArrayBuffer.isView(d)){net.bytesIn+=d.byteLength;if(net.inMatch)mpApplySnap(d);return;}
   if(!d||typeof d!=='object')return;net.bytesIn+=JSON.stringify(d).length;
-  if(d.t==='lobby'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;net.code=d.code;if(!net.inMatch){const me=net.slots.find(s=>s.pid===net.myId);net.ready=!!(me&&me.ready);showLobby();}}
+  if(d.t==='lobby'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;net.code=d.code;if(d.rnd)net.rnd=d.rnd;net.teams=d.teams|0;if(!net.inMatch){const me=net.slots.find(s=>s.pid===net.myId);net.ready=!!(me&&me.ready);showLobby();}}
   else if(d.t==='deny'){mpReset();show('sMp');mpStatus(d.m,true);}
-  else if(d.t==='start'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;mpStartMatch();}
+  else if(d.t==='start'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;if(d.rnd)net.rnd=d.rnd;net.teams=d.teams|0;mpStartMatch(d.perm);}
   else if(d.t==='tolobby'){FLIP=false;net.inMatch=false;state='title';$('hud').classList.add('hidden');startLevel(0,true);net.ready=false;showLobby();}
   else if(d.t==='hist'&&d.h&&Array.isArray(d.h.t)){hist=d.h;hist.src='host';if(d.fs)fst=d.fs;if(!$('sEnd').classList.contains('hidden'))renderEnd(true);}
   else if(d.t==='msg')toast(d.m,3000);}
@@ -1738,58 +1818,74 @@ function mpWatchdog(){const now=performance.now();
 function showLobby(){show('sLobby');renderLobby();}
 function renderLobby(){const host=net.role==='host';
   $('roomCode').textContent=net.code;
-  const ms=$('mapSel');if(!ms.options.length){for(let i=0;i<LEVELS;i++){const n=mapFactions(i).length;const o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${getLevel(i).name}${FEAT_IDX.has(i)?' ✦':''} — ${n} players`;ms.appendChild(o);}}
-  ms.value=net.map;ms.classList.toggle('hidden',!host);const L=getLevel(net.map);$('mapTxt').textContent=host?'':`${net.map+1}. ${L.name}`;
-  const nh=humansInOrder().length;for(const o of ms.options)o.disabled=mapFactions(+o.value).length<nh;
+  const ms=$('mapSel');if(!ms.options.length){const o0=document.createElement('option');o0.value='R';o0.textContent='🎲 Random map — 2-6 players';ms.appendChild(o0);
+    for(let i=0;i<LEVELS;i++){const n=mapFactions(i).length;const o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${getLevel(i).name}${FEAT_IDX.has(i)?' ✦':''} — ${n} players`;ms.appendChild(o);}}
+  ms.value=String(net.map);ms.classList.toggle('hidden',!host);const L=mpLevel(net.map);const R=net.rnd,isR=net.map==='R';
+  $('mapTxt').textContent=host?(isR?`Seed ${R.seed} · same seed = same map`:''):(isR?`${L.name} · ${{s:'small',m:'medium',l:'large'}[R.size]} · ${R.n} players · ${R.ter==='none'?'no terrain':R.ter==='mix'?'random features':R.ter} · seed ${R.seed}`:`${net.map+1}. ${L.name}`);
+  $('rndOpts').classList.toggle('hidden',!(host&&isR));
+  const nh=humansInOrder().length;for(const o of ms.options)o.disabled=o.value!=='R'&&mapFactions(+o.value).length<nh;
+  if(isR){document.querySelectorAll('#rnSize button').forEach(b=>b.classList.toggle('on',b.dataset.v===R.size));document.querySelectorAll('#rnN button').forEach(b=>{b.classList.toggle('on',+b.dataset.v===R.n);b.disabled=+b.dataset.v<nh;});
+    $('rnTer').value=R.ter;if(document.activeElement!==$('rnSeed'))$('rnSeed').value=R.seed;}
   document.querySelectorAll('#mpDiff button').forEach(b=>{b.classList.toggle('on',b.dataset.d===net.diff);b.disabled=!host;});
-  const list=$('slotList');list.innerHTML='';
-  net.slots.forEach((sl,i)=>{const c=FCOL[sl.f];const row=document.createElement('div');row.className='slot';
-    let who=sl.kind==='human'?(sl.pid===net.myId?'You':(sl.host?'Host':'Player '+(i+1))):(sl.kind==='ai'?'AI · '+PERS[sl.f].name:'Empty slot');
+  const tmax=teamsMax();document.querySelectorAll('#mpMode button').forEach(b=>{const m=+b.dataset.m;b.classList.toggle('on',m===net.teams);b.disabled=!host||m>tmax;});
+  $('bShuffle').classList.toggle('hidden',!host);$('bBal').classList.toggle('hidden',!(host&&net.teams));
+  const list=$('slotList');list.innerHTML='';const meSl=net.slots.find(s=>s.pid===net.myId);
+  net.slots.forEach((sl,i)=>{const c=FCOL[sl.f];const row=document.createElement('div');row.className='slot'+(sl.kind!=='human'?' free':'')+(sl===meSl?' mine':'');row.dataset.f=sl.f;
+    let who=sl.kind==='human'?(sl.pid===net.myId?'You':(sl.host?'Host':'Player')):(sl.kind==='ai'?'AI · '+PERS[sl.f].name:'Empty slot');
     if(sl.kind==='human'&&sl.host&&sl.pid===net.myId)who='You (host)';
-    let right='';if(sl.kind==='human')right=sl.ready?'<span class="ok">Ready ✓</span>':'<span class="wait">Not ready</span>';
-    row.innerHTML=`<i style="background:rgb(${c});box-shadow:0 0 10px rgb(${c})"></i><span>${who}<br><small>${CNAME[sl.f]}${sl.kind==='ai'?' · '+net.diff:''}</small></span>${right}`;
-    if(host&&sl.kind!=='human'){const b=document.createElement('button');b.textContent=sl.kind==='ai'?'Make empty':'Add AI';b.onclick=()=>{sl.kind=sl.kind==='ai'?'empty':'ai';mpLobbyBroadcast();};row.appendChild(b);}
+    let right='';if(sl.kind==='human')right=sl.ready||sl.host?'<span class="ok">'+(sl.host?'Host':'Ready ✓')+'</span>':'<span class="wait">Not ready</span>';
+    const tc=net.teams?TCOL[sl.team%3]:null;
+    row.innerHTML=`<i style="background:rgb(${c});box-shadow:0 0 10px rgb(${c})"></i><span>${who}<br><small>${CNAME[sl.f]}${sl.kind==='ai'?' · '+net.diff:''}${sl.kind!=='human'?' · tap to take':''}</small></span>`+(net.teams&&sl.kind!=='empty'?`<b class="tchip" style="color:rgb(${tc})">${TNAME[sl.team%3]}</b>`:'')+right;
+    const tch=row.querySelector('.tchip');if(tch)tch.onclick=e=>{e.stopPropagation();const nv=(sl.team+1)%net.teams;if(host){sl.team=nv;mpLobbyBroadcast();}else if(sl===meSl){mpToHost({t:'team',v:nv});}sfx.select();};
+    if(sl.kind!=='human')row.onclick=()=>{if(host){if(slotPick(net.myId,sl.f))mpLobbyBroadcast();}else mpToHost({t:'pick',f:sl.f});sfx.select();};
+    if(host&&sl.kind!=='human'){const b=document.createElement('button');b.textContent=sl.kind==='ai'?'Empty':'Add AI';b.onclick=e=>{e.stopPropagation();sl.kind=sl.kind==='ai'?'empty':'ai';fixTeams();mpLobbyBroadcast();};row.appendChild(b);}
     list.appendChild(row);});
   const others=net.slots.filter(s=>s.kind==='human'&&!s.host);const allReady=others.length>0&&others.every(s=>s.ready);
+  const act=net.slots.filter(s=>s.kind!=='empty');const teamsOk=!net.teams||new Set(act.map(s=>s.team)).size>=2;
   const br=$('bReady');
-  if(host){br.textContent='Start match';br.disabled=!allReady;$('lobbyNote').textContent=others.length?(allReady?'Everyone is ready.':'Waiting for players to tap Ready…'):'Share the code. Waiting for at least one friend to join…';}
-  else{br.disabled=false;br.textContent=net.ready?'Not ready':'Ready';$('lobbyNote').textContent='The host picks the map and starts the match.';}
+  if(host){br.textContent='Start match';br.disabled=!allReady||!teamsOk;$('lobbyNote').textContent=!teamsOk?'Teams need at least two sides.':others.length?(allReady?'Everyone is ready. Spawn positions are shuffled at start.':'Waiting for players to tap Ready…'):'Share the code. Waiting for at least one friend to join…';}
+  else{br.disabled=false;br.textContent=net.ready?'Not ready':'Ready';$('lobbyNote').textContent='Tap a free color to switch'+(net.teams?', or your team letter to change team':'')+'. The host picks the map and starts.';}
 }
 function inviteUrl(){return location.origin+location.pathname+'?room='+net.code;}
 function mpStart(){if(net.role!=='host')return;const others=net.slots.filter(s=>s.kind==='human'&&!s.host);if(!others.length)return;
-  mpBroadcast({t:'start',slots:net.slots,map:net.map,diff:net.diff});mpStartMatch();}
+  const act=net.slots.filter(s=>s.kind!=='empty').map(s=>s.f);if(net.teams&&new Set(net.slots.filter(s=>s.kind!=='empty').map(s=>s.team)).size<2)return;
+  // spawn positions are shuffled every match: home of color f goes to perm[f]'s spot
+  const sh=skShuffle(act.slice(),Math.random);const perm={};act.forEach((f,i)=>perm[f]=sh[i]);
+  mpBroadcast({t:'start',slots:net.slots,map:net.map,diff:net.diff,rnd:net.rnd,teams:net.teams,perm});mpStartMatch(perm);}
 function mpToLobby(){FLIP=false;net.inMatch=false;state='title';$('hud').classList.add('hidden');startLevel(0,true);
   net.slots.forEach(s=>{if(s.kind==='human'&&!s.host)s.ready=false;if(s.left){delete s.left;}});buildSlots(net.map);mpBroadcast({t:'tolobby'});mpLobbyBroadcast();showLobby();}
-function mpStartMatch(){
-  const L=getLevel(net.map);const empty=net.slots.filter(s=>s.kind==='empty').map(s=>s.f);
+function mpStartMatch(perm){
+  const L=mpLevel(net.map);const empty=net.slots.filter(s=>s.kind==='empty').map(s=>s.f);
   for(const q of L.planets)if(empty.indexOf(q[3])>=0)q[3]=-1;
+  if(perm){const own=L.planets.map(q=>q[3]);L.planets.forEach((q,i)=>{const o=own[i];if(o>=0&&perm[o]!=null)q[3]=perm[o];});}
+  if(net.teams){const tm=new Array(NF).fill(-1);for(const s of net.slots)if(s.kind!=='empty')tm[s.f]=s.team;L.teams=tm;}else L.teams=null;
   L.ais=net.slots.filter(s=>s.kind==='ai').map(s=>s.f);L.aiMul=1;
   const mine=net.slots.find(s=>s.pid===net.myId);ME=mine?mine.f:0;HUM=new Set(net.slots.filter(s=>s.kind==='human').map(s=>s.f));
-  Object.assign(net,{histSent:false,histMask:undefined,inMatch:true,winner:-2,endShown:false,elimShown:false,endMode:'',pend:[],seq:0,ack:[0,0,0,0],snapT:0});
+  Object.assign(net,{histSent:false,histMask:undefined,inMatch:true,winner:-2,endShown:false,elimShown:false,endMode:'',pend:[],seq:0,ack:[0,0,0,0,0,0],snapT:0});
   show(null);$('hud').classList.remove('hidden');state='play';$('intro').classList.remove('on');
-  startLevel(net.map,false,L);levelIdx=net.map;queueTips(L);{const h=planets.find(P=>P.owner===ME);FLIP=!!h&&h.y<MH/2;}hintStage=99;
-  $('lvlName').innerHTML=`${L.name}<b>Multiplayer · you are ${CNAME[ME]}</b>`;
-  showIntro({name:L.name,T:L.T},L.T?7000:4200,net.slots.filter(s=>s.kind!=='empty').map((s,i)=>({f:s.f,a:s.f===ME?'You':CNAME[s.f],b:s.kind==='human'?(s.f===ME?'your color':'player'):'AI · '+PERS[s.f].name,c:s.kind==='ai'?PERS[s.f].blurb:''})));
+  const li=net.map==='R'?99:net.map;startLevel(li,false,L);levelIdx=li;queueTips(L);{const h=planets.find(P=>P.owner===ME);FLIP=!!h&&h.y<MH/2;}hintStage=99;
+  $('lvlName').innerHTML=`${L.name}<b>Multiplayer · you are ${CNAME[ME]}${TEAMS_ON?' · Team '+teamName(ME):''}</b>`;
+  showIntro({name:L.name,T:L.T},L.T?7000:4200,net.slots.filter(s=>s.kind!=='empty').map((s,i)=>({f:s.f,a:s.f===ME?'You':CNAME[s.f],b:(TEAMS_ON?'Team '+TNAME[s.team%3]+' · ':'')+(s.kind==='human'?(s.f===ME?'your color':'player'):'AI · '+PERS[s.f].name),c:s.kind==='ai'?PERS[s.f].blurb:''})));
 }
 function mpHostCheck(){let mask=0;const alive=[];
   for(const sl of net.slots){if(sl.kind==='empty')continue;const f=sl.f;if(ownP[f]>0||tot[f]>0){mask|=1<<f;alive.push(f);}}
   net.alive=mask;
   if(net.winner===-2&&objWin>=0)net.winner=objWin;
-  if(net.winner===-2&&alive.length<=1)net.winner=alive.length?alive[0]:-1;
+  if(net.winner===-2){const tm=new Set(alive.map(f=>TEAM[f]));if(tm.size<=1)net.winner=alive.length?alive[0]:-1;}   // last team standing (any member stands for the team)
   if(net.winner!==-2&&!net.histSent){net.histSent=true;histFinal();mpBroadcast({t:'hist',h:hist,fs:fst});}
   else if(net.histMask!==undefined&&mask!==net.histMask){histSample();mpBroadcast({t:'hist',h:hist,fs:fst});}
   net.histMask=mask;
   mpCheckEnd();}
 function mpCheckEnd(){
-  if(net.winner!==-2&&!net.endShown){net.endShown=true;showMpEnd(net.winner===ME,true);}
+  if(net.winner!==-2&&!net.endShown){net.endShown=true;showMpEnd(net.winner>=0&&ally(net.winner,ME),true);}
   else if(net.winner===-2&&!(net.alive&(1<<ME))&&!net.elimShown){net.elimShown=true;showMpEnd(false,false);}}
 function showMpEnd(win,over){
   const t=$('endT');net.endMode=over?'over':'elim';
   if(over)state='end';
   t.textContent=win?'VICTORY':'DEFEAT';t.className=win?'win':'lose';(win?sfx.win:sfx.lose)();
   const mm=Math.floor(time/60),ss=String(Math.floor(time%60)).padStart(2,'0');
-  const wn=net.winner>=0?CNAME[net.winner]:'Nobody';
-  $('endS').innerHTML=over?`${win?'You conquered the map!':wn+' wins.'}<br>Multiplayer · ${curLevel.name} · ${mm}:${ss}`+(net.role==='host'?'':'<br>Waiting for the host to start a rematch…'):'You have been eliminated. You can keep watching.';
+  const wn=net.winner>=0?(TEAMS_ON?'Team '+teamName(net.winner):CNAME[net.winner]):'Nobody';
+  $('endS').innerHTML=over?`${win?(TEAMS_ON?'Your team (Team '+teamName(ME)+') wins!':'You conquered the map!'):wn+' wins.'}<br>Multiplayer · ${curLevel.name} · ${mm}:${ss}`+(net.role==='host'?'':'<br>Waiting for the host to start a rematch…'):'You have been eliminated. You can keep watching.';
   const host=net.role==='host';
   $('bNext').textContent='Rematch';$('bNext').classList.toggle('hidden',!(over&&host));
   $('bRetry').textContent=over?'Back to lobby':'Watch';$('bRetry').classList.toggle('hidden',over&&!host);
@@ -1797,16 +1893,18 @@ function showMpEnd(win,over){
   show('sEnd');renderEnd(net.role==='client'&&hist.src==='host');}
 // host -> clients: compact binary snapshots (~12/s): planets + aggregated fleets ("lanes" per owner/target)
 function mpSnapshot(){
-  const sxa=new Float32Array(NP*4),sya=new Float32Array(NP*4);
-  for(let i=0;i<hiU;i++)if(us[i]===2){const k=up[i]*4+uo[i];sxa[k]+=ux[i];sya[k]+=uy[i];}
-  let nl=0;for(let k=0;k<NP*4;k++)if(inc[k]>0)nl++;
+  const sxa=new Float32Array(NP*NF),sya=new Float32Array(NP*NF);
+  for(let i=0;i<hiU;i++)if(us[i]===2){const k=up[i]*NF+uo[i];sxa[k]+=ux[i];sya[k]+=uy[i];}
+  let nl=0;for(let k=0;k<NP*NF;k++)if(inc[k]>0)nl++;
   const sx2=new Float32Array(MAXS),sy2=new Float32Array(MAXS);for(let i=0;i<hiU;i++)if(us[i]===4){sx2[up[i]]+=ux[i];sy2[up[i]]+=uy[i];}
   const swl=[];for(let q=0;q<MAXS;q++)if(SWA[q]&&swc[q]+swi[q]>0)swl.push(q);
-  const H=11,a=new Int16Array(H+NP*9+nl*5+swl.length*8);
-  a[0]=2;a[10]=swl.length;a[1]=NP;a[2]=nl;a[3]=net.alive;a[4]=net.winner;for(let f=0;f<4;f++)a[5+f]=net.ack[f];a[9]=Math.min(32767,Math.round(time*10)%32768);
+  // v3 layout: header 7+NF; per planet 6 values + one value per faction with units there (f*4096+count); lanes 5; swarms 8
+  let nz=0;for(let k=0;k<NP*NF;k++)if(cnt[k]>0)nz++;
+  const H=7+NF,a=new Int16Array(H+NP*6+nz+nl*5+swl.length*8);
+  a[0]=3;a[1]=NP;a[2]=nl;a[3]=net.alive;a[4]=net.winner;a[5]=Math.min(32767,Math.round(time*10)%32768);a[6]=swl.length;for(let f=0;f<NF;f++)a[7+f]=net.ack[f];
   let o=H;for(let p=0;p<NP;p++){const P=planets[p];a[o++]=P.owner;a[o++]=P.level;a[o++]=Math.round(P.hp*4);a[o++]=P.capOwner;a[o++]=P.capProg;
-    for(let f=0;f<4;f++)a[o++]=Math.min(32767,cnt[p*4+f]);}
-  for(let k=0;k<NP*4;k++)if(inc[k]>0){const n=inc[k];a[o++]=k&3;a[o++]=k>>2;a[o++]=Math.min(32767,n);a[o++]=Math.round(sxa[k]/n);a[o++]=Math.round(sya[k]/n);}
+    const oc=o++;let m=0;for(let f=0;f<NF;f++){const c=cnt[p*NF+f];if(c>0){a[o++]=f*4096+Math.min(4095,c);m++;}}a[oc]=m;}
+  for(let k=0;k<NP*NF;k++)if(inc[k]>0){const n=inc[k];a[o++]=k%NF;a[o++]=(k/NF)|0;a[o++]=Math.min(32767,n);a[o++]=Math.round(sxa[k]/n);a[o++]=Math.round(sya[k]/n);}
   for(const q of swl){a[o++]=q;a[o++]=SWO[q];a[o++]=Math.round(SWX[q]);a[o++]=Math.round(SWY[q]);a[o++]=swc[q];a[o++]=swi[q];a[o++]=swi[q]?Math.round(sx2[q]/swi[q]):SWX[q];a[o++]=swi[q]?Math.round(sy2[q]/swi[q]):SWY[q];}
   return a.buffer;}
 function mpTick(dt){
@@ -1814,34 +1912,34 @@ function mpTick(dt){
 // client: apply snapshot, then reconcile the locally simulated (visual-only) units
 function mpApplySnap(d){
   const a=new Int16Array((d instanceof ArrayBuffer?new Uint8Array(d):new Uint8Array(d.buffer,d.byteOffset,d.byteLength)).slice().buffer);
-  if(a[0]!==2||a[1]!==NP)return;net.snaps++;
-  const nl=a[2];net.alive=a[3];net.winner=a[4];{const dd=a[9]/10-(time%3276.8);if(Math.abs(dd)>0.25&&Math.abs(dd)<3000)time+=dd;}net.ack=[a[5],a[6],a[7],a[8]];
-  let o=11;tot.fill(0);ownP.fill(0);
+  if(a[0]!==3||a[1]!==NP)return;net.snaps++;
+  const nl=a[2];net.alive=a[3];net.winner=a[4];{const dd=a[5]/10-(time%3276.8);if(Math.abs(dd)>0.25&&Math.abs(dd)<3000)time+=dd;}net.ack=Array.from(a.subarray(7,7+NF));
+  let o=7+NF;tot.fill(0);ownP.fill(0);
   for(let p=0;p<NP;p++){const P=planets[p];const ow=a[o++],lv=a[o++],hp=a[o++]/4,co=a[o++],cp=a[o++];
     if(ow!==P.owner){if(!demo){if(P.owner>=0)histEv(1,P.owner,p);if(ow>=0)histEv(0,ow,p);}addRing(P,ow>=0?ow:P.owner,1);if(ow===ME)sfx.capture();else if(P.owner===ME)sfx.lost();
       if(ow>=0)for(let k=0;k<14;k++){const an=k/14*TAU;addP(P.x+Math.cos(an)*P.r,P.y+Math.sin(an)*P.r,Math.cos(an)*80,Math.sin(an)*80,0.5,ow);}}
     if(lv>P.level&&ow===P.owner){addRing(P,ow,1.2);P.flash=1;}
     if(hp<P.hp-0.5){P.flash=1;P.lastHit=time;}
     P.owner=ow;P.level=lv;P.hp=hp;P.capOwner=co;P.capProg=cp;if(ow>=0)ownP[ow]++;
-    for(let f=0;f<4;f++){cnt[p*4+f]=a[o++];tot[f]+=cnt[p*4+f];}}
+    for(let f=0;f<NF;f++)cnt[p*NF+f]=0;const m=a[o++];for(let k=0;k<m;k++){const v=a[o++],f=v>>12,c=v&4095;if(f<NF){cnt[p*NF+f]=c;tot[f]+=c;}}}
   inc.fill(0);const lanes=[];
-  for(let k=0;k<nl;k++){const f=a[o++],t=a[o++],n=a[o++],cx=a[o++],cy=a[o++];inc[t*4+f]=n;tot[f]+=n;lanes.push([f,t,n,cx,cy]);}
-  const nS=a[10],sws=[];SWA.fill(0);swc.fill(0);swi.fill(0);
+  for(let k=0;k<nl;k++){const f=a[o++],t=a[o++],n=a[o++],cx=a[o++],cy=a[o++];inc[t*NF+f]=n;tot[f]+=n;lanes.push([f,t,n,cx,cy]);}
+  const nS=a[6],sws=[];SWA.fill(0);swc.fill(0);swi.fill(0);
   for(let k=0;k<nS;k++){const q=a[o++],ow=a[o++],x=a[o++],y=a[o++],c=a[o++],n=a[o++],cx=a[o++],cy=a[o++];if(q<0||q>=MAXS)continue;SWA[q]=1;SWO[q]=ow;SWX[q]=x;SWY[q]=y;swc[q]=c;swi[q]=n;tot[ow]+=c+n;sws.push([q,ow,c,n,cx,cy]);}
   mpReconcile(lanes,sws);mpCheckEnd();}
 function mpReconcile(lanes,sws){
   const now=time;net.pend=net.pend.filter(q=>q.seq>net.ack[ME]&&now-q.t0<1.5);
-  const wantO=new Int32Array(NP*4),wantL=new Int32Array(NP*4);for(let k=0;k<NP*4;k++)wantO[k]=cnt[k];
-  const cen={};for(const [f,t,n,cx,cy] of lanes){wantL[t*4+f]=n;cen[t*4+f]=[cx,cy];}
-  for(const q of net.pend){for(const [p,n] of q.src){const k=p*4+ME;wantO[k]=Math.max(0,wantO[k]-n);wantL[q.t*4+ME]+=n;}if(!cen[q.t*4+ME]){const P=planets[q.src[0][0]];cen[q.t*4+ME]=[P.x,P.y];}}
-  const orb=[],lan=[];for(let k=0;k<NP*4;k++){orb.push([]);lan.push([]);}
+  const wantO=new Int32Array(NP*NF),wantL=new Int32Array(NP*NF);for(let k=0;k<NP*NF;k++)wantO[k]=cnt[k];
+  const cen={};for(const [f,t,n,cx,cy] of lanes){wantL[t*NF+f]=n;cen[t*NF+f]=[cx,cy];}
+  for(const q of net.pend){for(const [p,n] of q.src){const k=p*NF+ME;wantO[k]=Math.max(0,wantO[k]-n);wantL[q.t*NF+ME]+=n;}if(!cen[q.t*NF+ME]){const P=planets[q.src[0][0]];cen[q.t*NF+ME]=[P.x,P.y];}}
+  const orb=[],lan=[];for(let k=0;k<NP*NF;k++){orb.push([]);lan.push([]);}
   const hov=[],sln=[];for(let q=0;q<MAXS;q++){hov.push([]);sln.push([]);}const wantH=new Int32Array(MAXS),wantSL=new Int32Array(MAXS),cenS={};
   for(const [q,ow,c,n,cx,cy] of sws||[]){wantH[q]=c;wantSL[q]=n;cenS[q]=[cx,cy];}
-  for(let i=0;i<hiU;i++){if(us[i]===1)orb[up[i]*4+uo[i]].push(i);else if(us[i]===2)lan[up[i]*4+uo[i]].push(i);
+  for(let i=0;i<hiU;i++){if(us[i]===1)orb[up[i]*NF+uo[i]].push(i);else if(us[i]===2)lan[up[i]*NF+uo[i]].push(i);
     else if(us[i]===3){if(SWA[up[i]]&&SWO[up[i]]===uo[i])hov[up[i]].push(i);else killU(i);}else if(us[i]===4){if(SWA[up[i]]&&SWO[up[i]]===uo[i])sln[up[i]].push(i);else killU(i);}}
   burstBudget=60;
   // pull surplus orbiters / swarm members of owner f, nearest to point c first
-  const pull=(f,c,need,cb)=>{const pools=[];for(let p=0;p<NP;p++){const kk=p*4+f;if(orb[kk].length>wantO[kk])pools.push([Math.hypot(planets[p].x-c[0],planets[p].y-c[1]),orb[kk],wantO[kk],planets[p].x,planets[p].y,p]);}
+  const pull=(f,c,need,cb)=>{const pools=[];for(let p=0;p<NP;p++){const kk=p*NF+f;if(orb[kk].length>wantO[kk])pools.push([Math.hypot(planets[p].x-c[0],planets[p].y-c[1]),orb[kk],wantO[kk],planets[p].x,planets[p].y,p]);}
     for(let q=0;q<MAXS;q++)if(SWA[q]&&SWO[q]===f&&hov[q].length>wantH[q])pools.push([Math.hypot(SWX[q]-c[0],SWY[q]-c[1]),hov[q],wantH[q],SWX[q],SWY[q],-1]);
     pools.sort((x,y)=>x[0]-y[0]);for(const [d,arr,keep,px0,py0,p] of pools){while(need>0&&arr.length>keep){cb(arr.pop(),px0,py0,p);need--;}if(need<=0)break;}return need;};
   // swarm-bound fleets
@@ -1856,19 +1954,19 @@ function mpReconcile(lanes,sws){
     if(d<0){for(let m=0;m<-d;m++){const i=hov[q][m];if(us[i]!==3)continue;if(rand()<0.4)burst(ux[i],uy[i],uo[i],uo[i]);killU(i);}}
     else for(;d>0&&SWA[q];d--){const i=allocU();if(i<0)break;us[i]=3;uo[i]=SWO[q];up[i]=q;ua[i]=rand()*TAU;ub[i]=Math.sqrt(rand());uc[i]=ub[i]*swR(q);uw[i]=(rand()<0.5?-1:1)*(0.3+rand()*0.4);ux[i]=SWX[q];uy[i]=SWY[q];}}
   // fleets that need more units: launch them from surplus orbiters of that owner (looks like a real send), else spawn at the fleet centre
-  for(let k=0;k<NP*4;k++){let need=wantL[k]-lan[k].length;if(need<=0)continue;const f=k&3,t=k>>2,T=planets[t];const c=cen[k]||[T.x,T.y];
-    const srcs=[];for(let p=0;p<NP;p++){const kk=p*4+f;if(orb[kk].length>wantO[kk])srcs.push(p);}
+  for(let k=0;k<NP*NF;k++){let need=wantL[k]-lan[k].length;if(need<=0)continue;const f=k%NF,t=(k/NF)|0,T=planets[t];const c=cen[k]||[T.x,T.y];
+    const srcs=[];for(let p=0;p<NP;p++){const kk=p*NF+f;if(orb[kk].length>wantO[kk])srcs.push(p);}
     srcs.sort((x,y)=>Math.hypot(planets[x].x-c[0],planets[x].y-c[1])-Math.hypot(planets[y].x-c[0],planets[y].y-c[1]));
-    for(const p of srcs){const kk=p*4+f;while(need>0&&orb[kk].length>wantO[kk]){const i=orb[kk].pop();mpLaunch(i,t,p,0);lan[k].push(i);need--;}if(need<=0)break;}
+    for(const p of srcs){const kk=p*NF+f;while(need>0&&orb[kk].length>wantO[kk]){const i=orb[kk].pop();mpLaunch(i,t,p,0);lan[k].push(i);need--;}if(need<=0)break;}
     if(need>0){const oc={};need=pull(f,c,need,(i,px0,py0,p)=>{if(p>=0){mpLaunch(i,t,p,0);}else{const kq=px0+','+py0;if(!(kq in oc))oc[kq]=newOrd(pathPts(px0,py0,T.x,T.y));mpLaunch(i,t,-1,0,oc[kq]);}lan[k].push(i);});}
     let rs=-1,rk=0;if(need>0&&ROUTE&&!clearLine(c,[T.x,T.y],8)){let bd=1e9;for(let q=0;q<NP;q++){const R=ROUTE[q*NP+t];if(!R)continue;for(let m=0;m<R.length;m+=2){const d=Math.hypot(R[m]-c[0],R[m+1]-c[1]);if(d<bd&&clearLine(c,[R[m],R[m+1]],4)){bd=d;rs=q;rk=m/2;}}}}
     for(;need>0;need--){const i=allocU();if(i<0)break;us[i]=2;uo[i]=f;ux[i]=c[0]+(rand()-0.5)*30;uy[i]=c[1]+(rand()-0.5)*30;mpLaunch(i,t,rs,rk);lan[k].push(i);}}
   // fleets with too many local units: the extras arrived or were destroyed
-  for(let k=0;k<NP*4;k++){let extra=lan[k].length-wantL[k];if(extra<=0)continue;const T=planets[k>>2];
+  for(let k=0;k<NP*NF;k++){let extra=lan[k].length-wantL[k];if(extra<=0)continue;const T=planets[(k/NF)|0];
     lan[k].sort((x,y)=>((ux[x]-T.x)**2+(uy[x]-T.y)**2)-((ux[y]-T.x)**2+(uy[y]-T.y)**2));
     for(let m=0;m<extra;m++){const i=lan[k][m];if(rand()<0.5)burst(ux[i],uy[i],uo[i],uo[i]);killU(i);}}
   // orbit counts
-  for(let k=0;k<NP*4;k++){const d=orb[k].length-wantO[k];const p=k>>2,f=k&3;
+  for(let k=0;k<NP*NF;k++){const d=orb[k].length-wantO[k];const p=(k/NF)|0,f=k%NF;
     if(d>0){for(let m=0;m<d;m++){const i=orb[k][m];if(us[i]!==1)continue;if(rand()<0.4)burst(ux[i],uy[i],f,f);killU(i);}}
     else if(d<0&&planets[p].owner===f){for(let m=0;m<Math.min(-d,300);m++)spawnOrbiter(p,f,true);}}
 }
@@ -1877,7 +1975,7 @@ function clientStep(dt){time+=dt;
   for(let i=0;i<hiU;i++){const s=us[i];if(!s)continue;if(s===3){hoverU(i,dt);continue;}if(s===4){moveT(i,dt);continue;}const P=planets[up[i]];
     if(s===1){if(P.owner!==uo[i]){killU(i);continue;}uc[i]+=(ub[i]-uc[i])*Math.min(1,dt*2.5);ua[i]+=uw[i]*dt*45/(uc[i]+10);ux[i]=P.x+Math.cos(ua[i])*uc[i];uy[i]=P.y+Math.sin(ua[i])*uc[i];}
     else{moveT(i,dt);
-      const ex=ux[i]-P.x,ey=uy[i]-P.y;if(ex*ex+ey*ey<P.r*P.r*0.85){if(P.owner===uo[i]){us[i]=1;ua[i]=Math.atan2(ey,ex);uc[i]=Math.sqrt(ex*ex+ey*ey);ub[i]=orbitR(P);uw[i]=0.6+rand()*0.6;continue;}if(rand()<0.3)burst(ux[i],uy[i],uo[i],P.owner>=0?P.owner:4);killU(i);}}}
+      const ex=ux[i]-P.x,ey=uy[i]-P.y;if(ex*ex+ey*ey<P.r*P.r*0.85){if(P.owner>=0&&P.owner!==uo[i]&&TEAM[P.owner]===TEAM[uo[i]])uo[i]=P.owner;if(P.owner===uo[i]){us[i]=1;ua[i]=Math.atan2(ey,ex);uc[i]=Math.sqrt(ex*ex+ey*ey);ub[i]=orbitR(P);uw[i]=0.6+rand()*0.6;continue;}if(rand()<0.3)burst(ux[i],uy[i],uo[i],P.owner>=0?P.owner:NF);killU(i);}}}
   if(TER.flares.length)flareBurn();objStep(dt);tipTick(dt);histTick(dt);
   for(let p=0;p<NP;p++){const P=planets[p];P.flash=Math.max(0,P.flash-dt*3);P.spin+=dt*0.05;}
   for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;pl[i]-=dt;px[i]+=pvx[i]*dt;py[i]+=pvy[i]*dt;pvx[i]*=0.96;pvy[i]*=0.96;}
@@ -1886,7 +1984,7 @@ function clientStep(dt){time+=dt;
   for(const p of sel)if(planets[p].owner!==ME)sel.delete(p);for(const q of selS)if(!SWA[q]||SWO[q]!==ME)selS.delete(q);}
 // client commands with immediate local feedback
 function mpClientSend(src,t,srcS){srcS=srcS||[];const T=planets[t];const seq=++net.seq;const q={seq,t,src:[],t0:time};let total=0;
-  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*4+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
+  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*NF+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
     const P=planets[p];if(P.type==='W'&&P.twin===t&&T.owner===ME){total+=n;addRing(P,ME,0.6);addRing(T,ME,0.9);continue;}
     q.src.push([p,n]);total+=n;let k=0;for(let i=0;i<hiU&&k<n;i++)if(us[i]===1&&up[i]===p&&uo[i]===ME){mpLaunch(i,t,p,0);k++;}
     beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}
@@ -1900,7 +1998,7 @@ function mpClientSend(src,t,srcS){srcS=srcS||[];const T=planets[t];const seq=++n
 function mpClientDefend(p){const P=planets[p];const seq=++net.seq;mpToHost({t:'cmd',c:'def',p,pct:save.pct,seq});sfx.send();buzz([15,40,15]);
   floats.push({x:P.x,y:P.y,r:P.r,s:'defend!',t:0,d:1});save.defUsed=true;persist();}
 function playerUpgrade(p){if(net.inMatch&&net.role==='client'){const P=planets[p];if(!P||P.owner!==ME||P.level>=3)return false;const cost=upCost(P);
-    if(cnt[p*4+ME]<cost){sfx.deny();toast(`Upgrade needs ${cost} units here (${cnt[p*4+ME]})`,1800);return false;}
+    if(cnt[p*NF+ME]<cost){sfx.deny();toast(`Upgrade needs ${cost} units here (${cnt[p*NF+ME]})`,1800);return false;}
     mpToHost({t:'cmd',c:'up',p,seq:++net.seq});sfx.upgrade();P.flash=1;return true;}
   return tryUpgrade(p,ME);}
 $('bMulti').onclick=()=>{ensureAudio();mpStatus('');show('sMp');};
@@ -1910,7 +2008,16 @@ $('bJoin').onclick=()=>{ensureAudio();mpJoin($('joinCode').value);};
 $('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')mpJoin($('joinCode').value);});
 $('bLeave').onclick=()=>{mpReset();history.replaceState(null,'',location.pathname+location.hash);show('sMp');mpStatus('');};
 $('bReady').onclick=()=>{if(net.role==='host'){mpStart();return;}net.ready=!net.ready;mpToHost({t:'ready',v:net.ready});renderLobby();};
-$('mapSel').onchange=e=>{if(net.role!=='host')return;net.map=+e.target.value;buildSlots(net.map);mpLobbyBroadcast();};
+$('mapSel').onchange=e=>{if(net.role!=='host')return;const v=e.target.value;net.map=v==='R'?'R':+v;if(net.map==='R')net.rnd.n=Math.max(net.rnd.n,humansInOrder().length);buildSlots(net.map);mpLobbyBroadcast();};
+const rnSet=(k,v)=>{if(net.role!=='host')return;net.rnd[k]=v;buildSlots('R');mpLobbyBroadcast();sfx.select();};
+document.querySelectorAll('#rnSize button').forEach(b=>b.onclick=()=>rnSet('size',b.dataset.v));
+document.querySelectorAll('#rnN button').forEach(b=>b.onclick=()=>{if(+b.dataset.v>=humansInOrder().length)rnSet('n',+b.dataset.v);});
+$('rnTer').onchange=()=>rnSet('ter',$('rnTer').value);
+$('rnSeed').addEventListener('change',()=>{const v=skParseSeed($('rnSeed').value);if(v!=null)rnSet('seed',v||1);});
+$('bRnRoll').onclick=()=>rnSet('seed',skRandSeed());
+document.querySelectorAll('#mpMode button').forEach(b=>b.onclick=()=>{if(net.role!=='host')return;net.teams=+b.dataset.m;if(net.teams)autoBalance();mpLobbyBroadcast();sfx.select();});
+$('bShuffle').onclick=()=>{if(net.role!=='host')return;mpShuffle();mpLobbyBroadcast();sfx.select();};
+$('bBal').onclick=()=>{if(net.role!=='host')return;autoBalance();mpLobbyBroadcast();sfx.select();};
 document.querySelectorAll('#mpDiff button').forEach(b=>b.onclick=()=>{if(net.role!=='host')return;net.diff=b.dataset.d;mpLobbyBroadcast();});
 $('bShare').onclick=()=>{const url=inviteUrl();if(navigator.share)navigator.share({title:'LUMEN',text:'Join my LUMEN match! Room '+net.code,url}).catch(()=>{});else{copyText(url);}};
 $('bCopy').onclick=()=>copyText(inviteUrl());
@@ -1932,29 +2039,42 @@ function frame(now){
   render();updateSelUI();tipTickUI(now);
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={pathChk:(nRand)=>{const BD=[];let bad=0,segs=0,routed=0,worst=1e9;const chk=(P,e)=>{for(let k=0;k+3<P.length;k+=2){segs++;for(let q=0;q<NP;q++){if(e.indexOf(q)>=0)continue;const Q=planets[q];const d=segPt(Q.x,Q.y,P[k],P[k+1],P[k+2],P[k+3])-Q.r;if(d<worst)worst=d;if(d<0){bad++;if(BD.length<3&&e.length==2)BD.push({e,q,qr:Q.r,qx:Q.x,qy:Q.y,P:Array.from(P).map(Math.round),wall:TER.walls.length,route:!!(ROUTE&&e.length==2&&ROUTE[e[0]*NP+e[1]])});}}}};for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j])routed++;chk(routePts(i,j),[i,j]);}let rb=0;const r=mulberry32(99);for(let k=0;k<(nRand||40);k++){const a=clampPt(60+r()*(MW-120),60+r()*(MH-120)),b=clampPt(60+r()*(MW-120),60+r()*(MH-120));const ex=[];for(let q=0;q<NP;q++){const Q=planets[q];if(Math.hypot(Q.x-a[0],Q.y-a[1])<Q.r+PMARG+8||Math.hypot(Q.x-b[0],Q.y-b[1])<Q.r+PMARG+8)ex.push(q);}const w=pathPts(a[0],a[1],b[0],b[1]);const P=[a[0],a[1]];if(w)for(const v of w)P.push(v);P.push(b[0],b[1]);const before=bad;chk(P,ex);if(bad>before)rb++;}return{bad,segs,routed,worst:Math.round(worst),randBad:rb,NP,name:curLevel.name,BD,walls:TER.walls.map(w=>w.map(Math.round))};},open:v=>{if(v!=null)OPEN.on=!!v;return OPEN.on;},fl:()=>{const o=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)o.push({i,s:us[i],d:up[i],x:Math.round(SX(ux[i],uy[i])),y:Math.round(SY(ux[i],uy[i])),wx:Math.round(ux[i]),wy:Math.round(uy[i]),sel:selF.has(i)});return o;},capChk:()=>{const out=[];for(const t of ['','F','X','C','W'])for(const s of [0,1,2])for(let l=1;l<=3;l++){const P={type:t,sf:SIZE_F[s],level:l};out.push([t,s,l,capOf(P),upCost(P)]);}return out;},upb:()=>upBadges.map(U=>({p:U.p,x:Math.round(U.x),y:Math.round(U.y)})),simSk:(d,sd)=>window.__lumen.sim(99,900,'sk',d,sd),perc:v=>{if(v!=null)PERC.on=!!v;return PERC.on;},tip:()=>({p:tipS.p,src:tipS.src,on:$('tip').classList.contains('on'),txt:$('tip').textContent,box:(()=>{const r=$('tip').getBoundingClientRect();return[r.left,r.top,r.width,r.height];})()}),startSk:(c,sd)=>startSkirm(c,sd,false),menu:()=>{if(net.on)mpReset();toMenu();},skGen:(c,sd)=>JSON.stringify(genSkirm(c,sd)),sk:()=>({mode:MODE,seed:SK.seed,streak:SK.streak,best:save.skBest||0,endless:SK.endless,diff:SK.diff,name:curLevel&&curLevel.name,ais:curLevel&&curLevel.ais,feats:curLevel&&curLevel.feats,NP,state,planets:planets.map(P=>[P.x,P.y,P.owner,P.type]).join(';')}),hist:()=>({n:hist.t.length,ev:hist.ev.length,src:hist.src,last:hist.t[hist.t.length-1],u:hist.u.map(a=>a[a.length-1]),fs:fst}),win:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]!==ME)killU(i);for(const P of planets)if(P.owner>=0&&P.owner!==ME){P.owner=-1;}},lose:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]===ME)killU(i);for(const P of planets)if(P.owner===ME)P.owner=-1;},give:(i,n)=>{for(let k=0;k<n;k++)spawnOrbiter(i,planets[i].owner,false);},setP:(i,o,l)=>{const P=planets[i];P.owner=o;P.level=l;P.hp=maxHp(P);},mpMove:(src,sw,x,y)=>moveFrom(src,sw,x,y),groups:()=>JSON.parse(JSON.stringify(groups)),forceMove:(f,q,x,y)=>moveTo(f,[],[q],x,y,1),inWall:()=>{let n=0;for(let i=0;i<hiU;i++)if(us[i]>=2)for(const w of TER.walls)if(segPt(ux[i],uy[i],w[0],w[1],w[2],w[3])<w[4]-4)n++;return n;},sw:()=>{const o=[];for(let q=0;q<MAXS;q++)if(SWA[q])o.push({id:q,o:SWO[q],x:Math.round(SWX[q]),y:Math.round(SWY[q]),c:swc[q],i:swi[q]});return o;},sscr:q=>[SX(SWX[q],SWY[q]),SY(SWX[q],SWY[q])],wscr:(x,y)=>[SX(x,y),SY(x,y)],selx:()=>({p:[...sel],s:[...selS]}),mkSwarm:(f,x,y,n)=>{const q=newSwarm(f,x,y);for(let k=0;k<n;k++){const i=allocU();if(i<0)break;us[i]=3;uo[i]=f;up[i]=q;ua[i]=rand()*TAU;ub[i]=Math.sqrt(rand());uc[i]=ub[i]*20;uw[i]=0.4;ux[i]=x;uy[i]=y;}swc[q]=n;return q;},walls:()=>TER.walls,units:()=>{let a=[0,0,0,0,0];for(let i=0;i<hiU;i++)a[us[i]]++;return a;},pct:()=>save.pct,play:i=>play(i),terr:()=>{let bad=0,routed=0;for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j]){routed++;const P=routePts(i,j);for(let k=0;k+3<P.length;k+=2)if(!clearLine([P[k],P[k+1]],[P[k+2],P[k+3]],0))bad++;}else if(TER.walls.length&&!clearLine([planets[i].x,planets[i].y],[planets[j].x,planets[j].y],0))bad++;}return{bad,routed,feats:levelFeats(curLevel),name:curLevel.name,NP};},holdT:()=>holdT.slice(),scr:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],forceEnd:f=>{net.winner=f;},mpSend:(src,t,sw)=>sendFrom(src,t,sw),mpDef:p=>defend(p),mpUp:p=>playerUpgrade(p),net:()=>({pos:planets.map(P=>[P.x,P.y]),role:net.role,inMatch:net.inMatch,code:net.code,state,ME,owners:planets.map(P=>P.owner).join(','),levels:planets.map(P=>P.level).join(''),bytesOut:net.bytesOut,bytesIn:net.bytesIn,snaps:net.snaps,units:aliveU,conns:net.conns.size,slots:net.slots.map(s=>s.kind[0]+s.f).join(' '),winner:net.winner,alive:net.alive,cnt:Array.from(cnt),inc:Array.from(inc),endT:$('endT').textContent,endShown:!$('sEnd').classList.contains('hidden')}),debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
-    if(mode==='sk'){const L=genSkirm({size:'m',riv:2,pers:[],ter:'mix',start:'even'},seed);startLevel(99,false,L);mode='bot';}
+if(location.hash==='#debug')window.__lumen={mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
+    let lh=2166136261;try{const L=mpLevel(net.map);for(const q of L.planets)for(const v of q.slice(0,5)){h=h;lh^=Math.round((+v||0)*10);lh=Math.imul(lh,16777619);}}catch(e){}
+    return{slots:net.slots.map(s=>({f:s.f,kind:s.kind,me:s.pid===net.myId,host:!!s.host,team:s.team})),teams:net.teams,rnd:net.rnd,map:net.map,TEAM:TEAM.slice(),TEAMS_ON,hash:h>>>0,lobbyHash:lh>>>0,NP,ME,winner:net.winner,endShown:net.endShown,endT:document.getElementById('endT').textContent};},
+  slotTest:(n)=>{const keep=net.slots;const hits={};for(let k=0;k<n;k++){net.slots=[0,1,2,3,4,5].map(f=>({f,kind:f===2?'human':'ai'}));const fr=freeSlots();const sl=rndPick(fr);hits[sl.f]=(hits[sl.f]||0)+1;}net.slots=keep;return hits;},
+  allyTest:()=>{const out={};const fs=[...new Set(planets.filter(P=>P.owner>=0).map(P=>P.owner))];let A=-1,B=-1;for(const a of fs)for(const b of fs)if(a!==b&&ally(a,b)&&(A<0||(HUM.has(b)&&!HUM.has(B)))){A=a;B=b;}if(A<0)return{none:true};
+    const pa=planets.findIndex(P=>P.owner===A),pb=planets.findIndex(P=>P.owner===B);out.A=A;out.B=B;out.before=cnt[pb*NF+B];for(let m=0;m<30;m++)spawnOrbiter(pa,A,false);
+    for(let m=0;m<30;m++)spawnOrbiter(pb,B,false);return Object.assign(out,{pa,pb});},
+  sendRaw:(from,to,n)=>sendUnits(from,to,n),cntOf:(p,f)=>cnt[p*NF+f],teamOf:f=>TEAM[f],
+  wipeEnemiesOf:(f)=>{for(const P of planets)if(P.owner>=0&&!ally(P.owner,f)){P.owner=-1;P.hp=0;}for(let i=0;i<hiU;i++)if(us[i]&&!ally(uo[i],f))killU(i);},
+  pathChk:(nRand)=>{const BD=[];let bad=0,segs=0,routed=0,worst=1e9;const chk=(P,e)=>{for(let k=0;k+3<P.length;k+=2){segs++;for(let q=0;q<NP;q++){if(e.indexOf(q)>=0)continue;const Q=planets[q];const d=segPt(Q.x,Q.y,P[k],P[k+1],P[k+2],P[k+3])-Q.r;if(d<worst)worst=d;if(d<0){bad++;if(BD.length<3&&e.length==2)BD.push({e,q,qr:Q.r,qx:Q.x,qy:Q.y,P:Array.from(P).map(Math.round),wall:TER.walls.length,route:!!(ROUTE&&e.length==2&&ROUTE[e[0]*NP+e[1]])});}}}};for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j])routed++;chk(routePts(i,j),[i,j]);}let rb=0;const r=mulberry32(99);for(let k=0;k<(nRand||40);k++){const a=clampPt(60+r()*(MW-120),60+r()*(MH-120)),b=clampPt(60+r()*(MW-120),60+r()*(MH-120));const ex=[];for(let q=0;q<NP;q++){const Q=planets[q];if(Math.hypot(Q.x-a[0],Q.y-a[1])<Q.r+PMARG+8||Math.hypot(Q.x-b[0],Q.y-b[1])<Q.r+PMARG+8)ex.push(q);}const w=pathPts(a[0],a[1],b[0],b[1]);const P=[a[0],a[1]];if(w)for(const v of w)P.push(v);P.push(b[0],b[1]);const before=bad;chk(P,ex);if(bad>before)rb++;}return{bad,segs,routed,worst:Math.round(worst),randBad:rb,NP,name:curLevel.name,BD,walls:TER.walls.map(w=>w.map(Math.round))};},open:v=>{if(v!=null)OPEN.on=!!v;return OPEN.on;},fl:()=>{const o=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)o.push({i,s:us[i],d:up[i],x:Math.round(SX(ux[i],uy[i])),y:Math.round(SY(ux[i],uy[i])),wx:Math.round(ux[i]),wy:Math.round(uy[i]),sel:selF.has(i)});return o;},capChk:()=>{const out=[];for(const t of ['','F','X','C','W'])for(const s of [0,1,2])for(let l=1;l<=3;l++){const P={type:t,sf:SIZE_F[s],level:l};out.push([t,s,l,capOf(P),upCost(P)]);}return out;},upb:()=>upBadges.map(U=>({p:U.p,x:Math.round(U.x),y:Math.round(U.y)})),simSk:(d,sd)=>window.__lumen.sim(99,900,'sk',d,sd),perc:v=>{if(v!=null)PERC.on=!!v;return PERC.on;},tip:()=>({p:tipS.p,src:tipS.src,on:$('tip').classList.contains('on'),txt:$('tip').textContent,box:(()=>{const r=$('tip').getBoundingClientRect();return[r.left,r.top,r.width,r.height];})()}),startSk:(c,sd)=>startSkirm(c,sd,false),menu:()=>{if(net.on)mpReset();toMenu();},skGen:(c,sd)=>JSON.stringify(genSkirm(c,sd)),sk:()=>({mode:MODE,seed:SK.seed,streak:SK.streak,best:save.skBest||0,endless:SK.endless,diff:SK.diff,name:curLevel&&curLevel.name,ais:curLevel&&curLevel.ais,feats:curLevel&&curLevel.feats,NP,state,planets:planets.map(P=>[P.x,P.y,P.owner,P.type]).join(';')}),hist:()=>({n:hist.t.length,ev:hist.ev.length,src:hist.src,last:hist.t[hist.t.length-1],u:hist.u.map(a=>a[a.length-1]),fs:fst}),win:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]!==ME)killU(i);for(const P of planets)if(P.owner>=0&&P.owner!==ME){P.owner=-1;}},lose:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]===ME)killU(i);for(const P of planets)if(P.owner===ME)P.owner=-1;},give:(i,n)=>{for(let k=0;k<n;k++)spawnOrbiter(i,planets[i].owner,false);},setP:(i,o,l)=>{const P=planets[i];P.owner=o;P.level=l;P.hp=maxHp(P);},mpMove:(src,sw,x,y)=>moveFrom(src,sw,x,y),groups:()=>JSON.parse(JSON.stringify(groups)),forceMove:(f,q,x,y)=>moveTo(f,[],[q],x,y,1),inWall:()=>{let n=0;for(let i=0;i<hiU;i++)if(us[i]>=2)for(const w of TER.walls)if(segPt(ux[i],uy[i],w[0],w[1],w[2],w[3])<w[4]-4)n++;return n;},sw:()=>{const o=[];for(let q=0;q<MAXS;q++)if(SWA[q])o.push({id:q,o:SWO[q],x:Math.round(SWX[q]),y:Math.round(SWY[q]),c:swc[q],i:swi[q]});return o;},sscr:q=>[SX(SWX[q],SWY[q]),SY(SWX[q],SWY[q])],wscr:(x,y)=>[SX(x,y),SY(x,y)],selx:()=>({p:[...sel],s:[...selS]}),mkSwarm:(f,x,y,n)=>{const q=newSwarm(f,x,y);for(let k=0;k<n;k++){const i=allocU();if(i<0)break;us[i]=3;uo[i]=f;up[i]=q;ua[i]=rand()*TAU;ub[i]=Math.sqrt(rand());uc[i]=ub[i]*20;uw[i]=0.4;ux[i]=x;uy[i]=y;}swc[q]=n;return q;},walls:()=>TER.walls,units:()=>{let a=[0,0,0,0,0];for(let i=0;i<hiU;i++)a[us[i]]++;return a;},pct:()=>save.pct,play:i=>play(i),terr:()=>{let bad=0,routed=0;for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j]){routed++;const P=routePts(i,j);for(let k=0;k+3<P.length;k+=2)if(!clearLine([P[k],P[k+1]],[P[k+2],P[k+3]],0))bad++;}else if(TER.walls.length&&!clearLine([planets[i].x,planets[i].y],[planets[j].x,planets[j].y],0))bad++;}return{bad,routed,feats:levelFeats(curLevel),name:curLevel.name,NP};},holdT:()=>holdT.slice(),scr:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],forceEnd:f=>{net.winner=f;},mpSend:(src,t,sw)=>sendFrom(src,t,sw),mpDef:p=>defend(p),mpUp:p=>playerUpgrade(p),net:()=>({pos:planets.map(P=>[P.x,P.y]),role:net.role,inMatch:net.inMatch,code:net.code,state,ME,owners:planets.map(P=>P.owner).join(','),levels:planets.map(P=>P.level).join(''),bytesOut:net.bytesOut,bytesIn:net.bytesIn,snaps:net.snaps,units:aliveU,conns:net.conns.size,slots:net.slots.map(s=>s.kind[0]+s.f).join(' '),winner:net.winner,alive:net.alive,cnt:Array.from(cnt),inc:Array.from(inc),endT:$('endT').textContent,endShown:!$('sEnd').classList.contains('hidden')}),debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
+    if(mode==='sk'||mode==='skteam'){const L=genSkirm({size:'m',riv:mode==='skteam'?(idx>=3&&idx<=5?idx:3):2,pers:[],ter:'mix',start:'even',teams:mode==='skteam'?'on':'off'},seed);startLevel(99,false,L);mode='bot';}
     else if(mode==='ffa'){const L=procLevel(5,seed,2);const perm=[1,2,3].sort(()=>rand()-0.5);for(const q of L.planets)if(q[3]>=0)q[3]=perm[q[3]];L.ais=[1,2,3];L.aiMul=1;startLevel(idx,false,L);}
+    else if(mode==='ffa6'||mode==='team6'){const L=genSkirm({size:idx===1?'m':'l',riv:5,pers:[],ter:idx===2?'mix':'none',start:'even'},seed);const perm=[0,1,2,3,4,5].sort(()=>rand()-0.5);const map={};[0].concat(L.ais).forEach((f,i)=>map[f]=perm[i]);
+      for(const q of L.planets)if(q[3]>=0)q[3]=map[q[3]];L.ais=[1,2,3,4,5];L.aiMul=1;if(mode==='team6'){const tm=[0,1,2,3,4,5].sort(()=>rand()-0.5);L.teams=new Array(NF).fill(0);tm.forEach((f,i)=>L.teams[f]=i<3?0:1);}
+      HUM=new Set();startLevel(99,false,L);mode=mode==='team6'?'teamai':'ai';}
     else if(mode!=='bot'||idx!==99)startLevel(idx,false);
     metrReset();state='sim';let sampT=0;
-    if(mode==='ai'&&aiList.indexOf(0)<0){aiList.unshift(0);prodMul[0]=prodMul[1];aiT[0]=aiT[1];}
+    if((mode==='ai'||mode==='teamai')&&aiList.indexOf(0)<0){aiList.unshift(0);prodMul[0]=prodMul[1];aiT[0]=aiT[1];}
     const dt=1/50;let t=0,botT=3,winner=-2;
     const bot=()=>{const mine=[];for(let i=0;i<NP;i++)if(planets[i].owner===0)mine.push(i);if(!mine.length)return;
       let best=-1,bs=-1;for(let t2=0;t2<NP;t2++){const T=planets[t2];if(T.owner===0)continue;let d=1e9;for(const i of mine)d=Math.min(d,distM[i*NP+t2]);
-        const need=T.owner<0?capReq(T)-(T.capOwner===0?T.capProg:-T.capProg):cnt[t2*4+T.owner]+T.hp;const sc=T.sf/((need-inc[t2*4]+15)*(1+d/300));if(sc>bs){bs=sc;best=t2;}}
-      if(best>=0)for(const i of mine){const c=cnt[i*4];if(c>8&&!hazNow(i,best))sendUnits(i,best,Math.floor(c*0.7));}};
+        const need=T.owner<0?capReq(T)-(T.capOwner===0?T.capProg:-T.capProg):cnt[t2*NF+T.owner]+T.hp;const sc=T.sf/((need-inc[t2*NF]+15)*(1+d/300));if(sc>bs){bs=sc;best=t2;}}
+      if(best>=0)for(const i of mine){const c=cnt[i*NF];if(c>8&&!hazNow(i,best))sendUnits(i,best,Math.floor(c*0.7));}};
     let maxAge=0,swAI=0,pick=0;
-    while(t<secs){step(dt);t+=dt;sampT+=dt;if(sampT>=1-1e-9){for(let i=0;i<hiU;i++)if(us[i]===2&&time-ut[i]>maxAge)maxAge=time-ut[i];for(let q=0;q<MAXS;q++)if(SWA[q]){swAI++;if(aiMem[SWO[q]]&&aiMem[SWO[q]].picket===q)pick++;}}if(sampT>=1){sampT=0;for(let f=0;f<4;f++){if(ownP[f]<=0)continue;const F=metr.fs[f];F.alive++;for(let p=0;p<NP;p++){const P=planets[p];if(P.owner===f){F.lvl+=P.level;F.lvlN++;F.gar+=cnt[p*4+f];F.garN++;}}}}if(mode==='bot'){botT-=dt;if(botT<=0){botT=2.5;bot();}}
-      const alive=[];for(let f=0;f<4;f++)if(ownP[f]>0||tot[f]>0)alive.push(f);
+    while(t<secs){step(dt);t+=dt;sampT+=dt;if(sampT>=1-1e-9){for(let i=0;i<hiU;i++)if(us[i]===2&&time-ut[i]>maxAge)maxAge=time-ut[i];for(let q=0;q<MAXS;q++)if(SWA[q]){swAI++;if(aiMem[SWO[q]]&&aiMem[SWO[q]].picket===q)pick++;}}if(sampT>=1){sampT=0;for(let f=0;f<NF;f++){if(ownP[f]<=0)continue;const F=metr.fs[f];F.alive++;for(let p=0;p<NP;p++){const P=planets[p];if(P.owner===f){F.lvl+=P.level;F.lvlN++;F.gar+=cnt[p*NF+f];F.garN++;}}}}if(mode==='bot'){botT-=dt;if(botT<=0){botT=2.5;bot();}}
+      const alive=[];for(let f=0;f<NF;f++)if(ownP[f]>0||tot[f]>0)alive.push(f);
       if(objWin>=0){winner=objWin;break;}
-      if(mode==='bot'&&(alive.indexOf(0)<0||alive.length===1)){winner=alive.indexOf(0)<0?-1:0;break;}
-      if((mode==='ai'||mode==='ffa')&&alive.length<=1){winner=alive[0];break;}}
-    const strE=aiStrength();let lead=0;for(let f=1;f<4;f++)if(strE[f]>strE[lead])lead=f;
-    METR=false;state='title';
+      if(mode==='bot'&&(alive.indexOf(0)<0||alive.every(f=>ally(f,0)))){winner=alive.indexOf(0)<0?-1:0;break;}
+      if((mode==='ai'||mode==='ffa')&&alive.length<=1){winner=alive[0];break;}
+      if(mode==='teamai'&&new Set(alive.map(f=>TEAM[f])).size<=1){winner=alive[0];break;}}
+    const strE=aiStrength();let lead=0;for(let f=1;f<NF;f++)if(strE[f]>strE[lead])lead=f;
+    METR=false;state='title';HUM=new Set([0]);
     const clash=Array.from(metr.clash);let cm=0,ct=0;for(const c of clash){ct+=c;if(c>cm)cm=c;}
     const gaps=[];{const S=metr.starts;for(let k=0;k<S.length;k++){const [tg,fb,tb]=S[k];let ta=-1;for(let j=k-1;j>=0;j--){const s2=S[j];if(tb-s2[2]>25)break;if(s2[0]===tg&&s2[1]!==fb){ta=s2[2];break;}}if(ta>=0&&aiList.indexOf(fb)>=0)gaps.push(Math.round((tb-ta)*100)/100);}}
-    let eN=0,eT=0,eF=[0,0,0,0],eFN=[0,0,0,0];for(const st of metr.starts){if(st[2]>60||aiList.indexOf(st[1])<0)continue;eT++;eF[st[1]]++;if(st[3]===-1){eN++;eFN[st[1]]++;}}
-    return{early:[eN,eT],eF,eFN,gaps,t:Math.round(t),winner,maxAge:Math.round(maxAge),swAI,pick,clashMax:cm,clashTotal:ct,maxStreak:metr.maxStreak,waves:metr.waves,lead,fs:metr.fs,owners:planets.map(P=>P.owner).join('')};},
+    let eN=0,eT=0,eF=[0,0,0,0,0,0],eFN=[0,0,0,0,0,0];for(const st of metr.starts){if(st[2]>60||aiList.indexOf(st[1])<0)continue;eT++;eF[st[1]]++;if(st[3]===-1){eN++;eFN[st[1]]++;}}
+    return{allyHits:metr.allyAtk||0,allyHelp:metr.starts.filter(st=>st[3]>=0&&st[3]!==st[1]&&ally(st[1],st[3])&&aiList.indexOf(st[1])>=0).length,team:winner>=0?TEAM[winner]:-1,teams:TEAM.slice(),early:[eN,eT],eF,eFN,gaps,t:Math.round(t),winner,maxAge:Math.round(maxAge),swAI,pick,clashMax:cm,clashTotal:ct,maxStreak:metr.maxStreak,waves:metr.waves,lead,fs:metr.fs,owners:planets.map(P=>P.owner).join('')};},
   attack:(p,g,n)=>{const src=planets.findIndex(P=>P.owner===g);if(src<0)return 0;for(let m=0;m<n;m++)spawnOrbiter(src,g,false);setTimeout(()=>sendUnits(src,p,n),80);return n;},
   stress:n=>{for(let k=0;k<n;k++)for(let i=0;i<NP;i++)if(planets[i].owner===0)spawnOrbiter(i,0,false);}};
 resize();refreshUI();startLevel(0,true);requestAnimationFrame(frame);
