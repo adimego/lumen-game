@@ -432,7 +432,7 @@ function procLevel(idx,seed,nAIo,aisO){
 }
 /* ---------------- skirmish: random fair maps from the generator + optional terrain ---------------- */
 const SK_FEATS=['walls','neb','flares','special','worm'];
-const SK_IDEA={walls:'Asteroid walls block fleets, so they fly around them.',neb:'Nebulae slow fleets and hide numbers.',flares:'Solar flares pulse and burn fleets inside; slingshot lanes run along the edges.',special:'Core at the centre (+25% production), plus a Factory and a Fortress.',worm:'Two linked wormholes: own both and fleets jump instantly.'};
+const SK_IDEA={walls:'Asteroid walls block fleets, so they fly around them.',neb:'Nebulae slow fleets and hide numbers.',flares:'Solar flares pulse and burn fleets inside; slingshot lanes run along the edges.',special:'Core at the centre (+10% production), plus a Factory and a Fortress.',worm:'Two linked wormholes: own both and fleets jump instantly.'};
 function skShuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function genSkirm(cfg,seed){seed=seed>>>0;const rng=mulberry32(seed^0x5bd1e995);const riv=Math.max(1,Math.min(3,cfg.riv|0||2));
   const S=(cfg.pers||[]).filter(f=>f>=1&&f<=3);const pool=skShuffle([1,2,3],rng);
@@ -488,7 +488,7 @@ function procFeat(idx,kind){
   for(const [i,mx,my] of gates){const o=gates.find(g=>g[1]!==mx&&g[2]!==my);p[i][6]=o[0];}
   const c=[500,800,2,-1,kind==='crown'?2:1];if(kind==='forge'||kind==='crown')c[5]='C';p.push(c);
   if(kind==='forge'||kind==='crown')p.push([500,1330,1,-1,1],[500,270,1,-1,1],[110,800,1,-1,1],[890,800,1,-1,1]);
-  const NM={forge:['The Forge','Factories (gear) build fast but hold few units. Fortresses (hexagon) have a triple shield but build slowly. Whoever holds the Core at the centre gets +25% production everywhere.'],
+  const NM={forge:['The Forge','Factories (gear) build fast but hold few units. Fortresses (hexagon) have a triple shield but build slowly. Whoever holds the Core at the centre gets +10% production everywhere.'],
     gate:['Wormhole Gate','Asteroid walls wall off each corner, so everyone has to pass through the centre. Own both ends of a wormhole and fleets sent between them arrive instantly.'],
     crown:['Dark Crown','Light fog: you only see enemy numbers near your own planets. Hold the Core at the centre for 40 seconds to win, or wipe everyone out.'],
     last:['Last Stand','You start outnumbered: every rival begins with 50% more units than you. Four flares pulse around the centre, so pick your moment.']};
@@ -613,7 +613,7 @@ function aiSwarms(f,D,Q,M,mine,avail,threat){
 }
 const TIPS={swarm:'New: with planets selected, tap empty space to park a swarm there. Swarms don\u2019t produce and fight any enemy they touch.',walls:'Asteroid walls block fleets, so they fly around them. Gaps are chokepoints.',neb:'Nebulae slow fleets to half speed and hide enemy numbers inside (shown as ?).',
   sling:'Slingshot lanes almost double fleet speed along them.',flares:'Solar flares pulse. While one burns, fleets inside it are destroyed. Send between flares.',
-  F:'Fortress: triple shield, slow production.',X:'Factory: fast production, small capacity.',C:'Core: +25% production on all your planets.',
+  F:'Fortress: triple shield, slow production.',X:'Factory: fast production, small capacity.',C:'Core: +10% production on all your planets.',
   W:'Wormhole: send between two linked gates you own and the fleet arrives instantly.',fog:'Light fog: you only see enemy numbers and fleets near your planets.',
   hold:'Objective: hold the Core for the time shown to win.',outn:'You start outnumbered. Rivals begin with 50% more units.'};
 function levelFeats(L){const T=L.T||{},f=[];if(T.walls)f.push('walls');if(T.neb)f.push('neb');if(T.sling)f.push('sling');if(T.flares)f.push('flares');
@@ -690,7 +690,7 @@ function step(dt){
   // arrivals
   for(let k=0;k<nArr;k++){const i=arrQ[k];if(us[i]===2)arrive(i);}
   // production / regen
-  coreB.fill(1);for(const P of planets)if(P.type==='C'&&P.owner>=0)coreB[P.owner]*=1.25;
+  coreB.fill(1);for(const P of planets)if(P.type==='C'&&P.owner>=0)coreB[P.owner]*=1.10;
   for(let p=0;p<NP;p++){const P=planets[p];P.flash=Math.max(0,P.flash-dt*3);P.spin+=dt*0.05;
     if(P.owner<0)continue;const mh=maxHp(P);
     if(cnt[p*4+P.owner]<capOf(P)){P.prodAcc+=prodRate(P)*prodMul[P.owner]*coreB[P.owner]*dt;
@@ -850,7 +850,7 @@ function aiThink(f,D){
     }
     need-=ownInc;if(need<=0)continue;
     let value=T.sf*(1+0.5*(T.level-1))*(neutral?1.2:Q.attack);
-    if(T.type)value*=T.type==='C'?1.8:T.type==='X'?1.35:T.type==='W'?1.25:1.1;
+    if(T.type)value*=T.type==='C'?1.4:T.type==='X'?1.35:T.type==='W'?1.25:1.1;
     if(TER.obj&&t===TER.obj.hold)value*=2.5;
     let margin=neutral?Q.marginN:Q.marginO;
     // territory: prefer our own side of the map, avoid a rival's backyard
@@ -1206,7 +1206,7 @@ function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,
 // Red DEFEND badge on a threatened planet = rally just enough units from safe nearby planets.
 const TAP_SLOP=10,HOLD_MS=380;
 /* special-planet tooltips: mouse hover 300 ms, touch hold (never consumes the gesture), brief first-time hint */
-const TIPTXT={F:['FORTRESS','triple shield, slow production'],X:['FACTORY','fast production, holds few units'],C:['CORE','+25% production on all your planets'],W:['WORMHOLE','own both gates: fleets jump instantly']};
+const TIPTXT={F:['FORTRESS','triple shield, slow production'],X:['FACTORY','fast production, holds few units'],C:['CORE','+10% production on all your planets'],W:['WORMHOLE','own both gates: fleets jump instantly']};
 const tipS={p:-1,until:0,src:'',hovP:-1,hovT:0,touchT:0};
 function tipText(p){const P=planets[p];if(!P)return '';const o=TER.obj&&TER.obj.hold===p;const a=TIPTXT[P.type];
   if(o)return `<b>${a?a[0]+' · ':''}OBJECTIVE</b> · hold it ${TER.obj.secs}s to win${a?' · '+a[1]:''}`;return a?`<b>${a[0]}</b> · ${a[1]}`:'';}
