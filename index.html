@@ -32,6 +32,12 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 #lvlName b{display:block;font-size:10px;letter-spacing:.25em;opacity:.6;font-weight:500}
 #toast{position:fixed;left:50%;top:calc(var(--sat) + 92px);transform:translateX(-50%);padding:9px 16px;border-radius:18px;background:rgba(8,20,40,.72);border:1px solid rgba(120,220,255,.3);font-size:14px;text-align:center;max-width:88vw;opacity:0;transition:opacity .35s;pointer-events:none;z-index:8;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 #toast.on{opacity:1}
+#intro{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);min-width:250px;max-width:90vw;padding:14px 18px;border-radius:20px;background:rgba(6,14,30,.8);border:1px solid rgba(120,220,255,.25);opacity:0;transition:opacity .45s,transform .45s;pointer-events:none;z-index:7;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#intro.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#intro h3{font-weight:300;letter-spacing:.22em;text-transform:uppercase;font-size:16px;text-align:center;margin-bottom:10px}
+#intro .r{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:15px}
+#intro .r i{width:14px;height:14px;border-radius:50%;flex:none}
+#intro .r small{display:block;opacity:.6;font-size:12px}
 .screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:calc(var(--sat) + 16px) calc(var(--sar) + 16px) calc(var(--sab) + 16px) calc(var(--sal) + 16px);background:radial-gradient(ellipse at center,rgba(3,6,18,.35),rgba(3,4,11,.82))}
 .panel{width:100%;max-width:420px;max-height:100%;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;text-align:center;padding:22px 20px;border-radius:24px;background:rgba(8,16,34,.55);border:1px solid rgba(120,220,255,.18);box-shadow:0 0 60px rgba(70,215,255,.08),inset 0 0 40px rgba(70,215,255,.04);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .logo{font-size:56px;font-weight:200;letter-spacing:.32em;margin-right:-.32em;background:linear-gradient(180deg,#fff,#7fe3ff 60%,#3aa8ff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(70,215,255,.55))}
@@ -77,6 +83,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
   </div>
 </div>
 <div id="toast"></div>
+<div id="intro"></div>
 
 <div id="sTitle" class="screen">
   <div class="panel">
@@ -99,6 +106,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
       <li><span class="i">↗</span><b>Drag from your planet</b> to any planet to send in one move. This is also how you reinforce your own planets.</li>
       <li><span class="i">◯</span><b>Draw a loop</b> on empty space to select several planets. <b>Tap empty space</b> to deselect all.</li>
       <li><span class="i">▲</span>With one planet selected, tap <b>Upgrade</b> to spend its orbiting units on a level-up (max 3).</li>
+      <li><span class="i">◆</span><b>Rivals have personalities:</b> <b style="color:#ff6a78">Red</b> is aggressive and raids often, <b style="color:#9dff6a">Green</b> turtles, upgrades and counterattacks, <b style="color:#d48bff">Violet</b> is balanced and hunts whoever is winning.</li>
       <li><span class="i">%</span>The % button sets how much each planet sends. Destroy every rival planet and unit to win.</li>
     </ul>
     <button id="bHowOk" class="big">Got it</button>
@@ -133,7 +141,14 @@ let DPR=1,CW=1,CH=1,rot=false,S=1,OX=0,OY=0,SAT=0,SAB=0;
 const MW=1000,MH=1600;
 const FCOL=[[70,215,255],[255,84,100],[150,255,95],[205,115,255]];
 const NEUT=[135,145,170];
-const FNAME=['You','Crimson','Verdant','Violet'];
+const FNAME=['You','Red','Green','Violet'];
+// Fixed personalities per color. Difficulty (Easy/Normal/Hard) is a separate skill layer on top.
+const PERS=[
+ {label:'BALANCED',  name:'Balanced',  blurb:'',                                 think:1,   delay:1,   defTh:0.8, defGive:0.7, upg:1,   upgRes:6,  attack:1,   hunt:1,   weak:1,   opp:1,   leader:1,   lead:1.35,marginN:1,   marginO:1,   frac:1,   keep:0.05,over:1,   reach:1,   safe:0,   front:true, revenge:1},
+ {label:'AGGRESSIVE',name:'Aggressive',blurb:'raids early and often, big waves', think:0.62,delay:0.4, defTh:1.15,defGive:0.5, upg:0.25,upgRes:16, attack:1.7, hunt:1.35,weak:1.6, opp:1.9, leader:0.8, lead:1.6, marginN:0.9, marginO:0.8, frac:1.25,keep:0,   over:1.7, reach:1.3, safe:0,   front:false,revenge:1.2},
+ {label:'DEFENSIVE', name:'Defensive', blurb:'turtles, upgrades, counterattacks',think:1.05,delay:1.4, defTh:0.5, defGive:0.9, upg:2.6, upgRes:0,  attack:0.35,hunt:0.9, weak:1,   opp:1,   leader:1,   lead:1.5, marginN:1.1, marginO:1.9, frac:0.8, keep:0.38,over:1,   reach:0.8, safe:1,   front:true, revenge:2.6},
+ {label:'BALANCED',  name:'Balanced',  blurb:'measured, opportunistic, hunts the leader',think:0.95,delay:1,defTh:0.8,defGive:0.7,upg:1.1,upgRes:6,attack:1,hunt:1,weak:1.1,opp:1.7,leader:1.8,lead:1.2,marginN:1,marginO:1,frac:1,keep:0.1,over:1.1,reach:1,safe:0.4,front:true,revenge:1.3}
+];
 const SIZE_R=[34,48,66], SIZE_F=[1,1.6,2.4];
 const SPEED=86, CR=8, CR2=CR*CR;
 const DIFF={
@@ -233,12 +248,12 @@ function makePlanet(a,i){
 const HAND=[
  ()=>({name:'First Light',ais:[1],aiMul:0.75,planets:[[500,1380,2,0,1],[500,220,1,1,1],[230,1150,0,-1,1],[770,1150,0,-1,1],[500,1020,1,-1,1],[260,760,1,-1,1],[740,760,1,-1,1],[500,560,0,-1,1],[230,420,0,-1,1],[770,420,0,-1,1]]}),
  ()=>{const half=[[200,1350,1,0,1],[450,1420,0,-1,1],[200,1060,0,-1,1],[480,1130,1,-1,1],[800,1320,0,-1,1],[760,1010,1,-1,1]];const p=[];
-   half.forEach(q=>{p.push(q);p.push([1000-q[0],1600-q[1],q[2],q[3]===0?1:-1,q[4]]);});p.push([500,800,2,-1,2]);return{name:'Twin Rivers',ais:[1],aiMul:0.95,planets:p};},
- ()=>({name:'Crossfire',ais:[1,2],aiMul:0.85,planets:[[500,1400,1,0,1],[180,240,1,1,1],[820,240,1,2,1],[500,1160,0,-1,1],[250,1230,0,-1,1],[750,1230,0,-1,1],[500,800,2,-1,2],[210,720,1,-1,1],[790,720,1,-1,1],[500,470,0,-1,1],[190,480,0,-1,1],[810,480,0,-1,1],[340,980,0,-1,1],[660,980,0,-1,1],[500,200,1,-1,1]]}),
- ()=>{const p=[[500,800,2,-1,3]];const n=12;for(let k=0;k<n;k++){const a=Math.PI/2+k*TAU/n;let o=-1;if(k===0)o=0;if(k===4)o=1;if(k===8)o=2;
+   half.forEach(q=>{p.push(q);p.push([1000-q[0],1600-q[1],q[2],q[3]===0?2:-1,q[4]]);});p.push([500,800,2,-1,2]);return{name:'Twin Rivers',ais:[2],aiMul:0.95,planets:p};},
+ ()=>({name:'Crossfire',ais:[1,3],aiMul:0.85,planets:[[500,1400,1,0,1],[180,240,1,1,1],[820,240,1,3,1],[500,1160,0,-1,1],[250,1230,0,-1,1],[750,1230,0,-1,1],[500,800,2,-1,2],[210,720,1,-1,1],[790,720,1,-1,1],[500,470,0,-1,1],[190,480,0,-1,1],[810,480,0,-1,1],[340,980,0,-1,1],[660,980,0,-1,1],[500,200,1,-1,1]]}),
+ ()=>{const p=[[500,800,2,-1,3]];const n=12;for(let k=0;k<n;k++){const a=Math.PI/2+k*TAU/n;let o=-1;if(k===0)o=0;if(k===4)o=2;if(k===8)o=3;
      p.push([Math.round(500+Math.cos(a)*390),Math.round(800+Math.sin(a)*640),o>=0?1:(k%2?0:1),o,1]);}
    for(let k=0;k<3;k++){const a=Math.PI/2+Math.PI/3+k*TAU/3;p.push([Math.round(500+Math.cos(a)*200),Math.round(800+Math.sin(a)*330),0,-1,1]);}
-   return{name:'Halo',ais:[1,2],aiMul:1,planets:p};},
+   return{name:'Halo',ais:[2,3],aiMul:1,planets:p};},
  ()=>{const p=[[500,800,2,-1,2]];const corners=[[180,1420,0],[820,180,1],[180,180,2],[820,1420,3]];
    for(const [cx,cy,o] of corners){const dx=cx<500?1:-1,dy=cy<800?1:-1;p.push([cx,cy,1,o,1]);p.push([cx+dx*260,cy,0,-1,1]);p.push([cx,cy+dy*270,0,-1,1]);p.push([cx+dx*200,cy+dy*290,1,-1,1]);}
    p.push([500,270,1,-1,1],[500,1330,1,-1,1],[120,800,1,-1,1],[880,800,1,-1,1]);return{name:'Quadrants',ais:[1,2,3],aiMul:1,planets:p};}
@@ -259,15 +274,16 @@ function procLevel(idx,seed,nAIo){
     let fair=true;for(let k=0;k<nf;k++){let c=0;for(const q of p){if(q[3]===-1&&Math.hypot(q[0]-p[k][0],q[1]-p[k][1])<420)c++;}if(c<2)fair=false;}
     best=p;if(fair)break;
   }
-  const ais=[];for(let k=1;k<=nAI;k++)ais.push(k);
+  const ais=nAI>=3?[1,2,3]:[[1,3],[2,3],[1,2]][idx%3].slice(0,nAI);
+  for(const q of best)if(q[3]>0)q[3]=ais[q[3]-1];
   return{name:SECTOR_NAMES[(idx-HAND.length)%SECTOR_NAMES.length]||('Sector '+(idx+1)),ais,aiMul:Math.min(1.5,1+0.05*(idx-4)),planets:best.map(q=>[Math.round(q[0]),Math.round(q[1]),q[2],q[3],q[4]])};
 }
 function getLevel(idx){return idx<HAND.length?HAND[idx]():procLevel(idx);}
 
 /* ---------------- setup ---------------- */
-function startLevel(idx,isDemo){
+function startLevel(idx,isDemo,custom){
   demo=!!isDemo;levelIdx=idx;
-  const L=isDemo?procLevel(5,(Math.random()*1e9)|0,3):getLevel(idx);curLevel=L;
+  const L=custom||(isDemo?procLevel(5,(Math.random()*1e9)|0,3):getLevel(idx));curLevel=L;
   resetUnits();rings.length=0;beams.length=0;floats.length=0;for(let i=0;i<MAXP;i++)pl[i]=0;
   planets=L.planets.map(makePlanet);NP=planets.length;
   cnt=new Int32Array(NP*4);inc=new Int32Array(NP*4);ph=new Int32Array(NP).fill(-1);
@@ -276,7 +292,7 @@ function startLevel(idx,isDemo){
   const D=DIFF[save.diff];
   aiList=isDemo?[0,1,2,3]:L.ais.slice();
   aiMulCur=isDemo?1:L.aiMul;
-  for(let f=0;f<4;f++){prodMul[f]=(isDemo||f===0)?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay)+rand()*D.think;}
+  for(let f=0;f<4;f++){prodMul[f]=(isDemo||f===0)?1:D.prod*Math.min(1.25,0.85+0.15*aiMulCur);aiT[f]=(isDemo?1:D.delay*PERS[f].delay)+rand()*D.think*PERS[f].think;}
   planets.forEach((P,i)=>{if(P.owner>=0)for(let k=0;k<16;k++)spawnOrbiter(i,P.owner,false);});
   aiInit();
   sel.clear();time=0;endTimer=-1;stats={sent:0,killed:0,captured:0,lost:0,produced:0};
@@ -285,7 +301,7 @@ function startLevel(idx,isDemo){
     $('lvlName').innerHTML=`${L.name}<b>Sector ${idx+1} · ${save.diff}</b>`;
     hintStage=0;
     if(idx===0)toast('Tap your glowing cyan planet to select it',5000);
-    else toast(`${L.name} — ${L.ais.length} rival${L.ais.length>1?'s':''}`,2500);
+    showIntro(L,idx===0?5200:3600);
   }
 }
 function spawnOrbiter(pi,f,fromCenter){
@@ -337,7 +353,7 @@ function step(dt){
   for(const A of [beams,floats])for(let i=A.length-1;i>=0;i--){A[i].t+=dt;if(A[i].t>A[i].d)A.splice(i,1);}
   // AI
   const D=DIFF[save.diff];
-  for(const f of aiList){aiT[f]-=dt;if(aiT[f]<=0){aiT[f]=D.think*(0.75+rand()*0.5)/(demo?1:Math.max(0.6,aiMulCur));if(ownP[f]>0)aiThink(f,demo?DIFF.normal:D);}}
+  for(const f of aiList){aiT[f]-=dt;if(aiT[f]<=0){aiT[f]=D.think*PERS[f].think*(0.75+rand()*0.5)/(demo?1:Math.max(0.6,aiMulCur));if(ownP[f]>0)aiThink(f,demo?DIFF.normal:D);}}
   // selection validity
   for(const p of sel)if(planets[p].owner!==0)sel.delete(p);
   // end check
@@ -376,7 +392,8 @@ function sendUnits(from,to,n){
   if(from===to||n<=0)return 0;const P=planets[from],T=planets[to],f=P.owner;if(f<0)return 0;
   let j=ph[from],sent=0;
   while(j!==-1&&sent<n){if(us[j]===1&&up[j]===from&&uo[j]===f){us[j]=2;up[j]=to;const a=rand()*TAU,rr=Math.sqrt(rand())*T.r*0.6;ua[j]=Math.cos(a)*rr;ub[j]=Math.sin(a)*rr;sent++;}j=upn[j];}
-  if(METR&&sent&&T.owner!==f&&aiList.indexOf(f)>=0)metrWave(f,to);
+  if(sent&&T.owner>=0&&T.owner!==f&&aiMem[T.owner])aiMem[T.owner].hitBy[from]=time;
+  if(METR&&sent&&T.owner!==f&&aiList.indexOf(f)>=0){metrWave(f,to);const F=metr.fs[f];if(metr.waveKey[f*64+to]!==thinkId){metr.waveKey[f*64+to]=thinkId;F.waves++;if(T.owner>=0)F.attacks++;}F.sent+=sent;}
   cnt[from*4+f]=Math.max(0,cnt[from*4+f]-sent);inc[to*4+f]+=sent;
   return sent;
 }
@@ -394,7 +411,7 @@ function tryUpgrade(p,f){
 
 /* ---------------- metrics (debug/sim only) ---------------- */
 let METR=false,thinkId=0;const metr={clash:null,rec:{},maxStreak:0,streaks:[],waves:0,lastThink:{}};
-function metrReset(){metr.clash=new Float64Array(NP);metr.rec={};metr.maxStreak=0;metr.waves=0;metr.lastThink={};metr.streaks=[];}
+function metrReset(){metr.fs=[0,1,2,3].map(()=>({waves:0,attacks:0,sent:0,lvl:0,lvlN:0,gar:0,garN:0,alive:0}));metr.waveKey={};metr.clash=new Float64Array(NP);metr.rec={};metr.maxStreak=0;metr.waves=0;metr.lastThink={};metr.streaks=[];}
 function metrClash(x,y){for(let p=0;p<NP;p++){const P=planets[p];if(P.owner!==-1)continue;const dx=P.x-x,dy=P.y-y,R=P.r+120;if(dx*dx+dy*dy<R*R){metr.clash[p]+=2;return;}}}
 function progMetric(f,t){const T=planets[t];if(T.owner===-1)return T.capOwner===f?T.capProg:-T.capProg;if(T.owner===f)return 1e6;return -(cnt[t*4+T.owner]+T.hp);}
 function metrWave(f,t){const k=f*64+t;if(metr.lastThink[k]===thinkId)return;metr.lastThink[k]=thinkId;metr.waves++;
@@ -405,16 +422,15 @@ function metrWave(f,t){const k=f*64+t;if(metr.lastThink[k]===thinkId)return;metr
 function metrCaptured(f,p){const r=metr.rec[f*64+p];if(r){r.streak=0;r.last=null;}}
 
 /* ---------------- AI ---------------- */
-// Per-AI memory: personality, per-target sunk-cost records, last-seen garrisons.
+// Per-AI memory: per-target sunk-cost records, last-seen garrisons, who hit us from where.
 const aiMem=[null,null,null,null];
 function aiInit(){
-  for(let f=0;f<4;f++){let hx=500,hy=800;const home=planets.find(P=>P.owner===f);if(home){hx=home.x;hy=home.y;}
-    aiMem[f]={reach:0.8+rand()*0.45,greed:0.85+rand()*0.3,aggr:0.8+rand()*0.45,hx,hy,tgt:{},prevCnt:new Float32Array(NP),focus:-1,n:0};}
+  for(let f=0;f<4;f++)aiMem[f]={tgt:{},prevCnt:new Float32Array(NP),hitBy:new Float32Array(NP).fill(-99),focus:-1,n:0};
 }
 function aiStrength(){const s=[0,0,0,0];for(let g=0;g<4;g++)s[g]=tot[g];for(const P of planets)if(P.owner>=0)s[P.owner]+=10*P.sf*P.level;return s;}
 function aiThink(f,D){
   thinkId++;
-  const M=aiMem[f];if(!M)return;M.n++;
+  const M=aiMem[f];if(!M)return;M.n++;const Q=PERS[f];
   const mine=[];for(let i=0;i<NP;i++)if(planets[i].owner===f)mine.push(i);
   if(!mine.length)return;
   const avail=new Float32Array(NP),threat=new Float32Array(NP);
@@ -422,19 +438,21 @@ function aiThink(f,D){
   // who is winning? ganging up on a runaway leader is strategic; ganging up on anyone else is not
   const str=aiStrength();let leader=-1,ls=0,second=0;
   for(let g=0;g<4;g++){if(str[g]>ls){second=ls;ls=str[g];leader=g;}else if(str[g]>second)second=str[g];}
-  const runaway=D.smart>=0.7&&leader>=0&&leader!==f&&ls>1.35*Math.max(1,second); // only smarter AIs coordinate against a runaway leader
-  // 1. defend threatened planets from nearby safe ones
+  const runaway=(D.smart>=0.7||Q.leader>1.5)&&leader>=0&&leader!==f&&ls>Q.lead*Math.max(1,second);
+  // 1. defend threatened planets (Defensive reacts early and gives a lot; Aggressive barely bothers)
   for(const i of mine){const def=avail[i]+inc[i*4+f]+planets[i].hp;
-    if(threat[i]>0&&threat[i]>def*0.8){let need=threat[i]*1.2-def+4;
+    if(threat[i]>0&&threat[i]>def*Q.defTh){let need=threat[i]*1.2-def+4;
       const helpers=mine.filter(j=>j!==i&&threat[j]===0).sort((a,b)=>distM[a*NP+i]-distM[b*NP+i]);
-      for(const j of helpers){if(need<=0)break;const give=Math.min(Math.floor(avail[j]*0.7),Math.ceil(need));if(give<3)continue;
+      for(const j of helpers){if(need<=0)break;const give=Math.min(Math.floor(avail[j]*Q.defGive),Math.ceil(need));if(give<3)continue;
         const s=sendUnits(j,i,give);avail[j]-=s;need-=s;}}}
   // 2. upgrade when safe
+  const upP=Math.min(0.95,D.upg*Q.upg);
   for(const i of mine){const P=planets[i];if(P.level>=3||threat[i]>0)continue;const cost=upCost(P);
-    if(avail[i]>=cost+6&&rand()<D.upg){if(tryUpgrade(i,f))avail[i]-=cost;}}
+    if(avail[i]>=cost+Q.upgRes&&rand()<upP){if(tryUpgrade(i,f))avail[i]-=cost;}}
   // 3. expand / attack
-  let total=0;for(const i of mine)total+=Math.max(0,avail[i]-4);
-  let best=-1,bestScore=0,bestNeed=0;
+  const keepOf=i=>threat[i]>0?avail[i]*0.5:Math.max(3,avail[i]*Q.keep);
+  let total=0;for(const i of mine)total+=Math.max(0,avail[i]-keepOf(i));
+  let best=-1,bestScore=0,bestNeed=0,bestMargin=1;
   for(let t=0;t<NP;t++){const T=planets[t];if(T.owner===f)continue;
     let dmin=1e9;for(const i of mine){if(avail[i]>5){const d=distM[i*NP+t];if(d<dmin)dmin=d;}}
     if(dmin>=1e9)continue;
@@ -449,38 +467,42 @@ function aiThink(f,D){
       need+=rivalInc*0.6*D.smart;     // a third party arriving too will fight us for the capture afterwards
     }
     need-=ownInc;if(need<=0)continue;
-    let value=T.sf*(1+0.5*(T.level-1))*(neutral?1.2:1)*M.greed;
+    let value=T.sf*(1+0.5*(T.level-1))*(neutral?1.2:Q.attack);
+    let margin=neutral?Q.marginN:Q.marginO;
     // territory: prefer our own side of the map, avoid a rival's backyard
-    let dr=1e9;for(let q=0;q<NP;q++){const Q=planets[q];if(q!==t&&Q.owner>=0&&Q.owner!==f){const d=distM[q*NP+t];if(d<dr)dr=d;}}
+    let dr=1e9;for(let q=0;q<NP;q++){const R=planets[q];if(q!==t&&R.owner>=0&&R.owner!==f){const d=distM[q*NP+t];if(d<dr)dr=d;}}
     if(dr<dmin*0.75)value*=1-0.4*D.smart;
+    if(neutral&&Q.safe>0&&dr<420)value*=1-0.5*Q.safe;   // Defensive: only expand where it's safe
     // contested by another faction?
     const contested=rivalInc>=4||(neutral&&T.capOwner>=0&&T.capOwner!==f&&T.capProg>=2);
     const finishing=neutral&&T.capOwner===f&&T.capProg>=0.6*req;
     const leaderTarget=runaway&&T.owner===leader;
     if(contested&&!finishing&&!leaderTarget){
-      const canWin=total>=need*D.margin*1.35;
+      const canWin=total>=need*D.margin*margin*1.35;
       value*=canWin?(1-0.35*D.smart):(1-0.85*D.smart);
     }
     // opportunism: a garrison that just left, a planet someone else just drained, the runaway leader
-    if(T.owner>=0){const prev=M.prevCnt[t],now=cnt[t*4+T.owner];if(prev-now>Math.max(8,prev*0.4))value*=1+0.7*D.smart;}
-    if(neutral&&time-T.neutralAt<8&&rivalInc<need)value*=1+0.5*D.smart;
-    if(leaderTarget)value*=1+0.35*D.smart;
-    if(T.owner===0)value*=D.hunt;
-    if(T.owner>=0)value*=M.aggr;
+    if(T.owner>=0){const prev=M.prevCnt[t],now=cnt[t*4+T.owner];if(prev-now>Math.max(8,prev*0.4))value*=1+0.7*D.smart*Q.opp;}
+    if(neutral&&time-T.neutralAt<8&&rivalInc<need)value*=1+0.5*D.smart*Q.opp;
+    if(leaderTarget)value*=1+0.35*Math.max(D.smart,0.5)*Q.leader;
+    // counterattack: this planet just attacked us (Defensive lives for this)
+    if(T.owner>=0&&time-M.hitBy[t]<15){value*=Q.revenge;if(Q.revenge>2)margin=Math.min(margin,1.05);}
+    if(T.owner>=0&&need<15)value*=Q.weak;
+    if(T.owner===0)value*=D.hunt*Q.hunt;
     // sunk cost: recently wasted waves here -> look elsewhere for a while
     const rec=M.tgt[t];if(rec&&rec.coolUntil>time)value*=0.08;
     if(M.focus===t)value*=1.12;     // a little commitment so we don't flip-flop
-    let score=value*100/((need+12)*(1+dmin/(320*M.reach)));
+    let score=value*100/((need+12)*(1+dmin/(320*Q.reach)));
     score*=1+(rand()*2-1)*D.noise;  // mistakes (big on Easy, tiny on Hard)
-    if(score>bestScore){bestScore=score;best=t;bestNeed=need;}
+    if(score>bestScore){bestScore=score;best=t;bestNeed=need;bestMargin=margin;}
   }
   let launched=false;
   if(best>=0){
-    const want=bestNeed*D.margin+3;
+    const want=bestNeed*D.margin*bestMargin+3;
     if(total>=want){
       const srcs=mine.filter(i=>avail[i]>5).sort((a,b)=>distM[a*NP+best]-distM[b*NP+best]);
-      let rem=want,sentAll=0,dmin=1e9;
-      for(const i of srcs){if(rem<=0)break;const reserve=threat[i]>0?avail[i]*0.5:3;const amt=Math.min(Math.floor((avail[i]-reserve)*D.frac+(D.frac>0.8?reserve*0.3:0)),Math.ceil(rem));
+      let rem=want*Q.over,sentAll=0,dmin=1e9;const frac=Math.min(0.95,D.frac*Q.frac);
+      for(const i of srcs){if(rem<=0)break;const reserve=keepOf(i);const amt=Math.min(Math.floor((avail[i]-reserve)*frac+(frac>0.8?reserve*0.3:0)),Math.ceil(rem));
         if(amt<3)continue;const s=sendUnits(i,best,amt);avail[i]-=s;rem-=s;sentAll+=s;if(s)dmin=Math.min(dmin,distM[i*NP+best]);}
       if(sentAll>0){launched=true;M.focus=best;
         // sunk-cost bookkeeping: did the last wave here actually move the needle?
@@ -492,14 +514,14 @@ function aiThink(f,D){
       }
     }
   }
-  // 4. move idle back-line units to the front (Normal/Hard only)
-  if(!launched&&D.smart>=0.7&&M.n%3===0&&mine.length>1){
+  // 4. move idle back-line units to the front (Normal/Hard, and personalities that hold lines)
+  if(!launched&&Q.front&&D.smart>=0.7&&M.n%3===0&&mine.length>1){
     const fd=new Float32Array(NP).fill(1e9);let front=-1,fb=1e9;
-    for(const i of mine){for(let q=0;q<NP;q++){const Q=planets[q];if(Q.owner>=0&&Q.owner!==f){const d=distM[i*NP+q];if(d<fd[i])fd[i]=d;}}if(fd[i]<fb){fb=fd[i];front=i;}}
+    for(const i of mine){for(let q=0;q<NP;q++){const R=planets[q];if(R.owner>=0&&R.owner!==f){const d=distM[i*NP+q];if(d<fd[i])fd[i]=d;}}if(fd[i]<fb){fb=fd[i];front=i;}}
     if(front>=0&&fb<1e9)for(const i of mine){const P=planets[i];if(i===front||threat[i]>0)continue;
       if(avail[i]>=capOf(P)*0.7&&fd[i]>fb+150){const s=sendUnits(i,front,Math.floor(avail[i]*0.5));avail[i]-=s;}}
   }
-  for(let q=0;q<NP;q++){const Q=planets[q];M.prevCnt[q]=Q.owner>=0?cnt[q*4+Q.owner]:0;}
+  for(let q=0;q<NP;q++){const R=planets[q];M.prevCnt[q]=R.owner>=0?cnt[q*4+R.owner]:0;}
 }
 
 /* ---------------- rendering ---------------- */
@@ -644,7 +666,11 @@ function render(){
   // power bar
   if(state==='play'||state==='end'||state==='paused'){let sum=0;const val=[0,0,0,0];for(let f=0;f<4;f++){val[f]=tot[f];for(const P of planets)if(P.owner===f)val[f]+=8*P.sf*P.level;sum+=val[f];}
     if(sum>0){const bw=Math.min(CW-40,420),bx=(CW-bw)/2,by=SAT+(rot?50:60);let cx=bx;
-      for(let f=0;f<4;f++){if(!val[f])continue;const w=bw*val[f]/sum;ctx.fillStyle=rgb(FCOL[f],0.85);ctx.fillRect(cx,by,Math.max(0,w-1),4);cx+=w;}}}
+      ctx.font='600 9px system-ui,-apple-system,sans-serif';ctx.textBaseline='top';
+      for(let f=0;f<4;f++){if(!val[f])continue;const w=bw*val[f]/sum;ctx.fillStyle=rgb(FCOL[f],0.85);ctx.fillRect(cx,by,Math.max(0,w-1),4);
+        const lab=f===0?'YOU':PERS[f].label;const txt=w>ctx.measureText(lab).width+6?lab:(w>12?lab[0]:'');
+        if(txt&&!demo){ctx.fillStyle=rgb(mix(FCOL[f],WHITE,0.35),0.85);ctx.fillText(txt,cx+w/2,by+7);}cx+=w;}
+      ctx.textBaseline='middle';}}
 }
 function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
@@ -743,7 +769,10 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{if(e.key==='Escape'||e.key==='p'){if(state==='play')pause();else if(state==='paused')resume();}});
 
 /* ---------------- UI ---------------- */
-let toastT=0;
+let toastT=0,introT=0;
+function showIntro(L,ms){const el=$('intro');
+  el.innerHTML=`<h3>${L.name}</h3>`+L.ais.map(f=>{const c=FCOL[f];return `<div class="r"><i style="background:rgb(${c});box-shadow:0 0 10px rgb(${c})"></i><div><b style="color:rgb(${c})">${FNAME[f]}</b> — ${PERS[f].name}<small>${PERS[f].blurb}</small></div></div>`;}).join('');
+  el.classList.add('on');clearTimeout(introT);introT=setTimeout(()=>el.classList.remove('on'),ms||3500);}
 function toast(msg,ms){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2000);}
 function show(id){['sTitle','sHow','sPause','sEnd'].forEach(s=>$(s).classList.toggle('hidden',s!==id));}
 const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
@@ -760,7 +789,7 @@ function refreshUI(){
 function play(i){ensureAudio();show(null);$('hud').classList.remove('hidden');state='play';startLevel(i,false);
   if(!save.howSeen){save.howSeen=true;persist();pauseHow=true;state='paused';show('sHow');}}
 let pauseHow=false;
-function pause(){if(state!=='play')return;cancelPtr();state='paused';show('sPause');}
+function pause(){if(state!=='play')return;$('intro').classList.remove('on');cancelPtr();state='paused';show('sPause');}
 function resume(){state='play';show(null);}
 function toMenu(){state='title';$('hud').classList.add('hidden');refreshUI();show('sTitle');startLevel(0,true);}
 function showEnd(){
@@ -800,20 +829,24 @@ function frame(now){
   render();updateSelUI();
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff)=>{save.diff=diff||'normal';METR=true;startLevel(idx,false);metrReset();state='sim';
+if(location.hash==='#debug')window.__lumen={debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
+    if(mode==='ffa'){const L=procLevel(5,seed,2);const perm=[1,2,3].sort(()=>rand()-0.5);for(const q of L.planets)if(q[3]>=0)q[3]=perm[q[3]];L.ais=[1,2,3];L.aiMul=1;startLevel(idx,false,L);}
+    else startLevel(idx,false);
+    metrReset();state='sim';let sampT=0;
     if(mode==='ai'&&aiList.indexOf(0)<0){aiList.unshift(0);prodMul[0]=prodMul[1];aiT[0]=aiT[1];}
     const dt=1/50;let t=0,botT=3,winner=-2;
     const bot=()=>{const mine=[];for(let i=0;i<NP;i++)if(planets[i].owner===0)mine.push(i);if(!mine.length)return;
       let best=-1,bs=-1;for(let t2=0;t2<NP;t2++){const T=planets[t2];if(T.owner===0)continue;let d=1e9;for(const i of mine)d=Math.min(d,distM[i*NP+t2]);
         const need=T.owner<0?capReq(T)-(T.capOwner===0?T.capProg:-T.capProg):cnt[t2*4+T.owner]+T.hp;const sc=T.sf/((need-inc[t2*4]+15)*(1+d/300));if(sc>bs){bs=sc;best=t2;}}
       if(best>=0)for(const i of mine){const c=cnt[i*4];if(c>8)sendUnits(i,best,Math.floor(c*0.7));}};
-    while(t<secs){step(dt);t+=dt;if(mode==='bot'){botT-=dt;if(botT<=0){botT=2.5;bot();}}
+    while(t<secs){step(dt);t+=dt;sampT+=dt;if(sampT>=1){sampT=0;for(let f=0;f<4;f++){if(ownP[f]<=0)continue;const F=metr.fs[f];F.alive++;for(let p=0;p<NP;p++){const P=planets[p];if(P.owner===f){F.lvl+=P.level;F.lvlN++;F.gar+=cnt[p*4+f];F.garN++;}}}}if(mode==='bot'){botT-=dt;if(botT<=0){botT=2.5;bot();}}
       const alive=[];for(let f=0;f<4;f++)if(ownP[f]>0||tot[f]>0)alive.push(f);
       if(mode==='bot'&&(alive.indexOf(0)<0||alive.length===1)){winner=alive.indexOf(0)<0?-1:0;break;}
-      if(mode==='ai'&&alive.length<=1){winner=alive[0];break;}}
+      if((mode==='ai'||mode==='ffa')&&alive.length<=1){winner=alive[0];break;}}
+    const strE=aiStrength();let lead=0;for(let f=1;f<4;f++)if(strE[f]>strE[lead])lead=f;
     METR=false;state='title';
     const clash=Array.from(metr.clash);let cm=0,ct=0;for(const c of clash){ct+=c;if(c>cm)cm=c;}
-    return{t:Math.round(t),winner,clashMax:cm,clashTotal:ct,maxStreak:metr.maxStreak,waves:metr.waves,owners:planets.map(P=>P.owner).join('')};},
+    return{t:Math.round(t),winner,clashMax:cm,clashTotal:ct,maxStreak:metr.maxStreak,waves:metr.waves,lead,fs:metr.fs,owners:planets.map(P=>P.owner).join('')};},
   stress:n=>{for(let k=0;k<n;k++)for(let i=0;i<NP;i++)if(planets[i].owner===0)spawnOrbiter(i,0,false);}};
 resize();refreshUI();startLevel(0,true);requestAnimationFrame(frame);
 })();
