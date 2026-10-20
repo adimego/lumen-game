@@ -1,0 +1,26 @@
+rules_version = '2';
+// LUMEN cloud saves: one document per player at users/{uid}, owner-only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid && validSave(request.resource.data);
+    }
+    // everything else is closed
+    match /{document=**} { allow read, write: if false; }
+  }
+  function validSave(d) {
+    return d.keys().hasOnly(['v', 'save', 'updatedAt'])
+      && d.v is int && d.v >= 1 && d.v <= 10
+      && d.updatedAt == request.time
+      && d.save is map && d.save.size() <= 30
+      && (!('unlocked' in d.save) || (d.save.unlocked is int && d.save.unlocked >= 1 && d.save.unlocked <= 200))
+      && (!('best' in d.save)  || (d.save.best is map && d.save.best.size() <= 200))
+      && (!('tips' in d.save)  || (d.save.tips is map && d.save.tips.size() <= 100))
+      && (!('stats' in d.save) || (d.save.stats is map && d.save.stats.size() <= 50))
+      && (!('sk' in d.save)    || (d.save.sk is map && d.save.sk.size() <= 30))
+      && (!('diff' in d.save)  || (d.save.diff is string && d.save.diff.size() <= 16))
+      && (!('pct' in d.save)   || d.save.pct is number)
+      && (!('muted' in d.save) || d.save.muted is bool);
+  }
+}

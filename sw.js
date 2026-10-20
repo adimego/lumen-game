@@ -1,5 +1,5 @@
 /* LUMEN service worker: versioned precache, network-first page (updates on reload), runtime cache for the PeerJS CDN. */
-const VERSION = 'lumen-v5';
+const VERSION = 'lumen-v6';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const CDN = ['https://cdn.jsdelivr.net/npm/peerjs@', 'https://unpkg.com/peerjs@'];
 self.addEventListener('install', e => {
@@ -12,6 +12,8 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = req.url;
+  // never cache Firebase SDK / Google sign-in / Firestore traffic: let it go straight to the network
+  if (/^https:\/\/([a-z0-9-]+\.)*(gstatic\.com|googleapis\.com|firebaseapp\.com|firebaseio\.com|google\.com|googleusercontent\.com)\//.test(url) || url.includes('/__/auth/')) return;
   // PeerJS library from a CDN: cache-first, stored the first time it is fetched (multiplayer itself still needs the network)
   if (CDN.some(p => url.startsWith(p))) {
     e.respondWith(caches.open(VERSION).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));

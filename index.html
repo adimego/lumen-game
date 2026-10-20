@@ -51,6 +51,9 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 .tag{font-size:12px;letter-spacing:.5em;margin-right:-.5em;opacity:.6;text-transform:uppercase;margin:2px 0 20px}
 .big{display:block;width:100%;height:54px;border-radius:27px;font-size:19px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(180deg,#5fe0ff,#2b8cff);color:#021;box-shadow:0 0 28px rgba(70,200,255,.45);margin:10px 0}
 .big:active{transform:scale(.97)}
+#acct{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;font-size:12px;opacity:.8}
+#acct.hidden{display:none}#acct img{width:22px;height:22px;border-radius:50%}#acct button{background:none;border:1px solid rgba(120,220,255,.25);border-radius:14px;padding:4px 12px;font-size:12px;color:inherit}
+#acctSt{opacity:.65}
 .ghost{flex:1;height:42px;border-radius:21px;border:1px solid rgba(120,220,255,.3);background:rgba(20,40,70,.35);font-size:14px;font-weight:600}
 .row{display:flex;gap:10px;margin-top:12px}
 .seg{display:flex;border-radius:22px;overflow:hidden;border:1px solid rgba(120,220,255,.3);margin:10px 0 16px}
@@ -151,6 +154,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div id="lvlGrid" class="grid"></div>
     <div class="row"><button id="bHow" class="ghost">How to play</button><button id="bSnd" class="ghost">Sound: On</button></div>
     <div class="row"><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
+    <div id="acct" class="hidden"><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct">Sign in with Google</button><span id="acctSt"></span></div>
   </div>
 </div>
 
@@ -329,7 +333,12 @@ const save={unlocked:1,diff:'normal',muted:false,pct:0.5,best:{},howSeen:false};
 try{const s=JSON.parse(localStorage.getItem(SKEY)||'null');if(s&&typeof s==='object')Object.assign(save,s);}catch(e){}
 if(!DIFF[save.diff])save.diff='normal';
 const PCTS=[0.25,0.5,0.75,1];if(PCTS.indexOf(save.pct)<0)save.pct=0.5;
-function persist(){try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}}
+if(!save.stats||typeof save.stats!=='object')save.stats={};
+let cloudH=null;
+const setFp=()=>JSON.stringify([save.diff,save.muted,save.pct,save.sk||null]);let lastSetFp=setFp();
+function persist(){const f=setFp();if(f!==lastSetFp){lastSetFp=f;save.setT=Date.now();}
+  try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}if(cloudH)cloudH.touch();}
+function bumpStat(k){save.stats[k]=(save.stats[k]|0)+1;}
 
 /* ---------------- audio ---------------- */
 let AC=null,master=null,lastPop=0;
@@ -1626,8 +1635,9 @@ function showEnd(){
   if(MODE==='skirm'){showSkEnd();return;}
   state='end';$('endStreak').textContent='';const t=$('endT');const mm=Math.floor(time/60),ss=String(Math.floor(time%60)).padStart(2,'0');
   if(endWin){t.textContent='VICTORY';t.className='win';sfx.win();save.unlocked=Math.max(save.unlocked,Math.min(LEVELS,levelIdx+2));
-    const b=save.best[levelIdx];if(!b||time<b)save.best[levelIdx]=Math.round(time);persist();}
-  else{t.textContent='DEFEAT';t.className='lose';sfx.lose();}
+    const b=save.best[levelIdx];if(!b||time<b)save.best[levelIdx]=Math.round(time);bumpStat('campW');persist();}
+  else{t.textContent='DEFEAT';t.className='lose';sfx.lose();bumpStat('campL');persist();}
+  CLOUD.flush();
   $('endS').innerHTML=`${curLevel.name} · ${save.diff}<br>Time ${mm}:${ss} · Planets captured ${stats.captured} · Units produced ${stats.produced}`+(endWin&&levelIdx===LEVELS-1?'<br><b>All sectors conquered!</b>':'');
   $('bNext').textContent='Next sector';$('bMenu2').textContent='Menu';$('bRetry').classList.remove('hidden');
   $('bNext').classList.toggle('hidden',!endWin||levelIdx>=LEVELS-1);
@@ -1684,6 +1694,7 @@ function startSkirm(cfg,seed,keepStreak){MODE='skirm';if(keepStreak===false)SK.s
 function skNext(){if(SK.endless){if(endWin)startSkirm(SK.cfg,skRandSeed(),0);else{SK.streak=0;startSkirm(SK.cfg,skRandSeed(),0);}}else startSkirm(SK.cfg,skRandSeed(),false);}
 function showSkEnd(){state='end';const t=$('endT');const mm=mmss(time);
   if(endWin){t.textContent='VICTORY';t.className='win';sfx.win();}else{t.textContent='DEFEAT';t.className='lose';sfx.lose();}
+  bumpStat(endWin?'skW':'skL');persist();CLOUD.flush();
   const c=SK.cfg,L=curLevel;const desc=`${{s:'Small',m:'Medium',l:'Large'}[c.size]||''} · ${L.ais.length} rival${L.ais.length>1?'s':''} · ${SK.diff}${L.feats&&L.feats.length?' · '+L.feats.join(', '):''}`;
   $('endS').innerHTML=`${L.name} · seed <b>#${SK.seed}</b><br>${desc}`;
   let st='';if(SK.endless){if(endWin){SK.streak++;if(SK.streak>(save.skBest||0)){save.skBest=SK.streak;st=`🔥 Streak ${SK.streak} · new best!`;}else st=`🔥 Streak ${SK.streak} · best ${save.skBest}`;persist();}
@@ -2084,6 +2095,78 @@ if(location.hash==='#debug')window.__lumen={mpInfo:()=>{let h=2166136261;for(con
     return{allyHits:metr.allyAtk||0,allyHelp:metr.starts.filter(st=>st[3]>=0&&st[3]!==st[1]&&ally(st[1],st[3])&&aiList.indexOf(st[1])>=0).length,team:winner>=0?TEAM[winner]:-1,teams:TEAM.slice(),early:[eN,eT],eF,eFN,gaps,t:Math.round(t),winner,maxAge:Math.round(maxAge),swAI,pick,clashMax:cm,clashTotal:ct,maxStreak:metr.maxStreak,waves:metr.waves,lead,fs:metr.fs,owners:planets.map(P=>P.owner).join('')};},
   attack:(p,g,n)=>{const src=planets.findIndex(P=>P.owner===g);if(src<0)return 0;for(let m=0;m<n;m++)spawnOrbiter(src,g,false);setTimeout(()=>sendUnits(src,p,n),80);return n;},
   stress:n=>{for(let k=0;k<n;k++)for(let i=0;i<NP;i++)if(planets[i].owner===0)spawnOrbiter(i,0,false);}};
+
+/* =====================================================================
+   CLOUD SAVE (optional Google sign-in via Firebase Auth + Firestore)
+   >>> PASTE THE FIREBASE WEB CONFIG HERE <<<  e.g.
+   const FIREBASE_CONFIG={apiKey:"...",authDomain:"<project>.firebaseapp.com",projectId:"<project>",appId:"..."};
+   While it is null, no account UI is shown and nothing is loaded.
+   ===================================================================== */
+const FIREBASE_CONFIG={apiKey:"AIzaSyAqPcrqA-akJT592vqcxjbpt9loaP_Jjz0",authDomain:"lumon-4397e.firebaseapp.com",projectId:"lumon-4397e",storageBucket:"lumon-4397e.firebasestorage.app",messagingSenderId:"453315321163",appId:"1:453315321163:web:0ea5473803d273ea509cce"};
+const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/';
+const CLOUD=(()=>{
+  const MOCK=location.hash==='#debug'&&window.__lumenFbMock||null; // Playwright test hook
+  const CFG=FIREBASE_CONFIG||(MOCK&&MOCK.config)||null;
+  const DKEY='lumen_cloud_dirty';
+  let fb=null,loading=null,user=null,ready=false,tmr=0,busy=false,st='';
+  const n=v=>typeof v==='number'&&isFinite(v)?v:0;
+  // pure merge: max progress, best (lowest) time per sector, union of flags/tips, newest settings by setT
+  function merge(L,C){L=L||{};C=C||{};const o=Object.assign({},C,L);
+    o.unlocked=Math.max(n(L.unlocked)||1,n(C.unlocked)||1);
+    o.best={};for(const src of [C.best||{},L.best||{}])for(const k in src){const v=n(src[k]);if(v>0&&(!o.best[k]||v<o.best[k]))o.best[k]=v;}
+    o.tips=Object.assign({},C.tips||{},L.tips||{});
+    o.howSeen=!!(L.howSeen||C.howSeen);o.defUsed=!!(L.defUsed||C.defUsed);
+    o.skBest=Math.max(n(L.skBest),n(C.skBest));
+    o.stats={};for(const src of [C.stats||{},L.stats||{}])for(const k in src)o.stats[k]=Math.max(o.stats[k]||0,n(src[k]));
+    const S=n(C.setT)>n(L.setT)?C:L;for(const k of ['diff','muted','pct','sk'])if(S[k]!==undefined)o[k]=S[k];o.setT=Math.max(n(L.setT),n(C.setT));
+    return o;}
+  const clean=o=>JSON.parse(JSON.stringify(o));
+  const dirty=v=>{try{v?localStorage.setItem(DKEY,'1'):localStorage.removeItem(DKEY);}catch(e){}};
+  const isDirty=()=>{try{return localStorage.getItem(DKEY)==='1';}catch(e){return false;}};
+  function ui(){const A=$('acct');if(!CFG){A.classList.add('hidden');return;}A.classList.remove('hidden');
+    const av=$('acctAv');if(user&&user.photoURL){av.src=user.photoURL;av.classList.remove('hidden');}else av.classList.add('hidden');
+    $('acctNm').textContent=user?(user.displayName||user.email||'Signed in'):'';
+    $('bAcct').textContent=user?'Sign out':'Sign in with Google';$('acctSt').textContent=user?st:'';}
+  async function load(){if(fb)return fb;if(loading)return loading;
+    loading=(async()=>{
+      if(MOCK){fb=MOCK.api;}else{
+        const [A,U,F]=await Promise.all(['firebase-app.js','firebase-auth.js','firebase-firestore.js'].map(f=>import(FB_SDK+f)));
+        const app=A.initializeApp(CFG),auth=U.getAuth(app);let db;
+        try{db=F.initializeFirestore(app,{localCache:F.persistentLocalCache()});}catch(e){db=F.getFirestore(app);}
+        const prov=new U.GoogleAuthProvider();
+        const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+        const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+        U.getRedirectResult(auth).catch(()=>{});
+        fb={onAuth:cb=>U.onAuthStateChanged(auth,cb),
+          signIn:async()=>{if(standalone||iOS)return U.signInWithRedirect(auth,prov);
+            try{await U.signInWithPopup(auth,prov);}catch(e){if(/popup-blocked|operation-not-supported|cancelled-popup|web-storage/.test(e.code||''))return U.signInWithRedirect(auth,prov);throw e;}},
+          signOut:()=>U.signOut(auth),
+          get:async uid=>{const d=await F.getDoc(F.doc(db,'users',uid));return d.exists()?d.data():null;},
+          set:(uid,data)=>F.setDoc(F.doc(db,'users',uid),Object.assign({},data,{updatedAt:F.serverTimestamp()}))};
+      }
+      fb.onAuth(onUser);return fb;})();
+    try{return await loading;}catch(e){loading=null;throw e;}}
+  async function onUser(u){user=u||null;ready=false;if(!user){st='';ui();return;}
+    st='syncing…';ui();
+    try{const doc=await fb.get(user.uid);if(!user||user.uid!==(u&&u.uid))return;
+      const m=merge(save,doc&&doc.save);Object.assign(save,m);lastSetFp=setFp();
+      try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}
+      ready=true;if(state==='title')refreshUI();await push();}
+    catch(e){st='offline';ready=true;dirty(true);ui();}}
+  async function push(){clearTimeout(tmr);tmr=0;if(!user||!ready||!fb)return;if(busy){touch();return;}busy=true;
+    try{await fb.set(user.uid,{v:1,save:clean(save)});dirty(false);st='☁ saved';}
+    catch(e){dirty(true);st='offline';touch(15000);}
+    busy=false;ui();}
+  function touch(ms){if(!CFG)return;dirty(true);if(!user)return;clearTimeout(tmr);tmr=setTimeout(push,ms||4000);}
+  function init(){ui();if(!CFG)return;
+    $('bAcct').onclick=async()=>{try{const f=await load();if(user){await f.signOut();}else await f.signIn();}catch(e){st='';$('acctSt').textContent='sign-in failed';}};
+    addEventListener('online',()=>{if(isDirty())push();});
+    // lazy: restore an existing session shortly after start, never blocking the game; failures (offline) are silent
+    setTimeout(()=>{if(navigator.onLine!==false||MOCK)load().catch(()=>{});},MOCK?50:1500);}
+  return {merge,touch,flush:()=>{if(user&&ready)push();},init,info:()=>({cfg:!!CFG,user:user&&user.uid,ready,st,dirty:isDirty(),loaded:!!fb})};
+})();
+cloudH=CLOUD;CLOUD.init();
+if(window.__lumen)window.__lumen.cloud=CLOUD;
 resize();refreshUI();startLevel(0,true);requestAnimationFrame(frame);
 })();
 </script>
