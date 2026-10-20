@@ -2126,43 +2126,54 @@ const CLOUD=(()=>{
   function ui(){const A=$('acct');if(!CFG){A.classList.add('hidden');return;}A.classList.remove('hidden');
     const av=$('acctAv');if(user&&user.photoURL){av.src=user.photoURL;av.classList.remove('hidden');}else av.classList.add('hidden');
     $('acctNm').textContent=user?(user.displayName||user.email||'Signed in'):'';
-    $('bAcct').textContent=user?'Sign out':'Sign in with Google';$('acctSt').textContent=user?st:'';}
+    $('bAcct').textContent=user?'Sign out':(fb?'Sign in with Google':'Sign in with Google…');$('bAcct').disabled=!fb&&!!loading;$('acctSt').textContent=st;}
   async function load(){if(fb)return fb;if(loading)return loading;
     loading=(async()=>{
       if(MOCK){fb=MOCK.api;}else{
         const [A,U,F]=await Promise.all(['firebase-app.js','firebase-auth.js','firebase-firestore.js'].map(f=>import(FB_SDK+f)));
-        const app=A.initializeApp(CFG),auth=U.getAuth(app);let db;
-        try{db=F.initializeFirestore(app,{localCache:F.persistentLocalCache()});}catch(e){db=F.getFirestore(app);}
-        const prov=new U.GoogleAuthProvider();
-        const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-        const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-        U.getRedirectResult(auth).catch(()=>{});
-        fb={onAuth:cb=>U.onAuthStateChanged(auth,cb),
-          signIn:async()=>{if(standalone||iOS)return U.signInWithRedirect(auth,prov);
-            try{await U.signInWithPopup(auth,prov);}catch(e){if(/popup-blocked|operation-not-supported|cancelled-popup|web-storage/.test(e.code||''))return U.signInWithRedirect(auth,prov);throw e;}},
+        const app=A.initializeApp(CFG);let auth;
+        // explicit persistence + popup resolver (popup flow avoids the cross-origin redirect/storage-partitioning bug on iOS/Safari)
+        try{auth=U.initializeAuth(app,{persistence:[U.indexedDBLocalPersistence,U.browserLocalPersistence],popupRedirectResolver:U.browserPopupRedirectResolver});}catch(e){auth=U.getAuth(app);}
+        let db;try{db=F.initializeFirestore(app,{localCache:F.persistentLocalCache()});}catch(e){db=F.getFirestore(app);}
+        const prov=new U.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
+        U.getRedirectResult(auth).catch(e=>authErr(e));
+        fb={onAuth:cb=>U.onAuthStateChanged(auth,cb,e=>authErr(e)),
+          // must be called synchronously from the tap (no await before it) so Safari allows the popup
+          signIn:()=>U.signInWithPopup(auth,prov).catch(e=>{
+            const c=e&&e.code||'';
+            if(/popup-closed-by-user|cancelled-popup-request/.test(c)){setSt('Sign-in cancelled');return;}
+            if(/operation-not-supported-in-this-environment/.test(c)&&!STANDALONE)return U.signInWithRedirect(auth,prov);
+            throw e;}),
           signOut:()=>U.signOut(auth),
           get:async uid=>{const d=await F.getDoc(F.doc(db,'users',uid));return d.exists()?d.data():null;},
           set:(uid,data)=>F.setDoc(F.doc(db,'users',uid),Object.assign({},data,{updatedAt:F.serverTimestamp()}))};
       }
-      fb.onAuth(onUser);return fb;})();
-    try{return await loading;}catch(e){loading=null;throw e;}}
-  async function onUser(u){user=u||null;ready=false;if(!user){st='';ui();return;}
+      fb.onAuth(onUser);ui();return fb;})();
+    ui();try{return await loading;}catch(e){loading=null;ui();throw e;}}
+  const STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  function setSt(t){st=t;const el=$('acctSt');if(el)el.textContent=t;}
+  function authErr(e){const c=(e&&(e.code||e.message))||'unknown';
+    if(STANDALONE&&/popup-blocked|operation-not-supported|web-storage/.test(c))setSt('Open in Safari/browser to sign in ('+c+')');
+    else setSt('Sign-in failed: '+c);}
+  async function onUser(u){user=u||null;ready=false;if(!user){if(!/^Sign-in|^Open in/.test(st))st='';ui();return;}
     st='syncing…';ui();
     try{const doc=await fb.get(user.uid);if(!user||user.uid!==(u&&u.uid))return;
       const m=merge(save,doc&&doc.save);Object.assign(save,m);lastSetFp=setFp();
       try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}
       ready=true;if(state==='title')refreshUI();await push();}
-    catch(e){st='offline';ready=true;dirty(true);ui();}}
+    catch(e){st='offline'+(e&&e.code?' ('+e.code+')':'');ready=true;dirty(true);ui();}}
   async function push(){clearTimeout(tmr);tmr=0;if(!user||!ready||!fb)return;if(busy){touch();return;}busy=true;
     try{await fb.set(user.uid,{v:1,save:clean(save)});dirty(false);st='☁ saved';}
     catch(e){dirty(true);st='offline';touch(15000);}
     busy=false;ui();}
   function touch(ms){if(!CFG)return;dirty(true);if(!user)return;clearTimeout(tmr);tmr=setTimeout(push,ms||4000);}
   function init(){ui();if(!CFG)return;
-    $('bAcct').onclick=async()=>{try{const f=await load();if(user){await f.signOut();}else await f.signIn();}catch(e){st='';$('acctSt').textContent='sign-in failed';}};
+    // SDK is preloaded; the popup opens synchronously inside the tap. If not loaded yet, this tap loads it and the next tap signs in.
+    $('bAcct').onclick=()=>{if(!fb){setSt('Loading sign-in…');load().then(()=>setSt('Tap again to sign in')).catch(e=>setSt('Sign-in unavailable (offline?)'));return;}
+      setSt('');const r=user?fb.signOut():fb.signIn();Promise.resolve(r).catch(authErr);};
     addEventListener('online',()=>{if(isDirty())push();});
     // lazy: restore an existing session shortly after start, never blocking the game; failures (offline) are silent
-    setTimeout(()=>{if(navigator.onLine!==false||MOCK)load().catch(()=>{});},MOCK?50:1500);}
+    setTimeout(()=>{if(navigator.onLine!==false||MOCK)load().catch(()=>{});},MOCK?50:300);}
   return {merge,touch,flush:()=>{if(user&&ready)push();},init,info:()=>({cfg:!!CFG,user:user&&user.uid,ready,st,dirty:isDirty(),loaded:!!fb})};
 })();
 cloudH=CLOUD;CLOUD.init();
