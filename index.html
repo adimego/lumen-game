@@ -315,6 +315,16 @@ const PERS=[
  {label:'EXPANSIONIST',name:'Expansionist',blurb:'grabs neutrals fast, spreads wide, quick small waves',think:0.78,delay:0.6,defTh:0.9,defGive:0.6,upg:0.5,upgRes:10,attack:1.05,hunt:1,weak:1.3,opp:1.2,leader:0.9,lead:1.4,marginN:0.85,marginO:1.1,frac:1.02,keep:0.04,over:0.9,reach:1.1,safe:0,front:false,revenge:1,rOwn:0.85,rOther:1.1,opT0:62,opT1:108,opN:8,opB:0.85},
  {label:'SNIPER',name:'Sniper',blurb:'builds up, waits, then strikes weakened and emptied planets',think:0.72,delay:0.9,defTh:0.6,defGive:0.85,upg:1.6,upgRes:4,attack:1.15,hunt:1.4,weak:1.8,opp:2.4,leader:0.8,lead:1.3,marginN:1,marginO:1,frac:1.1,keep:0.18,over:1.25,reach:1.1,safe:0.5,front:true,revenge:1.6,rOwn:0.9,rOther:0.75,opT0:50,opT1:95,opN:7,opB:0.7}
 ];
+// staging & per-colour tactics. stg: chance to stage an assault on an owned target, min: smallest job worth staging,
+// mul: overkill gathered before striking, wait: max gather time (s), plus colour extras (see aiStage*)
+const TACT=[
+ {stg:0.4, min:12,mul:1.3, wait:26,prongs:1,bully:1,   follow:1,  punish:1.15,hv:1,  planet:0.5},                     // Cyan (AI-only games)
+ {stg:0.7, min:10,mul:1.35,wait:20,prongs:1,bully:1.35,follow:1.8,punish:1.1, hv:1,  planet:0.3},                     // Red: frequent staged assaults, follow-up waves, bullies the weakest neighbour
+ {stg:0.15,min:16,mul:1.4, wait:24,prongs:1,bully:1,   follow:1,  punish:1.8, hv:1,  planet:1, near:1},               // Green: rare, short-range staging from frontline planets, punishes attackers who just lost
+ {stg:0.55,min:12,mul:1.3, wait:26,prongs:1,bully:1,   follow:1.2,punish:1.2, hv:1.1,planet:0.4,feint:1},             // Violet: feints - stages between two targets and strikes the weaker
+ {stg:0.35,min:8, mul:1.2, wait:15,prongs:2,bully:1.1, follow:1,  punish:1.1, hv:1,  planet:0.5},                     // Orange: small quick stagings, two-pronged neutral grabs
+ {stg:0.65,min:12,mul:1.45,wait:40,prongs:1,bully:1,   follow:1,  punish:1.45,hv:1.5,planet:0.2,hide:1}               // Pink: patient hidden massing, snipes cores/factories/upgraded planets, retreats if spotted
+];
 const SIZE_R=[34,48,66], SIZE_F=[1,1.6,2.4];
 const SPEED=86, CR=8, CR2=CR*CR;
 const DIFF={
@@ -656,7 +666,7 @@ function swarmCleanup(){for(let q=0;q<MAXS;q++)if(SWA[q]&&swc[q]+swi[q]===0&&tim
 // AI: own swarms go home (except a Defensive picket), enemy swarms near home count as threats and get swatted
 function aiSwarms(f,D,Q,M,mine,avail,threat){
   const own=[],foe=[];for(let q=0;q<MAXS;q++)if(SWA[q]&&swc[q]>0){if(SWO[q]===f)own.push(q);else foe.push(q);}
-  for(const q of own){if(q===M.picket)continue;let b=-1,bd=1e9;for(const i of mine){const d=Math.hypot(planets[i].x-SWX[q],planets[i].y-SWY[q]);if(d<bd){bd=d;b=i;}}
+  for(const q of own){if(q===M.picket||(M.stg&&q===M.stg.q))continue;let b=-1,bd=1e9;for(const i of mine){const d=Math.hypot(planets[i].x-SWX[q],planets[i].y-SWY[q]);if(d<bd){bd=d;b=i;}}
     if(b<0){for(let i=0;i<NP;i++){const d=Math.hypot(planets[i].x-SWX[q],planets[i].y-SWY[q])+(planets[i].owner<0?0:300);if(d<bd){bd=d;b=i;}}}
     if(b>=0)swarmsToPlanet(f,[q],b);}
   if(M.picket>=0&&(!SWA[M.picket]||SWO[M.picket]!==f))M.picket=-1;
@@ -866,20 +876,96 @@ function perceiveLag(f,t,D,M){const Q=PERS[f],own=planets[t].owner===f;if(!M.jit
 // Per-AI memory: per-target sunk-cost records, last-seen garrisons, who hit us from where.
 const aiMem=[null,null,null,null,null,null];
 function aiInit(){prcReset();
-  for(let f=0;f<NF;f++)aiMem[f]={tgt:{},prevCnt:new Float32Array(NP),hitBy:new Float32Array(NP).fill(-99),focus:-1,n:0};
+  for(let f=0;f<NF;f++)aiMem[f]={tgt:{},prevCnt:new Float32Array(NP),hitBy:new Float32Array(NP).fill(-99),focus:-1,n:0,stg:null,follow:null,totH:[]};
 }
 function aiStrength(){const s=[0,0,0,0,0,0];for(let g=0;g<NF;g++)s[g]=tot[g];for(const P of planets)if(P.owner>=0)s[P.owner]+=10*P.sf*P.level;return s;}
+/* ---------------- AI staging: gather at one point out of the target's reach, then strike all at once ---------------- */
+function stgReserve(f,i,keepOf){const P=planets[i];return Math.max(keepOf(i),4+capOf(P)*(f===2?0.35:0.15));}   // never leave home empty
+function stgCount(f,S){if(S.p>=0)return planets[S.p].owner===f?cnt[S.p*NF+f]+inc[S.p*NF+f]:0;return SWA[S.q]&&SWO[S.q]===f?swc[S.q]+swi[S.q]:0;}
+function stgNeed(f,t,x,y,bGar,bInc){const T=planets[t];if(T.owner<0)return capReq(T)-(T.capOwner===f?T.capProg:-T.capProg);
+  const g=T.owner;return bGar(t)+bInc(t,g)+T.hp+prodRate(T)*(Math.hypot(T.x-x,T.y-y)/SPEED)*0.8;}
+function stgM(f,k){if(METR){const F=metr.fs[f];F[k]=(F[k]||0)+1;}}
+function aiStageStart(f,D,M,mine,avail,threat,keepOf,t,need,want,total){
+  const X=TACT[f],T=planets[t],easy=D.smart<0.5;
+  if(T.owner<0||need<X.min||rand()>X.stg*(easy?0.5:1))return false;
+  if(total<need*0.7)return false;   // not enough to be worth gathering yet
+  // sources: our safe planets with spare units; centroid gives the approach direction
+  let cx=0,cy=0,w=0;for(const i of mine){const a=avail[i]-stgReserve(f,i,keepOf);if(a>2&&threat[i]===0){cx+=planets[i].x*a;cy+=planets[i].y*a;w+=a;}}
+  if(w<=0)return false;cx/=w;cy/=w;
+  const dc=Math.hypot(cx-T.x,cy-T.y)||1;
+  // a forward owned planet near the target (Green always prefers this)
+  let fp=-1,fd=1e9;for(const i of mine){const d=distM[i*NP+t];if(d>170&&d<480&&threat[i]===0&&d<fd){fd=d;fp=i;}}
+  if(fp>=0&&rand()<X.planet){stgM(f,'sp');M.stg={t,p:fp,q:-1,x:planets[fp].x,y:planets[fp].y,t0:time,want:(need*X.mul+4)*(easy?0.85:1),need0:need,moved:0};return true;}
+  if(X.near)return false;          // Green never stages in open space
+  let ang=Math.atan2(cy-T.y,cx-T.x);
+  if(X.feint&&!easy){let t2=-1,b=1e9;for(let q=0;q<NP;q++){const R=planets[q];if(q===t||R.owner<0||ally(R.owner,f))continue;const d=distM[q*NP+t];if(d<520&&d<b){b=d;t2=q;}}
+    if(t2>=0){const a2=Math.atan2(cy-planets[t2].y,cx-planets[t2].x);ang=Math.atan2(Math.sin(ang)+Math.sin(a2),Math.cos(ang)+Math.cos(a2));}}
+  const R0=Math.min(dc*0.8,Math.max(T.r+220,X.hide?445:395));   // just outside the range defenders react to
+  let bx=0,by=0,bs=-1e9;
+  for(const da of [0,-0.45,0.45,-0.9,0.9]){const a=ang+da;let [x,y]=clampPt(T.x+Math.cos(a)*R0,T.y+Math.sin(a)*R0);
+    let sc=-Math.abs(da)*60,ok=true;
+    for(let q=0;q<NP;q++){const P=planets[q],d=Math.hypot(P.x-x,P.y-y);if(d<P.r+45){ok=false;break;}
+      if(q!==t&&P.owner>=0&&!ally(P.owner,f))sc+=Math.min(0,d-400)*(X.hide?1.5:0.6);}       // keep away from other enemy planets
+    if(TER.neb&&X.hide)for(const N of TER.neb)if(Math.hypot(N[0]-x,N[1]-y)<N[2])sc+=120;           // Pink loves to hide in nebulae
+    if(ok&&sc>bs){bs=sc;bx=x;by=y;}}
+  if(bs<=-1e9)return false;
+  stgM(f,'st');M.stg={t,p:-1,q:-1,x:bx,y:by,t0:time,want:(need*X.mul+4)*(easy?0.85:1),need0:need,moved:0};
+  aiStageGather(f,M,mine,avail,threat,keepOf);return M.stg!==null;}
+function aiStageGather(f,M,mine,avail,threat,keepOf){const S=M.stg;let left=S.want-stgCount(f,S);if(left<=0)return;
+  const srcs=mine.filter(i=>i!==S.p&&threat[i]===0).sort((a,b)=>Math.hypot(planets[a].x-S.x,planets[a].y-S.y)-Math.hypot(planets[b].x-S.x,planets[b].y-S.y));
+  for(const i of srcs){if(left<=0)break;const give=Math.min(Math.floor(avail[i]-stgReserve(f,i,keepOf)),Math.ceil(left));if(give<3)continue;
+    let n;if(S.p>=0)n=sendUnits(i,S.p,give);else{const q=moveTo(f,[i],[],S.x,S.y,give/cnt[i*NF+f]);n=mvN;if(q>=0){S.q=q;S.x=SWX[q];S.y=SWY[q];}}
+    avail[i]-=n;left-=n;}
+  if(S.p<0&&S.q<0)M.stg=null;}
+function aiStageTick(f,D,Q,M,mine,avail,threat,keepOf,bGar,bInc,lagT){const S=M.stg;if(!S)return;const X=TACT[f],easy=D.smart<0.5;
+  if(S.p>=0&&planets[S.p].owner!==f){M.stg=null;return;}
+  if(S.p<0&&(S.q<0||!SWA[S.q]||SWO[S.q]!==f)){stgM(f,'lost');M.stg=null;return;}
+  const n=stgCount(f,S),here=S.p>=0?cnt[S.p*NF+f]:swc[S.q];
+  const drop=(why)=>{stgM(f,'d'+why);if(S.p<0)aiStageRedirect(f,M,mine,threat,bGar,bInc);M.stg=null;};
+  // home in trouble -> the staged army comes back to defend
+  for(const i of mine){const def=avail[i]+inc[i*NF+f]+planets[i].hp;if(threat[i]>def*1.1&&threat[i]>8&&n>8){if(S.p>=0){avail[S.p]-=sendUnits(S.p,i,Math.floor(cnt[S.p*NF+f]*0.8));}else swarmsToPlanet(f,[S.q],i);stgM(f,'home');M.stg=null;return;}}
+  // target went bad (taken by us/an ally, neutralised) -> pick something else nearby
+  let t=S.t,T=planets[t];
+  if(T.owner<0||ally(T.owner,f)){drop(1);return;}
+  let need=stgNeed(f,t,S.x,S.y,bGar,bInc);
+  // feint: at launch time, strike whichever nearby enemy planet is the softest
+  if(X.feint&&!easy&&here>=S.want*0.85){let bv=planets[t].sf/(need+8);for(let q=0;q<NP;q++){const R=planets[q];if(q===t||R.owner<0||ally(R.owner,f))continue;
+      if(Math.hypot(R.x-S.x,R.y-S.y)>Math.hypot(T.x-S.x,T.y-S.y)*1.6)continue;const nd=stgNeed(f,q,S.x,S.y,bGar,bInc);const v=R.sf*(1+0.5*(R.level-1))/(nd+8);if(v>bv*1.15&&here>=nd*1.2){bv=v;t=q;need=nd;}}
+    T=planets[t];}
+  const age=time-S.t0,W=X.wait*(easy?0.7:1);
+  if(need>S.need0*1.8+6){drop(2);return;}        // defender got much stronger: abandon
+  // Pink: if enemy fleets close in on the hidden mass, strike now if able, otherwise slip away
+  if(X.hide&&S.p<0){let foe=0;for(let i=0;i<hiU;i++)if(us[i]>=2&&!ally(uo[i],f)&&Math.abs(ux[i]-S.x)<170&&Math.abs(uy[i]-S.y)<170)foe++;
+    if(foe>=Math.max(8,n*0.6)){if(here>=need*1.1){aiStageLaunch(f,M,t);return;}
+      if(S.moved<2){S.moved++;let b=-1,bd=1e9;for(const i of mine){const d=Math.hypot(planets[i].x-S.x,planets[i].y-S.y);if(d<bd){bd=d;b=i;}}
+        if(b>=0){const P=planets[b],k=Math.min(1,160/(bd||1));const q=moveTo(f,[],[S.q],S.x+(P.x-S.x)*k,S.y+(P.y-S.y)*k,1);if(q>=0){S.q=q;S.x=SWX[q];S.y=SWY[q];}}return;}
+      drop(3);return;}}
+  // never join another faction's fresh attack on the same target before we'd have noticed it
+  let fresh=false;for(let g=0;g<NF;g++)if(!ally(g,f)&&g!==T.owner&&time-launchT[t*NF+g]<Math.max(lagT[t],D.gap))fresh=true;
+  const ready=here>=S.want*(easy?0.75:1)||(age>W&&here>=need*1.1);
+  if(ready&&!fresh&&(S.p>=0||swi[S.q]<=here*0.15||age>W)){aiStageLaunch(f,M,t);return;}
+  if(age>W*1.8){if(n>=need*0.95&&!fresh)aiStageLaunch(f,M,t);else drop(4);return;}
+  aiStageGather(f,M,mine,avail,threat,keepOf);}
+function aiStageLaunch(f,M,t){const S=M.stg;let s=0;
+  if(S.p>=0)s=sendUnits(S.p,t,Math.max(0,cnt[S.p*NF+f]-Math.max(3,Math.round(capOf(planets[S.p])*0.12))));else s=swarmsToPlanet(f,[S.q],t);
+  M.stg=null;if(s){M.focus=t;M.follow={t,until:time+14};if(METR){const F=metr.fs[f];F.waves++;F.attacks++;F.sent+=s;F.staged=(F.staged||0)+1;}}}
+// abandoned staging: send the swarm to the best soft target near it, else home (aiSwarms does that next think)
+function aiStageRedirect(f,M,mine,threat,bGar,bInc){const S=M.stg,n=stgCount(f,S);let b=-1,bs=0;
+  for(let q=0;q<NP;q++){const R=planets[q];if(R.owner===f||(R.owner>=0&&ally(R.owner,f)))continue;const nd=stgNeed(f,q,S.x,S.y,bGar,bInc);if(n<nd*1.25)continue;
+    const sc=R.sf/((nd+8)*(1+Math.hypot(R.x-S.x,R.y-S.y)/300));if(sc>bs){bs=sc;b=q;}}
+  if(b>=0)swarmsToPlanet(f,[S.q],b);}
 function aiThink(f,D){
   thinkId++;
   const M=aiMem[f];if(!M)return;M.n++;const Q=PERS[f];
   const mine=[];for(let i=0;i<NP;i++)if(planets[i].owner===f)mine.push(i);
-  if(!mine.length){if(M.picket==null)M.picket=-1;M.picket=-1;aiSwarms(f,D,Q,M,mine,new Float32Array(NP),new Float32Array(NP));return;}
+  if(!mine.length){M.stg=null;if(M.picket==null)M.picket=-1;M.picket=-1;aiSwarms(f,D,Q,M,mine,new Float32Array(NP),new Float32Array(NP));return;}
   const avail=new Float32Array(NP),threat=new Float32Array(NP);
   const PO=PERC.on;const lagT=new Float32Array(NP);for(let t=0;t<NP;t++)lagT[t]=PO?perceiveLag(f,t,D,M):0;
   // belief: other factions' fleets appear only after the lag (but vanish at once), garrisons are as seen lag seconds ago
   const bInc=(t,g)=>PO&&g!==f?Math.min(inc[t*NF+g],prcAt(lagT[t]).inc[t*NF+g]):inc[t*NF+g];
   const bGar=t=>PO&&planets[t].owner!==f?prcAt(lagT[t]).gar[t]:cnt[t*NF+planets[t].owner];
   for(const i of mine){avail[i]=cnt[i*NF+f];let t=0;for(let g=0;g<NF;g++)if(!ally(g,f))t+=bInc(i,g);threat[i]=t;}
+  if(M.stg&&M.stg.p>=0&&planets[M.stg.p].owner===f&&threat[M.stg.p]===0)avail[M.stg.p]=0;   // staging planet holds its army
   if(M.picket==null)M.picket=-1;aiSwarms(f,D,Q,M,mine,avail,threat);
   // who is winning? ganging up on a runaway leader is strategic; ganging up on anyone else is not
   const str=aiStrength();let leader=-1,ls=0,second=0;
@@ -909,8 +995,15 @@ function aiThink(f,D){
   if(op>0){let nearN=0;for(let t=0;t<NP;t++){if(planets[t].owner!==-1)continue;let d=1e9;for(const i of mine)d=Math.min(d,distM[i*NP+t]);if(d<560)nearN++;}
     op*=Math.min(1,nearN/2);if(mine.length>=Q.opN)op*=0.35;}
   M.op=op;
-  let best=-1,bestScore=0,bestNeed=0,bestMargin=1;
-  for(let t=0;t<NP;t++){const T=planets[t];if(T.owner===f||(T.owner>=0&&ally(T.owner,f)))continue;
+  const X=TACT[f];
+  // who recently lost a lot of units (fresh off a failed fight) and who is our weakest neighbour
+  M.totH.push([time,tot.slice()]);while(M.totH.length>1&&time-M.totH[0][0]>12)M.totH.shift();
+  const hurt=new Uint8Array(NF);{const o=M.totH[0][1];if(time-M.totH[0][0]>5)for(let g=0;g<NF;g++)if(!ally(g,f)&&o[g]>15&&tot[g]<o[g]*0.75)hurt[g]=1;}
+  let weakest=-1;{let ws=1e9;for(let q=0;q<NP;q++){const g=planets[q].owner;if(g<0||ally(g,f))continue;let near=false;for(const i of mine)if(distM[i*NP+q]<700){near=true;break;}if(near&&str[g]<ws){ws=str[g];weakest=g;}}}
+  if(M.follow&&time>M.follow.until)M.follow=null;
+  aiStageTick(f,D,Q,M,mine,avail,threat,keepOf,bGar,bInc,lagT);
+  const pick=skip=>{let best=-1,bestScore=0,bestNeed=0,bestMargin=1;
+  for(let t=0;t<NP;t++){const T=planets[t];if(T.owner===f||(T.owner>=0&&ally(T.owner,f))||skip.has(t))continue;
     let dmin=1e9;for(const i of mine){if(avail[i]>5&&!hazNow(i,t)){const d=distM[i*NP+t];if(d<dmin)dmin=d;}}
     if(dmin>=1e9)continue;
     // every unit already heading there, from everyone
@@ -949,6 +1042,8 @@ function aiThink(f,D){
     // counterattack: this planet just attacked us (Defensive lives for this)
     if(T.owner>=0&&time-M.hitBy[t]<15){value*=Q.revenge;if(Q.revenge>2)margin=Math.min(margin,1.05);}
     if(T.owner>=0&&need<15)value*=Q.weak;
+    if(T.owner>=0){if(T.owner===weakest)value*=X.bully;if(hurt[T.owner])value*=X.punish;if(T.type==='C'||T.type==='X'||T.level>=2)value*=X.hv;}
+    if(M.follow&&M.follow.t===t){value*=X.follow;margin*=0.85;}   // follow-up wave behind a staged strike
     if(HUM.has(T.owner))value*=D.hunt*Q.hunt;
     if(allyInc>=4&&T.owner>=0)value*=1.45;   // gang up with teammates on a shared enemy
     if(op>0){if(neutral)value*=1+Q.opB*op;else value*=need<6?1-0.5*op:1-0.92*op;}   // owned targets only if nearly free
@@ -959,9 +1054,13 @@ function aiThink(f,D){
     score*=1+(rand()*2-1)*D.noise;  // mistakes (big on Easy, tiny on Hard)
     if(score>bestScore){bestScore=score;best=t;bestNeed=need;bestMargin=margin;}
   }
-  let launched=false;
-  if(best>=0){
+  return [best,bestNeed,bestMargin];};
+  let launched=false;const skip=new Set();if(M.stg)skip.add(M.stg.t);
+  for(let pr=0;pr<(D.smart<0.5?1:X.prongs);pr++){const [best,bestNeed,bestMargin]=pick(skip);if(best<0)break;skip.add(best);
+    if(pr>0&&(planets[best].owner>=0||M.op<=0))break;   // extra prongs: only neutral grabs during expansion
     const want=bestNeed*D.margin*bestMargin+3;
+    if(!M.stg&&pr===0&&aiStageStart(f,D,M,mine,avail,threat,keepOf,best,bestNeed,want,total)){launched=true;break;}
+    total=0;for(const i of mine)total+=Math.max(0,avail[i]-keepOf(i));
     if(total>=want){
       const srcs=mine.filter(i=>avail[i]>5&&!hazNow(i,best)).sort((a,b)=>distM[a*NP+best]-distM[b*NP+best]);
       let rem=want*Q.over,sentAll=0,dmin=1e9;const frac=Math.min(0.95,D.frac*Q.frac);
@@ -975,7 +1074,7 @@ function aiThink(f,D){
         r.last=prog;r.lastT=time;
         if(r.noProg>=D.patience){r.coolUntil=time+D.cool*(0.8+rand()*0.4);r.noProg=0;r.last=null;if(M.focus===best)M.focus=-1;}
       }
-    }
+    }else break;
   }
   // 4. move idle back-line units to the front (Normal/Hard, and personalities that hold lines)
   if(!launched&&Q.front&&D.smart>=0.7&&M.n%3===0&&mine.length>1){
