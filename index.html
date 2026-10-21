@@ -72,7 +72,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 .big:disabled{opacity:.4}
 .note{font-size:13px;opacity:.7;line-height:1.45;margin:6px 0;min-height:1em}
 .note.err{color:#ff9aa4;opacity:1}
-#joinCode{flex:1;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:700 22px system-ui,sans-serif;letter-spacing:.35em;text-align:center;text-transform:uppercase;-webkit-user-select:text;user-select:text;outline:none}
+#joinCode{flex:1;min-width:0;width:0;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:700 22px system-ui,sans-serif;letter-spacing:.35em;text-align:center;text-transform:uppercase;-webkit-user-select:text;user-select:text;outline:none}
 .code{font:800 44px system-ui,sans-serif;letter-spacing:.3em;margin-right:-.3em;color:#9ff0ff;text-shadow:0 0 20px rgba(70,215,255,.6)}
 #mapSel{width:100%;height:42px;border-radius:21px;background:rgba(10,25,45,.7);color:#fff;border:1px solid rgba(120,220,255,.35);padding:0 14px;font:600 15px system-ui,sans-serif}
 .slot{display:flex;align-items:center;gap:8px;padding:6px 10px;margin:4px 0;border-radius:14px;min-height:40px;background:rgba(20,40,70,.35);border:1px solid rgba(120,220,255,.15);text-align:left;font-size:15px}
@@ -129,6 +129,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
 #endStreak{font-size:14px;color:#ffd98a;margin:2px 0 4px;min-height:0}
 #tip{position:fixed;left:0;top:0;z-index:6;pointer-events:none;padding:5px 11px;border-radius:13px;background:rgba(4,10,24,.72);border:1px solid rgba(255,214,130,.35);color:#f3f8ff;font-size:12.5px;white-space:nowrap;opacity:0;transition:opacity .2s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 12px rgba(0,0,0,.4)}
 #tip.on{opacity:1}#tip b{color:#ffd98a;letter-spacing:.08em;font-weight:700}
+@media (max-width:359px){#hud .pill{min-width:58px;padding:0 9px;font-size:14px}.selpill{max-width:calc(100vw - 146px);padding-left:10px;font-size:13px;gap:4px}#bJoin{flex:none;padding:0 16px}}
 @media (max-height:500px){.logo{font-size:38px}.tag{margin-bottom:10px}.big{height:46px}.panel{padding:14px}}
 </style>
 </head>
@@ -203,7 +204,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
 <div id="sMp" class="screen hidden">
   <div class="panel">
     <h2>Multiplayer</h2>
-    <p class="note">Play live against friends on their phones (2–4 players). Needs an internet connection.</p>
+    <p class="note">Play live against friends on their phones (2–6 players). Needs an internet connection.</p>
     <button id="bCreate" class="big">Create room</button>
     <div class="lbl">or join with a code</div>
     <div class="row"><input id="joinCode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="bJoin" class="ghost">Join</button></div>
@@ -353,6 +354,10 @@ try{const s=JSON.parse(localStorage.getItem(SKEY)||'null');if(s&&typeof s==='obj
 if(!DIFF[save.diff])save.diff='normal';
 const PCTS=[0.25,0.5,0.75,1];if(PCTS.indexOf(save.pct)<0)save.pct=0.5;
 if(!save.stats||typeof save.stats!=='object')save.stats={};
+// sanitize a corrupt/foreign save so menus and level grid never break
+{const ob=v=>v&&typeof v==='object'&&!Array.isArray(v);save.unlocked=Math.max(1,Math.min(16,Math.floor(+save.unlocked)||1));if(!['easy','normal','hard'].includes(save.diff))save.diff='normal';save.muted=save.muted===true;save.howSeen=!!save.howSeen;
+  if(!ob(save.best))save.best={};for(const k in save.best)if(!(+save.best[k]>0))delete save.best[k];if(!ob(save.tips))save.tips={};if(save.sk!=null&&!ob(save.sk))delete save.sk;
+  if(!['auto','high','low',undefined].includes(save.gfx))save.gfx='auto';if(save.skBest!=null&&!(+save.skBest>=0))save.skBest=0;}
 let cloudH=null;
 const setFp=()=>JSON.stringify([save.diff,save.muted,save.pct,save.sk||null]);let lastSetFp=setFp();
 function persist(){const f=setFp();if(f!==lastSetFp){lastSetFp=f;save.setT=Date.now();}
@@ -1338,7 +1343,7 @@ function render(){
   }
   if(TER.obj&&state!=='title'){const P=planets[TER.obj.hold];let best=-1;for(let f=0;f<NF;f++)if(holdT[f]>0)best=f;
     ctx.font='700 13px system-ui,-apple-system,sans-serif';ctx.fillStyle=best>=0?rgb(FCOL[best],0.95):'rgba(255,220,130,0.85)';
-    ctx.fillText(best>=0?`${best===ME?'You hold':CNAME[best]+' holds'} the Core · ${Math.ceil(TER.obj.secs-holdT[best])}s`:`Hold the Core ${TER.obj.secs}s to win`,CW/2,CH-SAB-(rot?40:96));}
+    ctx.fillText(best>=0?`${best===ME?'You hold':CNAME[best]+' holds'} the Core · ${Math.ceil(TER.obj.secs-holdT[best])}s`:`Hold the Core ${TER.obj.secs}s to win`,CW/2,CH-SAB-(rot?80:96));}
   for(const F of floats){const k=F.t/F.d;ctx.globalAlpha=1-k*k;ctx.font='700 16px system-ui,-apple-system,sans-serif';ctx.fillStyle='#bff4ff';
     ctx.fillText(F.s,SX(F.x,F.y),SY(F.x,F.y)-F.r*S-14-k*26);}
   ctx.globalAlpha=1;
@@ -1615,7 +1620,7 @@ function updateSelUI(){
   const key=sel.size+'|'+selS.size+'|'+nf+'|'+save.pct+'|'+state;if(key===updateSelUI.k)return;updateSelUI.k=key;
   $('bRecall').classList.toggle('hidden',!nf);
   const pill=$('selPill');if(hasSel()&&state==='play'){pill.classList.remove('off');const ns=selS.size,np=sel.size;const parts=[];if(np)parts.push(`${np} selected`);if(ns)parts.push(`${ns} swarm${ns>1?'s':''}`);if(nf)parts.push(np||ns?`✈${nf}`:`✈ ${nf}`);
-    $('selTxt').textContent=parts.join(' + ')+(np||ns?` · ${Math.round(save.pct*100)}% · tap target`:'');}else pill.classList.add('off');
+    $('selTxt').textContent=parts.join(' + ')+(np||ns?` · ${Math.round(save.pct*100)}%`+(innerWidth<385?'':' · tap target'):'');}else pill.classList.add('off');
 }
 if(window.PointerEvent){
   cv.addEventListener('pointerdown',e=>{e.preventDefault();if(e.pointerType==='mouse'&&e.button===2){if(!ptr.down)rightClick(e.clientX,e.clientY);return;}if(ptr.down)return;if(e.pointerType==='mouse'&&e.button!==0)return;
@@ -2198,7 +2203,7 @@ function frame(now){
   render();updateSelUI();tipTickUI(now);
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={gq:()=>GQ+'/'+(save.gfx||'auto'),setGfx:v=>{save.gfx=v;gqReset();return GQ;},mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
+if(location.hash==='#debug')window.__lumen={stuck:()=>{let n=0,w=0;for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>w){w=time-ut[i];}for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>90)n++;return{n,w:Math.round(w)};},gq:()=>GQ+'/'+(save.gfx||'auto'),setGfx:v=>{save.gfx=v;gqReset();return GQ;},mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
     let lh=2166136261;try{const L=mpLevel(net.map);for(const q of L.planets)for(const v of q.slice(0,5)){h=h;lh^=Math.round((+v||0)*10);lh=Math.imul(lh,16777619);}}catch(e){}
     return{slots:net.slots.map(s=>({f:s.f,kind:s.kind,me:s.pid===net.myId,host:!!s.host,team:s.team})),teams:net.teams,rnd:net.rnd,map:net.map,TEAM:TEAM.slice(),TEAMS_ON,hash:h>>>0,lobbyHash:lh>>>0,NP,ME,winner:net.winner,endShown:net.endShown,endT:document.getElementById('endT').textContent};},
   slotTest:(n)=>{const keep=net.slots;const hits={};for(let k=0;k<n;k++){net.slots=[0,1,2,3,4,5].map(f=>({f,kind:f===2?'human':'ai'}));const fr=freeSlots();const sl=rndPick(fr);hits[sl.f]=(hits[sl.f]||0)+1;}net.slots=keep;return hits;},
