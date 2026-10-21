@@ -15,6 +15,14 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <title>LUMEN · Orbital Conquest</title>
 <style>
+@keyframes pin{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes lglow{0%,100%{filter:drop-shadow(0 0 14px rgba(70,215,255,.45))}50%{filter:drop-shadow(0 0 24px rgba(110,200,255,.75)) drop-shadow(0 0 4px rgba(200,240,255,.5))}}
+@keyframes tagin{from{letter-spacing:.9em;opacity:0}to{opacity:.6}}
+.tag{animation:tagin 1.2s ease-out both}
+.ghost{transition:background .2s,border-color .2s;box-shadow:inset 0 1px 0 rgba(200,245,255,.08)}
+.ghost:active{background:rgba(40,80,120,.5)}
+.big.alt{box-shadow:inset 0 1px 0 rgba(200,245,255,.12),0 0 18px rgba(70,215,255,.08)}
+#lvlName{font-weight:500}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 :root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);--c:#46d7ff}
 html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:#03040b;color:#e6f6ff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;touch-action:none;overscroll-behavior:none}
@@ -46,10 +54,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 #intro .r i{width:14px;height:14px;border-radius:50%;flex:none}
 #intro .r small{display:block;opacity:.6;font-size:12px}
 .screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:calc(var(--sat) + 16px) calc(var(--sar) + 16px) calc(var(--sab) + 16px) calc(var(--sal) + 16px);background:radial-gradient(ellipse at center,rgba(3,6,18,.35),rgba(3,4,11,.82))}
-.panel{width:100%;max-width:420px;max-height:100%;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;text-align:center;padding:22px 20px;border-radius:24px;background:rgba(8,16,34,.55);border:1px solid rgba(120,220,255,.18);box-shadow:0 0 60px rgba(70,215,255,.08),inset 0 0 40px rgba(70,215,255,.04);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.logo{font-size:56px;font-weight:200;letter-spacing:.32em;margin-right:-.32em;background:linear-gradient(180deg,#fff,#7fe3ff 60%,#3aa8ff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(70,215,255,.55))}
+.panel{animation:pin .38s cubic-bezier(.2,.8,.2,1) both;width:100%;max-width:420px;max-height:100%;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;text-align:center;padding:22px 20px;border-radius:24px;background:linear-gradient(165deg,rgba(22,40,72,.62),rgba(8,14,32,.58) 45%,rgba(10,10,30,.62));border:1px solid rgba(120,220,255,.2);box-shadow:0 0 60px rgba(70,215,255,.08),0 20px 50px rgba(0,0,0,.35),inset 0 1px 0 rgba(200,245,255,.14),inset 0 0 40px rgba(70,215,255,.04);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.logo{position:relative;animation:lglow 5s ease-in-out infinite;font-size:56px;font-weight:200;letter-spacing:.32em;margin-right:-.32em;background:linear-gradient(180deg,#fff,#7fe3ff 60%,#3aa8ff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(70,215,255,.55))}
 .tag{font-size:12px;letter-spacing:.5em;margin-right:-.5em;opacity:.6;text-transform:uppercase;margin:2px 0 20px}
-.big{display:block;width:100%;height:54px;border-radius:27px;font-size:19px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(180deg,#5fe0ff,#2b8cff);color:#021;box-shadow:0 0 28px rgba(70,200,255,.45);margin:10px 0}
+.big{transition:transform .12s,box-shadow .2s,filter .2s;display:block;width:100%;height:54px;border-radius:27px;font-size:19px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(180deg,#5fe0ff,#2b8cff);color:#021;box-shadow:0 0 28px rgba(70,200,255,.45);margin:10px 0}
 .big:active{transform:scale(.97)}
 #acct{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;font-size:12px;opacity:.8}
 #acct.hidden{display:none}#acct img{width:22px;height:22px;border-radius:50%}#acct button{background:none;border:1px solid rgba(120,220,255,.25);border-radius:14px;padding:4px 12px;font-size:12px;color:inherit}
@@ -152,7 +160,7 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div class="seg" id="diffSeg"><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
     <div class="lbl">Sectors</div>
     <div id="lvlGrid" class="grid"></div>
-    <div class="row"><button id="bHow" class="ghost">How to play</button><button id="bSnd" class="ghost">Sound: On</button></div>
+    <div class="row"><button id="bHow" class="ghost">How to play</button><button id="bSnd" class="ghost">Sound: On</button><button id="bGfx" class="ghost">Gfx: Auto</button></div>
     <div class="row"><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
     <div id="acct" class="hidden"><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct">Sign in with Google</button><span id="acctSt"></span></div>
   </div>
@@ -379,7 +387,7 @@ const sfx={
 
 /* ---------------- units (struct of arrays) ---------------- */
 const MAXU=6000;
-const ux=new Float32Array(MAXU),uy=new Float32Array(MAXU),ua=new Float32Array(MAXU),ub=new Float32Array(MAXU),uc=new Float32Array(MAXU),uw=new Float32Array(MAXU);
+const tlx=new Float32Array(MAXU).fill(-1e4),tly=new Float32Array(MAXU),ux=new Float32Array(MAXU),uy=new Float32Array(MAXU),ua=new Float32Array(MAXU),ub=new Float32Array(MAXU),uc=new Float32Array(MAXU),uw=new Float32Array(MAXU);
 const uo=new Int8Array(MAXU),us=new Uint8Array(MAXU),up=new Int16Array(MAXU),unext=new Int32Array(MAXU),upn=new Int32Array(MAXU);
 const freeL=new Int32Array(MAXU);let freeTop=0,hiU=0,aliveU=0;
 function resetUnits(){us.fill(0);freeTop=0;for(let i=MAXU-1;i>=0;i--)freeL[freeTop++]=i;hiU=0;aliveU=0;}
@@ -695,7 +703,7 @@ function tipTick(dt){if(!tipQ.length||state!=='play')return;tipT-=dt;if(tipT<=0)
 
 
 /* ---------------- setup ---------------- */
-function startLevel(idx,isDemo,custom){
+function startLevel(idx,isDemo,custom){gqReset();
   demo=!!isDemo;levelIdx=idx;
   const L=custom||(isDemo?procLevel(5,(Math.random()*1e9)|0,3):getLevel(idx));curLevel=L;
   resetUnits();SWA.fill(0);uq.fill(-1);rings.length=0;beams.length=0;floats.length=0;for(let i=0;i<MAXP;i++)pl[i]=0;
@@ -1087,7 +1095,27 @@ function aiThink(f,D){
 }
 
 /* ---------------- rendering ---------------- */
-let sprites=[],starSpr=null,twk=[];
+let sprites=[],starSpr=null,twk=[],glowSpr=[],bg2=null;const pSpr=new Map();
+// graphics quality: 2=full effects, 1=low. save.gfx auto|high|low; auto drops to low when frames run long
+let GQ=2,gqEma=16.7,gqSlow=0;
+function gqReset(){GQ=save.gfx==='low'?1:2;gqEma=16.7;gqSlow=0;}
+function gqTick(dtms){if((save.gfx||'auto')!=='auto'||state!=='play'||dtms>200)return;gqEma+=(dtms-gqEma)*0.05;
+  if(GQ===2){gqSlow=gqEma>24?gqSlow+dtms:0;if(gqSlow>2500){GQ=1;gqSlow=0;}}}
+function makeGlow(c){const s=Math.ceil(96*DPR);const c2=document.createElement('canvas');c2.width=c2.height=s;const g=c2.getContext('2d');
+  const gr=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);gr.addColorStop(0,rgb(c,1));gr.addColorStop(0.3,rgb(c,1));gr.addColorStop(0.55,rgb(c,0.55));gr.addColorStop(0.8,rgb(c,0.18));gr.addColorStop(1,rgb(c,0));g.fillStyle=gr;g.fillRect(0,0,s,s);return c2;}
+// pre-rendered planet body: shaded sphere, surface bands, terminator, rim light, thin atmosphere
+function planetSprite(o,r){const col=o>=0?FCOL[o]:NEUT;const R=Math.max(4,Math.round(r*DPR));const key=o+'|'+R+'|'+GQ;let c2=pSpr.get(key);if(c2)return c2;
+  const pad=Math.ceil(R*0.22)+2,s=R*2+pad*2;c2=document.createElement('canvas');c2.width=c2.height=s;const g=c2.getContext('2d');const x=s/2,y=s/2,own=o>=0;
+  let gr=g.createRadialGradient(x,y,R*0.92,x,y,R+pad);gr.addColorStop(0,rgb(mix(col,WHITE,0.3),own?0.38:0.18));gr.addColorStop(0.35,rgb(col,own?0.16:0.07));gr.addColorStop(1,rgb(col,0));g.fillStyle=gr;g.fillRect(0,0,s,s);
+  gr=g.createRadialGradient(x-R*0.35,y-R*0.42,R*0.05,x,y,R);gr.addColorStop(0,rgb(mix(col,WHITE,own?0.55:0.35)));gr.addColorStop(0.5,rgb(mix(col,BLACK,own?0.28:0.55)));gr.addColorStop(1,rgb(mix(col,BLACK,0.86)));
+  g.fillStyle=gr;g.beginPath();g.arc(x,y,R,0,TAU);g.fill();
+  g.save();g.beginPath();g.arc(x,y,R,0,TAU);g.clip();
+  if(GQ>1){const rg=mulberry32(o*31+R);for(let k=0;k<4;k++){const yy=y+(rg()-0.5)*R*1.5,h=R*(0.08+rg()*0.14);g.fillStyle=rgb(k%2?mix(col,WHITE,0.5):mix(col,BLACK,0.6),0.09);g.beginPath();g.ellipse(x,yy,R*1.1,h,-0.35,0,TAU);g.fill();}}
+  gr=g.createRadialGradient(x-R*0.55,y-R*0.6,R*0.9,x-R*0.3,y-R*0.35,R*2.0);gr.addColorStop(0,'rgba(0,0,8,0)');gr.addColorStop(0.45,'rgba(0,0,8,0.3)');gr.addColorStop(1,'rgba(0,0,8,0.6)');g.fillStyle=gr;g.fillRect(0,0,s,s);
+  g.restore();
+  g.lineCap='round';g.strokeStyle=rgb(mix(col,WHITE,0.75),own?0.7:0.4);g.lineWidth=Math.max(1,R*0.07);g.beginPath();g.arc(x,y,R-g.lineWidth*0.5,Math.PI*0.95,Math.PI*1.62);g.stroke();
+  g.strokeStyle=rgb(mix(col,WHITE,0.5),own?0.35:0.2);g.lineWidth=Math.max(1,R*0.04);g.beginPath();g.arc(x,y,R-g.lineWidth*0.5,Math.PI*0.05,Math.PI*0.55);g.stroke();
+  if(pSpr.size>400)pSpr.clear();pSpr.set(key,c2);return c2;}
 function makeSprite(c){const s=Math.ceil(28*DPR);const c2=document.createElement('canvas');c2.width=c2.height=s;const g=c2.getContext('2d');
   const gr=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.12,rgb(mix(c,WHITE,0.55),1));
   gr.addColorStop(0.3,rgb(c,0.55));gr.addColorStop(0.6,rgb(c,0.12));gr.addColorStop(1,rgb(c,0));g.fillStyle=gr;g.fillRect(0,0,s,s);return c2;}
@@ -1097,12 +1125,15 @@ function buildBackground(){
   const neb=[[40,90,200],[120,40,170],[20,140,160],[160,40,90],[30,60,140]];
   for(let k=0;k<7;k++){const c=neb[k%neb.length];const x=r()*W,y=r()*H,rr=(0.3+r()*0.5)*Math.max(W,H);
     const gr=g.createRadialGradient(x,y,0,x,y,rr);gr.addColorStop(0,rgb(c,0.16));gr.addColorStop(0.5,rgb(c,0.05));gr.addColorStop(1,rgb(c,0));g.fillStyle=gr;g.fillRect(0,0,W,H);}
+  for(let k=0;k<22;k++){const c=neb[k%neb.length];const x=r()*W,y=r()*H,rr=(0.06+r()*0.16)*Math.max(W,H);
+    const gr=g.createRadialGradient(x,y,0,x,y,rr);gr.addColorStop(0,rgb(mix(c,WHITE,0.15),0.07));gr.addColorStop(1,rgb(c,0));g.fillStyle=gr;g.fillRect(0,0,W,H);}
+  { const a=r()*Math.PI,cx=W/2,cy=H/2;g.save();g.translate(cx,cy);g.rotate(a);const gr=g.createLinearGradient(0,-H*0.25,0,H*0.25);gr.addColorStop(0,'rgba(90,120,220,0)');gr.addColorStop(0.5,'rgba(110,130,230,0.05)');gr.addColorStop(1,'rgba(90,120,220,0)');g.fillStyle=gr;g.fillRect(-W*1.5,-H*0.25,W*3,H*0.5);g.restore();}
   const n=Math.floor(CW*CH/700);
   for(let k=0;k<n;k++){const x=r()*W,y=r()*H,s=(0.3+Math.pow(r(),3)*1.4)*DPR;g.globalAlpha=0.25+r()*0.6;g.fillStyle=r()<0.15?'#bfe4ff':(r()<0.1?'#ffe2c4':'#ffffff');g.beginPath();g.arc(x,y,s,0,TAU);g.fill();}
   g.globalAlpha=1;
   const vg=g.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.55)');g.fillStyle=vg;g.fillRect(0,0,W,H);
-  sprites=FCOL.map(makeSprite);sprites.push(makeSprite(NEUT));starSpr=makeSprite([190,220,255]);
-  twk=[];for(let k=0;k<60;k++)twk.push({x:r()*CW,y:r()*CH,s:2+r()*5,sp:0.5+r()*2,ph:r()*TAU,a:0.4+r()*0.6});
+  sprites=FCOL.map(makeSprite);sprites.push(makeSprite(NEUT));starSpr=makeSprite([190,220,255]);glowSpr=FCOL.map(makeGlow);glowSpr.push(makeGlow(NEUT));pSpr.clear();
+  twk=[];for(let k=0;k<90;k++)twk.push({x:r()*CW,y:r()*CH,s:2+r()*5,sp:0.5+r()*2,ph:r()*TAU,a:0.4+r()*0.6});
 }
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2.5);CW=window.innerWidth;CH=window.innerHeight;
@@ -1205,7 +1236,7 @@ function render(){
   ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(bg,0,0);
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.globalCompositeOperation='lighter';
-  for(const s of twk){ctx.globalAlpha=s.a*(0.15+0.85*Math.abs(Math.sin(now*s.sp+s.ph)));ctx.drawImage(starSpr,s.x-s.s/2,s.y-s.s/2,s.s,s.s);}
+  const pdx=Math.sin(now*0.05)*9,pdy=Math.cos(now*0.037)*6;for(const s of twk){const z=s.s/7;ctx.globalAlpha=s.a*(0.15+0.85*Math.abs(Math.sin(now*s.sp+s.ph)));ctx.drawImage(starSpr,s.x+pdx*z-s.s/2,s.y+pdy*z-s.s/2,s.s,s.s);}
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   if(!NP)return;
   computeVis();drawTerrain(now);
@@ -1243,14 +1274,15 @@ function render(){
   // planets
   for(let p=0;p<NP;p++){const P=planets[p];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;const o=P.owner;const col=o>=0?FCOL[o]:NEUT;
     const hr=r*(o>=0?2.5+0.25*P.level:1.7);
-    let g=ctx.createRadialGradient(x,y,r*0.7,x,y,hr);g.addColorStop(0,rgb(col,o>=0?0.22+0.08*P.level+P.flash*0.2:0.07+P.flash*0.15));g.addColorStop(1,rgb(col,0));
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,hr,0,TAU);ctx.fill();
-    g=ctx.createRadialGradient(x-r*0.35,y-r*0.42,r*0.05,x,y,r);
-    g.addColorStop(0,rgb(mix(col,WHITE,o>=0?0.5:0.3)));g.addColorStop(0.5,rgb(mix(col,BLACK,o>=0?0.38:0.55)));g.addColorStop(1,rgb(mix(col,BLACK,0.85)));
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();
-    ctx.lineWidth=1.2;ctx.strokeStyle=rgb(mix(col,WHITE,0.35),0.55+P.flash*0.45);ctx.stroke();
+    const ga=Math.min(1,o>=0?0.3+0.1*P.level+P.flash*0.2:0.07+P.flash*0.15),gs=hr*2.05;
+    ctx.globalAlpha=ga;ctx.drawImage(glowSpr[o>=0?o:NF],x-gs/2,y-gs/2,gs,gs);ctx.globalAlpha=1;
+    const ps=planetSprite(o,r),pw=ps.width/DPR;ctx.drawImage(ps,x-pw/2,y-pw/2,pw,pw);
+    ctx.lineWidth=1.2;ctx.strokeStyle=rgb(mix(col,WHITE,0.35),0.4+P.flash*0.6);ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.stroke();
     // level rings
-    for(let l=1;l<P.level;l++){ctx.beginPath();ctx.arc(x,y,r*(1-0.2*l),P.spin+l,P.spin+l+TAU*0.8);ctx.strokeStyle=rgb(mix(col,WHITE,0.4),0.5);ctx.lineWidth=1.4;ctx.stroke();}
+    for(let l=1;l<P.level;l++){const a0=P.spin+l,a1=a0+TAU*0.8,rr=r*(1-0.2*l);ctx.lineCap='round';
+      if(GQ>1){ctx.beginPath();ctx.arc(x,y,rr,a0,a1);ctx.strokeStyle=rgb(col,0.22);ctx.lineWidth=3.6;ctx.stroke();}
+      ctx.beginPath();ctx.arc(x,y,rr,a0,a1);ctx.strokeStyle=rgb(mix(col,WHITE,0.55),0.62);ctx.lineWidth=1.4;ctx.stroke();ctx.lineCap='butt';
+      ctx.fillStyle=rgb(mix(col,WHITE,0.8),0.9);ctx.beginPath();ctx.arc(x+Math.cos(a1)*rr,y+Math.sin(a1)*rr,1.7,0,TAU);ctx.fill();}
     if(P.type)drawSpecial(P,x,y,r,col,now);
     if(o>=0&&!demo&&!pHidden(P))drawLevel(P,p,x,y,r,col,now);
     if(TER.obj&&p===TER.obj.hold&&o>=0&&holdT[o]>0){ctx.strokeStyle=rgb(FCOL[o],0.95);ctx.lineWidth=5;ctx.beginPath();ctx.arc(x,y,r+24,-Math.PI/2,-Math.PI/2+TAU*Math.min(1,holdT[o]/TER.obj.secs));ctx.stroke();}
@@ -1258,7 +1290,8 @@ function render(){
     if(o>=0){const mh=maxHp(P);if(P.hp<mh-0.3){ctx.lineWidth=3;ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.beginPath();ctx.arc(x,y,r+4,0,TAU);ctx.stroke();
       ctx.strokeStyle=rgb(mix(col,WHITE,0.3),0.95);ctx.beginPath();ctx.arc(x,y,r+4,-Math.PI/2,-Math.PI/2+TAU*Math.max(0,P.hp/mh));ctx.stroke();}}
     else if(P.capProg>0&&P.capOwner>=0){const req=capReq(P);ctx.lineWidth=3.5;ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.beginPath();ctx.arc(x,y,r+4,0,TAU);ctx.stroke();
-      ctx.strokeStyle=rgb(FCOL[P.capOwner],0.95);ctx.beginPath();ctx.arc(x,y,r+4,-Math.PI/2,-Math.PI/2+TAU*Math.min(1,P.capProg/req));ctx.stroke();}
+      const ca=-Math.PI/2+TAU*Math.min(1,P.capProg/req);if(GQ>1){ctx.strokeStyle=rgb(FCOL[P.capOwner],0.22);ctx.lineWidth=8;ctx.beginPath();ctx.arc(x,y,r+4,-Math.PI/2,ca);ctx.stroke();ctx.lineWidth=3.5;}
+      ctx.strokeStyle=rgb(FCOL[P.capOwner],0.95);ctx.beginPath();ctx.arc(x,y,r+4,-Math.PI/2,ca);ctx.stroke();ctx.fillStyle=rgb(mix(FCOL[P.capOwner],WHITE,0.6));ctx.beginPath();ctx.arc(x+Math.cos(ca)*(r+4),y+Math.sin(ca)*(r+4),2.6,0,TAU);ctx.fill();}
   }
   // units
   const sz=Math.max(7,30*S),h=sz/2;
@@ -1266,14 +1299,17 @@ function render(){
   const selMask=new Uint8Array(NP);for(const p of sel)selMask[p]=1;if(lassoSet)for(const p of lassoSet)selMask[p]=1;
   const swMask=new Uint8Array(MAXS);for(const q of selS)swMask[q]=1;if(lassoSetS)for(const q of lassoSetS)swMask[q]=1;if(aiming)for(const q of aimSwarms())swMask[q]=1;
   const sz2=sz*1.7,h2=sz2/2;
-  for(let i=0;i<hiU;i++){if(!us[i])continue;const x=ux[i],y=uy[i];
+  const trl=GQ>1&&aliveU<1400,ts=sz*0.62,th=ts/2;
+  for(let i=0;i<hiU;i++){if(!us[i]){tlx[i]=-1e4;continue;}const x=ux[i],y=uy[i];
     if(vgOn&&uo[i]!==ME&&!visAt(x,y))continue;
     const sx=SX(x,y),sy=SY(x,y);
+    if(trl&&us[i]>=2){const dx=sx-tlx[i],dy=sy-tly[i],d2=dx*dx+dy*dy;if(d2>0.4&&d2<400){ctx.globalAlpha=0.38;ctx.drawImage(sprites[uo[i]],sx-dx*1.6-th,sy-dy*1.6-th,ts,ts);ctx.globalAlpha=0.2;ctx.drawImage(sprites[uo[i]],sx-dx*3.2-th*0.8,sy-dy*3.2-th*0.8,ts*0.8,ts*0.8);ctx.globalAlpha=1;}}
+    tlx[i]=sx;tly[i]=sy;
     if(uo[i]===ME&&((us[i]===1&&selMask[up[i]])||(us[i]===3&&swMask[up[i]])||(us[i]>=2&&us[i]!==3&&selF.has(i)))){ctx.drawImage(sprites[ME],sx-h2,sy-h2,sz2,sz2);ctx.drawImage(starSpr,sx-h,sy-h,sz,sz);}
     else ctx.drawImage(sprites[uo[i]],sx-h,sy-h,sz,sz);}
   ctx.globalCompositeOperation='source-over';drawFog();ctx.globalCompositeOperation='lighter';
   // particles
-  for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;const k=pl[i]/pml[i];const s2=sz*(0.4+0.8*k);ctx.globalAlpha=k;
+  for(let i=0;i<MAXP;i++){if(pl[i]<=0)continue;const k=pl[i]/pml[i];if(GQ<2&&k<0.35)continue;const s2=sz*(0.4+0.8*k);ctx.globalAlpha=k;
     ctx.drawImage(sprites[pc[i]<0?NF:pc[i]],SX(px[i],py[i])-s2/2,SY(px[i],py[i])-s2/2,s2,s2);}
   ctx.globalAlpha=1;
   // team accents: faint team-colored outline + tiny team letter on every owned planet
@@ -1281,7 +1317,9 @@ function render(){
     for(const P of planets){if(P.owner<0)continue;const ids=teamIdx(P.owner);const tc=TCOL[ids%3];const x=SX(P.x,P.y),y=SY(P.x,P.y),r=P.r*S;
       ctx.strokeStyle=rgb(tc,ally(P.owner,ME)?0.5:0.3);ctx.lineWidth=1.3;ctx.setLineDash([5,4]);ctx.beginPath();ctx.arc(x,y,r+10,0,TAU);ctx.stroke();ctx.setLineDash([]);
       const bx=x+r*0.78,by=y+r*0.78;ctx.fillStyle='rgba(6,12,24,0.85)';ctx.beginPath();ctx.arc(bx,by,6.5,0,TAU);ctx.fill();ctx.strokeStyle=rgb(tc,0.9);ctx.lineWidth=1.2;ctx.stroke();ctx.fillStyle=rgb(tc);ctx.fillText(TNAME[ids%3],bx,by+0.5);}}
-  for(const R of rings){const k=R.t/R.d;const col=R.c>=0?FCOL[R.c]:NEUT;ctx.strokeStyle=rgb(col,(1-k)*0.8);ctx.lineWidth=3*(1-k)+0.5;
+  for(const R of rings){const k=R.t/R.d;const col=R.c>=0?FCOL[R.c]:NEUT;
+    if(GQ>1&&k<0.6){const f=1-k/0.6,gs=(R.r*2.6+k*R.r*3)*S;ctx.globalAlpha=0.45*f*f;ctx.drawImage(glowSpr[R.c>=0?R.c:NF],SX(R.x,R.y)-gs/2,SY(R.x,R.y)-gs/2,gs,gs);ctx.globalAlpha=1;
+      ctx.strokeStyle=rgb(mix(col,WHITE,0.6),0.5*f);ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(SX(R.x,R.y),SY(R.x,R.y),(R.r+k*R.r*1.1)*S,0,TAU);ctx.stroke();}ctx.strokeStyle=rgb(col,(1-k)*0.8);ctx.lineWidth=3*(1-k)+0.5;
     ctx.beginPath();ctx.arc(SX(R.x,R.y),SY(R.x,R.y),(R.r+k*R.r*1.8)*S,0,TAU);ctx.stroke();}
   for(const B of beams){const k=B.t/B.d;const a=SX(B.x1,B.y1),b=SY(B.x1,B.y1),c=SX(B.x2,B.y2),d=SY(B.x2,B.y2);
     ctx.strokeStyle=`rgba(120,230,255,${(1-k)*0.7})`;ctx.lineWidth=3*(1-k)+1;ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(a+(c-a)*Math.min(1,k*2.5),b+(d-b)*Math.min(1,k*2.5));ctx.stroke();}
@@ -1293,6 +1331,7 @@ function render(){
     if(P.owner>=0){txt=pHidden(P)?'?':String(cnt[p*NF+P.owner]);a=P.owner===ME?0.95:0.7;}
     else{const req=capReq(P);txt=String(P.capOwner>=0?Math.max(0,req-P.capProg):req);a=0.45;}
     ctx.font=`600 ${Math.max(10,Math.round(r*0.6))}px system-ui,-apple-system,sans-serif`;
+    if(GQ>1){ctx.lineWidth=3;ctx.strokeStyle='rgba(0,6,18,0.35)';ctx.lineJoin='round';ctx.strokeText(txt,x,y+1);}
     ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fillText(txt,x,y+1);
     if(P.type){ctx.font='700 9px system-ui,-apple-system,sans-serif';ctx.fillStyle=P.type==='C'?'rgba(255,220,130,0.85)':P.type==='W'?'rgba(215,175,255,0.85)':'rgba(220,235,255,0.7)';ctx.fillText(TLABEL[P.type],x,y+r+(P.type==='C'?30:20));}
   }
@@ -1715,7 +1754,7 @@ function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sIns
 const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 function refreshUI(){
-  $('bMute').innerHTML=save.muted?ICON_OFF:ICON_ON;$('bSnd').textContent='Sound: '+(save.muted?'Off':'On');
+  $('bMute').innerHTML=save.muted?ICON_OFF:ICON_ON;$('bSnd').textContent='Sound: '+(save.muted?'Off':'On');$('bGfx').textContent='Gfx: '+({auto:'Auto',high:'High',low:'Low'}[save.gfx||'auto']);
   $('bPct').innerHTML=Math.round(save.pct*100)+'%<small>SEND</small>';
   document.querySelectorAll('#diffSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===save.diff));
   const g=$('lvlGrid');g.innerHTML='';
@@ -1748,6 +1787,7 @@ document.querySelectorAll('#diffSeg button').forEach(b=>b.onclick=()=>{save.diff
 $('bHow').onclick=()=>{pauseHow=false;show('sHow');};
 $('bHow2').onclick=()=>{pauseHow=true;show('sHow');};
 $('bHowOk').onclick=()=>{if(pauseHow){pauseHow=false;if(state==='paused'){resume();}}else show('sTitle');};
+$('bGfx').onclick=()=>{const o=['auto','high','low'];save.gfx=o[(o.indexOf(save.gfx||'auto')+1)%3];gqReset();persist();refreshUI();toast(save.gfx==='low'?'Low graphics: fewer effects, max speed':save.gfx==='high'?'High graphics: all effects':'Auto graphics: effects drop if the game slows down',1800);};
 $('bSnd').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio();};
 $('bMute').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio();};
 $('bKeysOk').onclick=()=>showKeys(false);
@@ -2148,7 +2188,7 @@ const PACE=0.95;
 let last=performance.now();
 function frame(now){
   requestAnimationFrame(frame);
-  let dt=(now-last)/1000;last=now;if(dt>0.1)dt=0.1;if(dt<0)dt=0;
+  gqTick(now-last);let dt=(now-last)/1000;last=now;if(dt>0.1)dt=0.1;if(dt<0)dt=0;
   net.lastFrame=now;const gdt=dt*PACE;
   if(net.inMatch&&net.role==='client'){if(state==='play'||state==='end')clientStep(gdt);}
   else if(state==='play'||state==='title'||state==='end'){const n=Math.min(3,Math.ceil(gdt/(1/50)));for(let k=0;k<n;k++)step(gdt/n);}
@@ -2156,7 +2196,7 @@ function frame(now){
   render();updateSelUI();tipTickUI(now);
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
+if(location.hash==='#debug')window.__lumen={gq:()=>GQ+'/'+(save.gfx||'auto'),setGfx:v=>{save.gfx=v;gqReset();return GQ;},mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
     let lh=2166136261;try{const L=mpLevel(net.map);for(const q of L.planets)for(const v of q.slice(0,5)){h=h;lh^=Math.round((+v||0)*10);lh=Math.imul(lh,16777619);}}catch(e){}
     return{slots:net.slots.map(s=>({f:s.f,kind:s.kind,me:s.pid===net.myId,host:!!s.host,team:s.team})),teams:net.teams,rnd:net.rnd,map:net.map,TEAM:TEAM.slice(),TEAMS_ON,hash:h>>>0,lobbyHash:lh>>>0,NP,ME,winner:net.winner,endShown:net.endShown,endT:document.getElementById('endT').textContent};},
   slotTest:(n)=>{const keep=net.slots;const hits={};for(let k=0;k<n;k++){net.slots=[0,1,2,3,4,5].map(f=>({f,kind:f===2?'human':'ai'}));const fr=freeSlots();const sl=rndPick(fr);hits[sl.f]=(hits[sl.f]||0)+1;}net.slots=keep;return hits;},
