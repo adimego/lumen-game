@@ -70,6 +70,11 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 .lbl{font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.55;margin:6px 0 8px}
 .big.alt{background:rgba(20,40,70,.45);color:#dff6ff;border:1px solid rgba(120,220,255,.45);box-shadow:0 0 18px rgba(70,200,255,.15)}
 .big:disabled{opacity:.4}
+.dmod{margin:8px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(70,215,255,.07);border:1px solid rgba(120,220,255,.22);text-align:left;font-size:14px;line-height:1.45}
+.dmod b{display:block;font-size:16px;letter-spacing:.06em;margin-bottom:2px;color:#bff4ff}
+.lb{list-style:none;text-align:left;margin:4px 0;font-size:14px;max-height:260px;overflow-y:auto}
+.lb li{display:flex;gap:10px;padding:6px 10px;border-radius:10px}.lb li:nth-child(odd){background:rgba(120,220,255,.05)}.lb li.me{background:rgba(70,215,255,.18);font-weight:700}
+.lb li i{width:22px;opacity:.6;font-style:normal;text-align:right}.lb li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lb li em{font-style:normal;font-variant-numeric:tabular-nums}
 .note{font-size:13px;opacity:.7;line-height:1.45;margin:6px 0;min-height:1em}
 .note.err{color:#ff9aa4;opacity:1}
 #joinCode{flex:1;min-width:0;width:0;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:700 22px system-ui,sans-serif;letter-spacing:.35em;text-align:center;text-transform:uppercase;-webkit-user-select:text;user-select:text;outline:none}
@@ -157,11 +162,14 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div class="tag">orbital conquest</div>
     <button id="bPlay" class="big">Play</button>
     <button id="bSkirm" class="big alt">Skirmish</button>
+    <button id="bDaily" class="big alt">Daily challenge</button>
     <button id="bMulti" class="big alt">Multiplayer</button>
+    <button id="bRanked" class="big alt">Ranked</button>
     <div class="seg" id="diffSeg"><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
     <div class="lbl">Sectors</div>
     <div id="lvlGrid" class="grid"></div>
     <div class="row"><button id="bHow" class="ghost">How to play</button><button id="bSnd" class="ghost">Sound: On</button><button id="bGfx" class="ghost">Gfx: Auto</button></div>
+    <div class="row"><button id="bAch" class="ghost">🏆 Achievements</button></div>
     <div class="row"><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
     <div id="acct" class="hidden"><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct">Sign in with Google</button><span id="acctSt"></span></div>
   </div>
@@ -259,6 +267,20 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
   </div>
 </div>
 
+<div id="sDaily" class="screen hidden">
+  <div class="panel">
+    <h2>Daily challenge</h2>
+    <div class="note" id="dyDate"></div>
+    <div id="dyMod" class="dmod"></div>
+    <div id="dyMe" class="note"></div>
+    <button id="dyGo" class="big">Play today's map</button>
+    <div class="lbl">Leaderboard · fastest wins</div>
+    <ol id="dyLb" class="lb"></ol>
+    <div id="dyLbSt" class="note"></div>
+    <div class="row"><button id="dyBack" class="ghost">Back</button></div>
+  </div>
+</div>
+
 <div id="sInstall" class="screen hidden">
   <div class="panel">
     <h2>Install LUMEN</h2>
@@ -313,7 +335,7 @@ function setTeams(t){TEAMS_ON=!!t;TEAM=[0,1,2,3,4,5];if(t)for(let f=0;f<NF;f++)i
 let ME=0,HUM=new Set([0]);   // local player's faction, and the set of human-controlled factions
 const net={on:false,role:'',inMatch:false,peer:null,conns:new Map(),hostConn:null,code:'',myId:'',slots:[],map:0,diff:'normal',ready:false,rnd:{size:'m',n:4,ter:'mix',seed:1},teams:0,
   seq:0,ack:[0,0,0,0,0,0],pend:[],winner:-2,alive:63,endShown:false,elimShown:false,endMode:'',snapT:0,lastRx:0,bytesOut:0,bytesIn:0,snaps:0,lastFrame:0};
-let MODE='camp';const SK={cfg:null,seed:0,streak:0,endless:false,diff:'normal'};
+let MODE='camp';const SK={cfg:null,seed:0,streak:0,endless:false,diff:'normal',daily:null,ranked:null};let LIMIT=0;
 function diffKey(){return net.inMatch?net.diff:(MODE==='skirm'?SK.diff:save.diff);}
 function curDiff(){return DIFF[diffKey()]||DIFF.normal;}
 // Fixed personalities per color. Difficulty (Easy/Normal/Hard) is a separate skill layer on top.
@@ -356,7 +378,7 @@ const PCTS=[0.25,0.5,0.75,1];if(PCTS.indexOf(save.pct)<0)save.pct=0.5;
 if(!save.stats||typeof save.stats!=='object')save.stats={};
 // sanitize a corrupt/foreign save so menus and level grid never break
 {const ob=v=>v&&typeof v==='object'&&!Array.isArray(v);save.unlocked=Math.max(1,Math.min(16,Math.floor(+save.unlocked)||1));if(!['easy','normal','hard'].includes(save.diff))save.diff='normal';save.muted=save.muted===true;save.howSeen=!!save.howSeen;
-  if(!ob(save.best))save.best={};for(const k in save.best)if(!(+save.best[k]>0))delete save.best[k];if(!ob(save.tips))save.tips={};if(save.sk!=null&&!ob(save.sk))delete save.sk;
+  if(!ob(save.best))save.best={};for(const k in save.best)if(!(+save.best[k]>0))delete save.best[k];if(!ob(save.tips))save.tips={};if(save.daily!=null&&!ob(save.daily))save.daily={};if(save.sk!=null&&!ob(save.sk))delete save.sk;
   if(!['auto','high','low',undefined].includes(save.gfx))save.gfx='auto';if(save.skBest!=null&&!(+save.skBest>=0))save.skBest=0;}
 let cloudH=null;
 const setFp=()=>JSON.stringify([save.diff,save.muted,save.pct,save.sk||null]);let lastSetFp=setFp();
@@ -710,7 +732,7 @@ function tipTick(dt){if(!tipQ.length||state!=='play')return;tipT-=dt;if(tipT<=0)
 
 /* ---------------- setup ---------------- */
 function startLevel(idx,isDemo,custom){gqReset();
-  demo=!!isDemo;levelIdx=idx;
+  demo=!!isDemo;levelIdx=idx;LIMIT=(!isDemo&&custom&&custom.limit)||0;
   const L=custom||(isDemo?procLevel(5,(Math.random()*1e9)|0,3):getLevel(idx));curLevel=L;
   resetUnits();SWA.fill(0);uq.fill(-1);rings.length=0;beams.length=0;floats.length=0;for(let i=0;i<MAXP;i++)pl[i]=0;
   setTeams(isDemo?null:L.teams);
@@ -797,7 +819,7 @@ function step(dt){
   if(net.inMatch){if(net.role==='host')mpHostCheck();}
   else if(state==='play'&&endTimer<0){
     const meAlive=ownP[0]>0||tot[0]>0;let foes=false;for(const f of aiList)if(!ally(f,ME)&&(ownP[f]>0||tot[f]>0))foes=true;
-    if(!meAlive||!foes||objWin>=0){endWin=objWin>=0?ally(objWin,ME):meAlive;endTimer=1.4;}
+    const tOut=LIMIT>0&&time>=LIMIT;if(!meAlive||!foes||objWin>=0||tOut){endWin=objWin>=0?ally(objWin,ME):(meAlive&&!foes);endTimer=tOut&&!endWin?0.3:1.4;}
   }else if(!net.inMatch&&state==='play'&&endTimer>0){endTimer-=dt;if(endTimer<=0)showEnd();}
   if(demo&&state!=='play'){let alive=0;for(let f=0;f<NF;f++)if(ownP[f]>0)alive++;if(alive<=1&&time>5)startLevel(0,true);if(time>240)startLevel(0,true);}
 }
@@ -1344,6 +1366,7 @@ function render(){
   if(TER.obj&&state!=='title'){const P=planets[TER.obj.hold];let best=-1;for(let f=0;f<NF;f++)if(holdT[f]>0)best=f;
     ctx.font='700 13px system-ui,-apple-system,sans-serif';ctx.fillStyle=best>=0?rgb(FCOL[best],0.95):'rgba(255,220,130,0.85)';
     ctx.fillText(best>=0?`${best===ME?'You hold':CNAME[best]+' holds'} the Core · ${Math.ceil(TER.obj.secs-holdT[best])}s`:`Hold the Core ${TER.obj.secs}s to win`,CW/2,CH-SAB-(rot?80:96));}
+  if(LIMIT&&state!=='title'){const left=Math.max(0,LIMIT-time);ctx.font='700 13px system-ui,-apple-system,sans-serif';ctx.fillStyle=left<30?'rgba(255,120,120,0.95)':'rgba(255,220,130,0.85)';ctx.fillText(`⏱ win within ${mmss(left)}`,CW/2,CH-SAB-(rot?100:118));}
   for(const F of floats){const k=F.t/F.d;ctx.globalAlpha=1-k*k;ctx.font='700 16px system-ui,-apple-system,sans-serif';ctx.fillStyle='#bff4ff';
     ctx.fillText(F.s,SX(F.x,F.y),SY(F.x,F.y)-F.r*S-14-k*26);}
   ctx.globalAlpha=1;
@@ -1756,7 +1779,7 @@ function showIntro(L,ms,rows){const el=$('intro');
   if(L.T&&L.T.idea)el.innerHTML+=`<div class="idea">${L.T.idea}</div>`;
   el.classList.add('on');clearTimeout(introT);introT=setTimeout(()=>el.classList.remove('on'),ms||3500);}
 function toast(msg,ms){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2000);}
-function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall'].forEach(s=>$(s).classList.toggle('hidden',s!==id));}
+function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall','sDaily','sAch','sRanked'].filter(s=>$(s)).forEach(s=>$(s).classList.toggle('hidden',s!==id));}
 const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 function refreshUI(){
@@ -1799,10 +1822,10 @@ $('bMute').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio
 $('bKeysOk').onclick=()=>showKeys(false);
 $('bPause').onclick=()=>pause();
 $('bResume').onclick=()=>resume();
-$('bRestart').onclick=()=>{if(MODE==='skirm')startSkirm(SK.cfg,SK.seed,true);else play(levelIdx);};
+$('bRestart').onclick=()=>{if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(SK.ranked&&MODE==='skirm'){toMenu();return;}if(MODE==='skirm')startSkirm(SK.cfg,SK.seed,true);else play(levelIdx);};
 $('bMenu').onclick=()=>{if(net.on)mpLeave();else toMenu();};$('bMenu2').onclick=()=>{if(net.on)mpLeave();else toMenu();};
-$('bRetry').onclick=()=>{if(net.inMatch){if(net.endMode==='elim')show(null);else if(net.role==='host')mpToLobby();return;}if(MODE==='skirm'){startSkirm(SK.cfg,SK.seed,false);return;}play(levelIdx);};
-$('bNext').onclick=()=>{if(net.inMatch){if(net.role==='host')mpStart();return;}if(MODE==='skirm'){skNext();return;}play(Math.min(LEVELS-1,levelIdx+1));};
+$('bRetry').onclick=()=>{if(net.inMatch){if(net.endMode==='elim')show(null);else if(net.role==='host')mpToLobby();return;}if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(MODE==='skirm'){startSkirm(SK.cfg,SK.seed,false);return;}play(levelIdx);};
+$('bNext').onclick=()=>{if(net.inMatch){if(net.role==='host')mpStart();return;}if(SK.daily&&MODE==='skirm'){dailyOpen();return;}if(SK.ranked&&MODE==='skirm'){rankedOpen();return;}if(MODE==='skirm'){skNext();return;}play(Math.min(LEVELS-1,levelIdx+1));};
 $('bPct').onclick=()=>{save.pct=PCTS[(PCTS.indexOf(save.pct)+1)%PCTS.length];persist();refreshUI();sfx.select();};
 $('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===ME).map(P=>P.id);const ms=[];for(let q=0;q<MAXS;q++)if(SWA[q]&&SWO[q]===ME)ms.push(q);
   const mf=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)mf.push(i);
@@ -1830,15 +1853,69 @@ $('skBack').onclick=()=>show('sTitle');
 $('skGo').onclick=()=>{const c=skCfg();const sd=skParseSeed(c.seed);startSkirm(Object.assign({},c),sd!=null?sd:skRandSeed(),false);};
 $('skQuick').onclick=()=>{const seed=skRandSeed();const r=mulberry32(seed^0x9e3779b9);const c=skCfg();
   startSkirm({size:['s','m','l'][Math.floor(r()*3)],riv:1+Math.floor(r()*4),pers:[],diff:c.diff,ter:r()<0.35?'none':'mix',start:r()<0.15?'outn':'even',mode:'one',seed:''},seed,false);};
-function startSkirm(cfg,seed,keepStreak){MODE='skirm';if(keepStreak===false)SK.streak=0;
+function startSkirm(cfg,seed,keepStreak,extra){MODE='skirm';if(keepStreak===false)SK.streak=0;SK.daily=extra&&extra.daily||null;SK.ranked=extra&&extra.ranked||null;
   SK.cfg=cfg;SK.seed=seed>>>0;SK.endless=cfg.mode==='endless';const DK=['easy','normal','hard'];const base=Math.max(0,DK.indexOf(cfg.diff));
   SK.diff=DK[Math.min(2,base+(SK.endless?Math.floor(SK.streak/3):0))];
-  const L=genSkirm(cfg,SK.seed);if(SK.endless)L.aiMul=Math.min(1.7,L.aiMul*(1+0.07*SK.streak));
+  const L=genSkirm(cfg,SK.seed);if(extra&&extra.apply)extra.apply(L);if(SK.endless)L.aiMul=Math.min(1.7,L.aiMul*(1+0.07*SK.streak));
   ensureAudio();show(null);$('hud').classList.remove('hidden');state='play';startLevel(99,false,L);
-  $('lvlName').innerHTML=`${L.name}<b>${SK.endless?'Endless · streak '+SK.streak:'Skirmish'} · ${SK.diff} · #${SK.seed}</b>`;
+  $('lvlName').innerHTML=SK.daily?`${L.name}<b>Daily · ${SK.daily.mod.name} · ${dailyLabel(SK.daily.key)}</b>`:SK.ranked?`${L.name}<b>Ranked · vs AI · ${SK.diff}</b>`:`${L.name}<b>${SK.endless?'Endless · streak '+SK.streak:'Skirmish'} · ${SK.diff} · #${SK.seed}</b>`;
   if(!save.howSeen){save.howSeen=true;persist();pauseHow=true;state='paused';show('sHow');}}
+/* ---------------- daily challenge ---------------- */
+// one deterministic map + modifier per UTC day, same for everyone
+const DMODS=[
+  {id:'walls',name:'Asteroid Field',desc:'Asteroid walls split the map; fleets fly around them.',cfg:{ter:'walls'}},
+  {id:'fog',name:'Fog of War',desc:'Light fog: enemy numbers and fleets are hidden away from your planets.',fog:380},
+  {id:'outn',name:'Outnumbered',desc:'Every rival starts with 50% more units than you.',cfg:{start:'outn'}},
+  {id:'blitz',name:'Blitz',desc:'Win within 5:00 or the challenge is lost.',limit:300},
+  {id:'lineup',name:'Rival Lineup',desc:'Three fixed rival personalities, chosen for today.',cfg:{riv:3},lineup:true},
+  {id:'core',name:'Core Rush',desc:'A Core sits at the centre, with a Factory and a Fortress in play.',cfg:{ter:'special'}},
+  {id:'storm',name:'Solar Storm',desc:'Solar flares pulse and burn fleets inside them.',cfg:{ter:'flares'}}];
+let dailyOverride=null;
+function dailyKey(d){if(dailyOverride)return dailyOverride;d=d||new Date();return d.toISOString().slice(0,10).replace(/-/g,'');}
+function dailyLabel(k){return `${k.slice(0,4)}-${k.slice(4,6)}-${k.slice(6,8)}`;}
+function dayNum(k){return Math.floor(Date.UTC(+k.slice(0,4),+k.slice(4,6)-1,+k.slice(6,8))/864e5);}
+function keyOfDay(n){return new Date(n*864e5).toISOString().slice(0,10).replace(/-/g,'');}
+function dailyDef(k){const n=dayNum(k);let h=2166136261;for(const ch of 'lumen-daily-'+k){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}const seed=(h>>>0)%999999989+1;const r=mulberry32(seed);
+  const mod=DMODS[((n%DMODS.length)+DMODS.length)%DMODS.length];
+  const cfg=Object.assign({size:r()<0.5?'m':'l',riv:2+(r()<0.4?1:0),pers:[],diff:'normal',ter:'none',start:'even',mode:'one',seed:'',teams:'off'},mod.cfg||{});
+  if(mod.lineup){const pool=[1,2,3,4,5];for(let i=4;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}cfg.pers=pool.slice(0,3).sort();}
+  return {key:k,seed,mod,cfg};}
+function dailyStreak(){const d=save.daily||{};let n=dayNum(dailyKey());if(!(d[keyOfDay(n)]>0))n--;let c=0;while(d[keyOfDay(n)]>0){c++;n--;}return c;}
+function dailyPlay(){const D=dailyDef(dailyKey());
+  startSkirm(Object.assign({},D.cfg),D.seed,false,{daily:D,apply:L=>{if(D.mod.fog){L.T=L.T||{};L.T.fog=D.mod.fog;}if(D.mod.limit)L.limit=D.mod.limit;
+    const extra=D.mod.name+': '+D.mod.desc;L.T=L.T||{};L.T.idea=extra+(L.T.idea?' '+L.T.idea:'');}});}
+function dailyOpen(){const D=dailyDef(dailyKey());const k=D.key;show('sDaily');
+  $('dyDate').textContent=`${dailyLabel(k)} (UTC) · same map for everyone · new one in ${Math.max(1,Math.ceil(((dayNum(k)+1)*864e5-Date.now())/36e5))}h`;
+  const lin=D.cfg.pers.length?' · rivals: '+D.cfg.pers.map(f=>CNAME[f]).join(', '):` · ${D.cfg.riv} rivals`;
+  $('dyMod').innerHTML=`<b>${D.mod.name}</b>${D.mod.desc}<br><span style="opacity:.6">${{m:'Medium',l:'Large'}[D.cfg.size]} map${lin} · normal</span>`;
+  const b=(save.daily||{})[k];$('dyMe').textContent=(b>0?`Your best today: ${mmss(b)}`:(b===0?'Not won yet today':'Not played yet today'))+` · 🔥 streak ${dailyStreak()}`;
+  dailyBoard(k);}
+async function dailyBoard(k){const el=$('dyLb'),st=$('dyLbSt');el.innerHTML='';const X=CLOUD.x;
+  if(!X.can()){st.textContent=X.signedIn()?'Leaderboard unavailable offline.':'Sign in with Google on the title screen to post your time and see the leaderboard.';if(!X.signedIn()&&!X.loaded())return;if(!X.can())return;}
+  st.textContent='Loading…';
+  try{const rows=await X.list(`daily/${k}/scores`,'time','asc',20);const me=X.uid();
+    el.innerHTML=rows.map((r,i)=>`<li class="${r.id===me?'me':''}"><i>${i+1}</i><span></span><em>${mmss(r.time)}</em></li>`).join('');
+    [...el.children].forEach((li,i)=>li.querySelector('span').textContent=String(rows[i].name||'Player').slice(0,40));
+    st.textContent=rows.length?'':'No times yet today. Be the first!';}
+  catch(e){st.textContent=X.why(e);}}
+async function dailySubmit(k,t){const X=CLOUD.x;if(!X.can())return 'Sign in to post your time to the leaderboard.';
+  try{const p=`daily/${k}/scores/${X.uid()}`;const cur=await X.get(p);if(cur&&cur.time<=t)return 'Leaderboard: your earlier time stands.';
+    await X.set(p,{name:X.name(),time:t,ts:X.TS});return 'Posted to the leaderboard ✓';}catch(e){return X.why(e);}}
+function showDailyEnd(){state='end';const D=SK.daily,k=D.key,t=$('endT');const tm=Math.max(1,Math.round(time));
+  save.daily=save.daily||{};const prev=save.daily[k];
+  if(endWin){t.textContent='VICTORY';t.className='win';sfx.win();if(!(prev>0)||tm<prev)save.daily[k]=tm;}
+  else{t.textContent=LIMIT&&time>=LIMIT?'TIME UP':'DEFEAT';t.className='lose';sfx.lose();if(prev==null)save.daily[k]=0;}
+  {const ks=Object.keys(save.daily).sort();while(ks.length>45)delete save.daily[ks.shift()];}
+  bumpStat(endWin?'dyW':'dyL');persist();CLOUD.flush();
+  $('endS').innerHTML=`Daily · ${dailyLabel(k)} · <b>${D.mod.name}</b><br>Time ${mmss(time)}`+(endWin&&prev>0&&tm>=prev?` · best ${mmss(prev)}`:'');
+  $('endStreak').textContent=`🔥 Daily streak ${dailyStreak()}`;
+  $('bNext').classList.remove('hidden');$('bNext').textContent='Leaderboard';$('bRetry').classList.remove('hidden');$('bRetry').textContent='Retry';$('bMenu2').textContent='Menu';
+  show('sEnd');renderEnd();
+  if(endWin)dailySubmit(k,tm).then(m=>{if(state==='end')$('endStreak').textContent=`🔥 Daily streak ${dailyStreak()} · ${m}`;});
+  if(window.achEnd)achEnd();}
+$('bDaily').onclick=()=>{ensureAudio();dailyOpen();};$('dyBack').onclick=()=>show('sTitle');$('dyGo').onclick=()=>dailyPlay();
 function skNext(){if(SK.endless){if(endWin)startSkirm(SK.cfg,skRandSeed(),0);else{SK.streak=0;startSkirm(SK.cfg,skRandSeed(),0);}}else startSkirm(SK.cfg,skRandSeed(),false);}
-function showSkEnd(){state='end';const t=$('endT');const mm=mmss(time);
+function showSkEnd(){if(SK.daily){showDailyEnd();return;}if(SK.ranked&&window.rankedEnd){rankedEnd();return;}state='end';const t=$('endT');const mm=mmss(time);
   if(endWin){t.textContent='VICTORY';t.className='win';sfx.win();}else{t.textContent='DEFEAT';t.className='lose';sfx.lose();}
   bumpStat(endWin?'skW':'skL');persist();CLOUD.flush();
   const c=SK.cfg,L=curLevel;const desc=`${{s:'Small',m:'Medium',l:'Large'}[c.size]||''} · ${L.ais.length} rival${L.ais.length>1?'s':''} · ${SK.diff}${L.feats&&L.feats.length?' · '+L.feats.join(', '):''}`;
@@ -2203,7 +2280,7 @@ function frame(now){
   render();updateSelUI();tipTickUI(now);
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={stuck:()=>{let n=0,w=0;for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>w){w=time-ut[i];}for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>90)n++;return{n,w:Math.round(w)};},gq:()=>GQ+'/'+(save.gfx||'auto'),setGfx:v=>{save.gfx=v;gqReset();return GQ;},mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
+if(location.hash==='#debug')window.__lumen={setTime:t=>{time=t;},daily:k=>{dailyOverride=k||null;return dailyDef(dailyKey());},dailyPlay:()=>dailyPlay(),dailyOpen:()=>dailyOpen(),dStreak:()=>dailyStreak(),saveObj:()=>JSON.parse(JSON.stringify(save)),stuck:()=>{let n=0,w=0;for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>w){w=time-ut[i];}for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>90)n++;return{n,w:Math.round(w)};},gq:()=>GQ+'/'+(save.gfx||'auto'),setGfx:v=>{save.gfx=v;gqReset();return GQ;},mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
     let lh=2166136261;try{const L=mpLevel(net.map);for(const q of L.planets)for(const v of q.slice(0,5)){h=h;lh^=Math.round((+v||0)*10);lh=Math.imul(lh,16777619);}}catch(e){}
     return{slots:net.slots.map(s=>({f:s.f,kind:s.kind,me:s.pid===net.myId,host:!!s.host,team:s.team})),teams:net.teams,rnd:net.rnd,map:net.map,TEAM:TEAM.slice(),TEAMS_ON,hash:h>>>0,lobbyHash:lh>>>0,NP,ME,winner:net.winner,endShown:net.endShown,endT:document.getElementById('endT').textContent};},
   slotTest:(n)=>{const keep=net.slots;const hits={};for(let k=0;k<n;k++){net.slots=[0,1,2,3,4,5].map(f=>({f,kind:f===2?'human':'ai'}));const fr=freeSlots();const sl=rndPick(fr);hits[sl.f]=(hits[sl.f]||0)+1;}net.slots=keep;return hits;},
@@ -2264,6 +2341,8 @@ const CLOUD=(()=>{
     o.howSeen=!!(L.howSeen||C.howSeen);o.defUsed=!!(L.defUsed||C.defUsed);
     o.skBest=Math.max(n(L.skBest),n(C.skBest));
     o.stats={};for(const src of [C.stats||{},L.stats||{}])for(const k in src)o.stats[k]=Math.max(o.stats[k]||0,n(src[k]));
+    o.daily={};for(const src of [C.daily||{},L.daily||{}])for(const k in src){const v=n(src[k]);if(!(k in o.daily))o.daily[k]=v;else if(v>0&&(!(o.daily[k]>0)||v<o.daily[k]))o.daily[k]=v;}
+    {const ks=Object.keys(o.daily).sort();while(ks.length>45)delete o.daily[ks.shift()];}
     const S=n(C.setT)>n(L.setT)?C:L;for(const k of ['diff','muted','pct','sk'])if(S[k]!==undefined)o[k]=S[k];o.setT=Math.max(n(L.setT),n(C.setT));
     return o;}
   const clean=o=>JSON.parse(JSON.stringify(o));
@@ -2293,6 +2372,12 @@ const CLOUD=(()=>{
           signOut:()=>U.signOut(auth),
           get:async uid=>{const d=await F.getDoc(F.doc(db,'users',uid));return d.exists()?d.data():null;},
           set:(uid,data)=>F.setDoc(F.doc(db,'users',uid),Object.assign({},data,{updatedAt:F.serverTimestamp()}))};
+        const enc=d=>{const o={};for(const k in d)o[k]=d[k]==='__TS__'?F.serverTimestamp():d[k];return o;};
+        const dec=d=>{const o={};for(const k in d){const v=d[k];o[k]=v&&typeof v.toMillis==='function'?v.toMillis():v;}return o;};
+        Object.assign(fb,{dget:async p=>{const s=await F.getDoc(F.doc(db,p));return s.exists()?dec(s.data()):null;},
+          dset:(p,d)=>F.setDoc(F.doc(db,p),enc(d)),ddel:p=>F.deleteDoc(F.doc(db,p)),
+          dlist:async(c,f,dir,n)=>{const s=await F.getDocs(F.query(F.collection(db,c),F.orderBy(f,dir),F.limit(n)));return s.docs.map(x=>Object.assign({id:x.id},dec(x.data())));},
+          dwatch:(p,cb)=>F.onSnapshot(F.doc(db,p),s=>cb(s.exists()?dec(s.data()):null),()=>cb(undefined))});
       }
       fb.onAuth(onUser);ui();return fb;})();
     ui();try{return await loading;}catch(e){loading=null;ui();throw e;}}
@@ -2320,7 +2405,11 @@ const CLOUD=(()=>{
     addEventListener('online',()=>{if(isDirty())push();});
     // lazy: restore an existing session shortly after start, never blocking the game; failures (offline) are silent
     setTimeout(()=>{if(navigator.onLine!==false||MOCK)load().catch(()=>{});},MOCK?50:300);}
-  return {merge,touch,flush:()=>{if(user&&ready)push();},init,info:()=>({cfg:!!CFG,user:user&&user.uid,ready,st,dirty:isDirty(),loaded:!!fb})};
+  // generic Firestore helpers for daily leaderboards / ratings / matchmaking; every call may fail (offline, rules not deployed)
+  const x={TS:'__TS__',signedIn:()=>!!user,loaded:()=>!!fb,can:()=>!!(user&&fb&&fb.dset),uid:()=>user&&user.uid,name:()=>String(user&&(user.displayName||(user.email||'').split('@')[0])||'Player').slice(0,40),
+    get:p=>fb.dget(p),set:(p,d)=>fb.dset(p,d),del:p=>fb.ddel(p),list:(c,f,d,n)=>fb.dlist(c,f,d,n),watch:(p,cb)=>fb.dwatch(p,cb),
+    why:e=>{const c=String(e&&(e.code||e.message)||e);return /permission/i.test(c)?'Online features are not enabled yet (the Firestore rules need updating).':/unavailable|offline|network/i.test(c)?'Offline: leaderboard unavailable right now.':'Online error: '+c;}};
+  return {x,merge,touch,flush:()=>{if(user&&ready)push();},init,info:()=>({cfg:!!CFG,user:user&&user.uid,ready,st,dirty:isDirty(),loaded:!!fb})};
 })();
 cloudH=CLOUD;CLOUD.init();
 if(window.__lumen)window.__lumen.cloud=CLOUD;
