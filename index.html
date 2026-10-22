@@ -80,6 +80,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 .ach.on{background:rgba(70,215,255,.1);border-color:rgba(120,220,255,.4)}.ach .ic2{font-size:22px;width:30px;text-align:center;filter:grayscale(1);opacity:.45}.ach.on .ic2{filter:none;opacity:1}
 .ach div{flex:1;min-width:0}.ach b{display:block;font-size:14px}.ach small{display:block;font-size:12px;opacity:.65;line-height:1.3}.ach .bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:5px;overflow:hidden}.ach .bar i{display:block;height:100%;background:linear-gradient(90deg,#46d7ff,#9ff)}
 .ach em{font-style:normal;font-size:11px;opacity:.7;color:#ffd77a}
+.rkc{text-align:center}.rkc .tier{font-size:28px;font-weight:300;letter-spacing:.18em;text-transform:uppercase}.rkc .rt{font-size:15px;opacity:.85;margin-top:2px}.rkc .bar{height:5px;border-radius:3px;background:rgba(255,255,255,.1);margin:8px auto 2px;max-width:240px;overflow:hidden}.rkc .bar i{display:block;height:100%}
 .note{font-size:13px;opacity:.7;line-height:1.45;margin:6px 0;min-height:1em}
 .note.err{color:#ff9aa4;opacity:1}
 #joinCode{flex:1;min-width:0;width:0;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:700 22px system-ui,sans-serif;letter-spacing:.35em;text-align:center;text-transform:uppercase;-webkit-user-select:text;user-select:text;outline:none}
@@ -293,6 +294,18 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div class="lbl">Cosmetic</div><div class="chips" id="achCos"></div>
     <div id="achList" class="achl"></div>
     <div class="row"><button id="achBack" class="ghost">Back</button></div>
+  </div>
+</div>
+
+<div id="sRanked" class="screen hidden">
+  <div class="panel">
+    <h2>Ranked</h2>
+    <div id="rkCard" class="dmod rkc"></div>
+    <div id="rkSt" class="note"></div>
+    <button id="rkGo" class="big">Find match</button>
+    <button id="rkCancel" class="big alt hidden">Cancel</button>
+    <div class="note">1v1 on a random map. If no human opponent is found within 25 s you play an AI scaled to your rating (counts for rating at reduced weight). Leaving a match counts as a loss.</div>
+    <div class="row"><button id="rkBack" class="ghost">Back</button></div>
   </div>
 </div>
 
@@ -1846,7 +1859,7 @@ $('bResume').onclick=()=>resume();
 $('bRestart').onclick=()=>{if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(SK.ranked&&MODE==='skirm'){toMenu();return;}if(MODE==='skirm')startSkirm(SK.cfg,SK.seed,true);else play(levelIdx);};
 $('bMenu').onclick=()=>{if(net.on)mpLeave();else toMenu();};$('bMenu2').onclick=()=>{if(net.on)mpLeave();else toMenu();};
 $('bRetry').onclick=()=>{if(net.inMatch){if(net.endMode==='elim')show(null);else if(net.role==='host')mpToLobby();return;}if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(MODE==='skirm'){startSkirm(SK.cfg,SK.seed,false);return;}play(levelIdx);};
-$('bNext').onclick=()=>{if(net.inMatch){if(net.role==='host')mpStart();return;}if(SK.daily&&MODE==='skirm'){dailyOpen();return;}if(SK.ranked&&MODE==='skirm'){rankedOpen();return;}if(MODE==='skirm'){skNext();return;}play(Math.min(LEVELS-1,levelIdx+1));};
+$('bNext').onclick=()=>{if($('bNext').textContent==='Ranked'){if(net.on)mpReset();rankedOpen();return;}if(net.inMatch){if(net.role==='host')mpStart();return;}if(SK.daily&&MODE==='skirm'){dailyOpen();return;}if(SK.ranked&&MODE==='skirm'){rankedOpen();return;}if(MODE==='skirm'){skNext();return;}play(Math.min(LEVELS-1,levelIdx+1));};
 $('bPct').onclick=()=>{save.pct=PCTS[(PCTS.indexOf(save.pct)+1)%PCTS.length];persist();refreshUI();sfx.select();};
 $('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===ME).map(P=>P.id);const ms=[];for(let q=0;q<MAXS;q++)if(SWA[q]&&SWO[q]===ME)ms.push(q);
   const mf=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)mf.push(i);
@@ -1912,12 +1925,12 @@ function dailyOpen(){const D=dailyDef(dailyKey());const k=D.key;show('sDaily');
   const b=(save.daily||{})[k];$('dyMe').textContent=(b>0?`Your best today: ${mmss(b)}`:(b===0?'Not won yet today':'Not played yet today'))+` · 🔥 streak ${dailyStreak()}`;
   dailyBoard(k);}
 async function dailyBoard(k){const el=$('dyLb'),st=$('dyLbSt');el.innerHTML='';const X=CLOUD.x;
-  if(!X.can()){st.textContent=X.signedIn()?'Leaderboard unavailable offline.':'Sign in with Google on the title screen to post your time and see the leaderboard.';if(!X.signedIn()&&!X.loaded())return;if(!X.can())return;}
+  if(!X.canRead()){st.textContent='Leaderboard unavailable (offline).';return;}
   st.textContent='Loading…';
   try{const rows=await X.list(`daily/${k}/scores`,'time','asc',20);const me=X.uid();
     el.innerHTML=rows.map((r,i)=>`<li class="${r.id===me?'me':''}"><i>${i+1}</i><span></span><em>${mmss(r.time)}</em></li>`).join('');
     [...el.children].forEach((li,i)=>li.querySelector('span').textContent=String(rows[i].name||'Player').slice(0,40));
-    st.textContent=rows.length?'':'No times yet today. Be the first!';}
+    st.textContent=(rows.length?'':'No times yet today. Be the first! ')+(X.signedIn()?'':'Sign in on the title screen to post your time.');}
   catch(e){st.textContent=X.why(e);}}
 async function dailySubmit(k,t){const X=CLOUD.x;if(!X.can())return 'Sign in to post your time to the leaderboard.';
   try{const p=`daily/${k}/scores/${X.uid()}`;const cur=await X.get(p);if(cur&&cur.time<=t)return 'Leaderboard: your earlier time stands.';
@@ -1988,8 +2001,78 @@ function achOpen(){achSweep();show('sAch');const n=ACH.filter(a=>achHas(a.id)).l
   const cs=$('achCos');cs.innerHTML='';for(const c of COS){const b=document.createElement('button');const ok=!c.a||achHas(c.a);b.textContent=(ok?'':'🔒 ')+c.n;b.disabled=!ok;b.classList.toggle('on',(save.cos||'')===c.id);
     b.onclick=()=>{save.cos=c.id;save.setT=Date.now();persist();achOpen();sfx.select();};cs.appendChild(b);}}
 $('bAch').onclick=()=>{ensureAudio();achOpen();};$('achBack').onclick=()=>show('sTitle');
+/* ---------------- ranked ---------------- */
+// Elo with tiers. Ratings live in ratings/{uid}; matchmaking queue in queue/{uid}. Client-reported (no anti-cheat): rules bound each change.
+const TIERS=[['Bronze',0,'#d08a55'],['Silver',1150,'#c9d6e6'],['Gold',1400,'#ffd36b'],['Platinum',1650,'#7fe8e0'],['Diamond',1900,'#8fb8ff']];
+function tierOf(r){let t=TIERS[0];for(const T of TIERS)if(r>=T[1])t=T;return t;}
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RK={phase:'idle',me:null,mp:false,opp:null,t0:0,iv:0,code:'',prop:'',propT:0,base:null,K:32,oppR:1000,done:false,offline:false};
+const rkE=(a,b)=>1/(1+Math.pow(10,(b-a)/400));
+function rkAiFor(r){return r<1050?{diff:'easy',mul:1,r:950}:r<1300?{diff:'normal',mul:1,r:1175}:{diff:'hard',mul:Math.min(1.4,1+Math.max(0,r-1450)/1000),r:Math.round(1425+Math.max(0,r-1450)*0.5)};}
+function rkSt(t){$('rkSt').textContent=t;}
+function rkCard(){const R=RK.me||{r:1000,n:0,w:0};const t=tierOf(R.r),ni=TIERS[TIERS.indexOf(t)+1];const pr=ni?(R.r-t[1])/(ni[1]-t[1]):1;
+  $('rkCard').innerHTML=`<div class="tier" style="color:${t[2]}">${t[0]}</div><div class="rt">Rating <b>${R.r}</b> · ${R.w||0}W ${Math.max(0,(R.n||0)-(R.w||0))}L</div><div class="bar"><i style="width:${Math.round(pr*100)}%;background:${t[2]}"></i></div><small style="opacity:.6">${ni?`${ni[1]-R.r} to ${ni[0]}`:'Top tier'}</small>`;}
+async function rankedOpen(){if(net.on)mpReset();RK.mp=false;RK.lastLine='';RK.phase='idle';show('sRanked');$('rkCancel').classList.add('hidden');$('rkGo').classList.remove('hidden');const X=CLOUD.x;
+  rkCard();if(!X.signedIn()){$('rkGo').disabled=true;rkSt('Ranked needs a Google account: sign in on the title screen first.');return;}
+  $('rkGo').disabled=true;rkSt('Loading your rating…');
+  try{let d=await X.get('ratings/'+X.uid());if(!d){d={r:1000,n:0,w:0,name:X.name(),peak:1000,pend:false,ts:X.TS};await X.set('ratings/'+X.uid(),d);d.ts=Date.now();}
+    RK.me=d;RK.offline=false;rkCard();rkSt('');$('rkGo').disabled=false;}
+  catch(e){RK.offline=true;rkSt(X.why(e)+' You can still play a practice match vs AI (unrated).');$('rkGo').disabled=false;$('rkGo').textContent='Practice vs AI';return;}
+  $('rkGo').textContent='Find match';}
+async function rkFind(){const X=CLOUD.x;ensureAudio();if(RK.offline||!RK.me){rkStartAi(false);return;}
+  RK.phase='queue';RK.t0=Date.now();RK.prop='';RK.code='';RK.done=false;$('rkGo').classList.add('hidden');$('rkCancel').classList.remove('hidden');rkSt('Opening a room…');
+  mpCreate();clearInterval(RK.iv);RK.iv=setInterval(rkTick,2000);}
+async function rkRoomReady(code){if(RK.phase!=='queue'){mpReset();return;}RK.code=code;RK.mp=true;const X=CLOUD.x;
+  try{await X.set('queue/'+X.uid(),{r:RK.me.r,code,name:X.name(),m:'',ts:X.TS});rkSt('Searching for an opponent…');}catch(e){rkSt(X.why(e));rkStopQueue();rkStartAi(true);}}
+const RK_WAIT=25000;
+async function rkTick(){if(RK.phase!=='queue')return;const X=CLOUD.x;const el=Date.now()-RK.t0;
+  if(net.inMatch){rkStopQueue(true);return;}
+  if(el>RK_WAIT&&!RK.joining&&!(net.role==='host'&&net.conns.size)){rkSt('No opponent found: starting vs AI…');rkStopQueue();rkStartAi(true);return;}
+  rkSt(`Searching for an opponent… ${Math.ceil((RK_WAIT-el)/1000)}s`);
+  if(!RK.code||RK.joining)return;
+  let rows;try{rows=await X.list('queue','ts','desc',30);}catch(e){return;}if(RK.phase!=='queue'||RK.joining)return;
+  const now=Date.now(),me=X.uid(),win=150+el/1000*25;
+  for(const q of rows)if(q.ts&&now-q.ts>120000&&q.id!==me)X.del('queue/'+q.id).catch(()=>{});   // stale cleanup
+  const fresh=rows.filter(q=>q.id!==me&&q.ts&&now-q.ts<45000&&q.code&&q.code.length===4);
+  const offer=fresh.find(q=>q.m===me);
+  if(offer&&me>offer.id){RK.joining=true;RK.opp={uid:offer.id,r:offer.r|0,name:offer.name||'Player'};rkSt('Opponent found: '+RK.opp.name+' · connecting…');
+    try{await X.set('queue/'+me,{r:RK.me.r,code:RK.code,name:X.name(),m:offer.id,ts:X.TS});}catch(e){}
+    if(net.peer){try{net.peer.destroy();}catch(e){}}net.on=false;RK.mp=true;mpJoin(offer.code);
+    setTimeout(()=>{if(RK.phase==='queue'&&!net.inMatch){RK.joining=false;rkSt('Could not connect, still searching…');mpCreate();}},15000);return;}
+  if(RK.prop&&now-RK.propT<10000)return;
+  const cand=fresh.filter(q=>(!q.m||q.m===me)&&me<q.id&&Math.abs((q.r|0)-RK.me.r)<=win).sort((a,b)=>Math.abs(a.r-RK.me.r)-Math.abs(b.r-RK.me.r))[0];
+  const p=cand?cand.id:'';if(p!==RK.prop){RK.prop=p;RK.propT=now;if(cand)RK.opp={uid:cand.id,r:cand.r|0,name:cand.name||'Player'};
+    try{await X.set('queue/'+me,{r:RK.me.r,code:RK.code,name:X.name(),m:p,ts:X.TS});}catch(e){}}}
+function rkStopQueue(keepRoom){clearInterval(RK.iv);RK.iv=0;RK.joining=false;const X=CLOUD.x;if(X.can())X.del('queue/'+X.uid()).catch(()=>{});
+  if(!keepRoom){RK.mp=false;if(net.on&&!net.inMatch)mpReset();}RK.phase=keepRoom?'match':'idle';}
+function rkCancel(){rkStopQueue();$('rkCancel').classList.add('hidden');$('rkGo').classList.remove('hidden');rkSt('Search cancelled.');}
+function rkStartAi(rated){const R=RK.me||{r:1000};const A=rkAiFor(R.r);RK.mp=false;RK.phase='match';RK.done=false;RK.rated=rated&&!RK.offline;RK.oppR=A.r;
+  if(RK.rated)rkProvisional(A.r,16);
+  const seed=skRandSeed();startSkirm({size:'m',riv:1,pers:[],diff:A.diff,ter:'mix',start:'even',mode:'one',seed:'',teams:'off'},seed,false,{ranked:{ai:true,A,rated:RK.rated},apply:L=>{L.aiMul=A.mul;}});}
+// write a provisional loss at match start, so leaving counts as a loss; the final result corrects it
+async function rkProvisional(oppR,K){const X=CLOUD.x;if(!RK.me||!X.can())return;const R=RK.me;if((R.n|0)<10)K=Math.round(K*1.25);RK.K=K;RK.oppR=oppR;RK.base={r:R.r,n:R.n|0,w:R.w|0};
+  const lossR=Math.round(R.r+K*(0-rkE(R.r,oppR)));const d={r:Math.max(100,lossR),n:(R.n|0)+1,w:R.w|0,name:X.name(),peak:Math.max(R.peak|0,R.r),pend:true,ts:X.TS};
+  try{await X.set('ratings/'+X.uid(),d);RK.me=Object.assign({},d,{ts:Date.now()});}catch(e){RK.base=null;}}
+async function rkFinal(win){const X=CLOUD.x;if(!RK.base||!X.can()||RK.done)return null;RK.done=true;const B=RK.base;
+  const nr=Math.max(100,Math.round(B.r+RK.K*((win?1:0)-rkE(B.r,RK.oppR))));const d={r:nr,n:B.n+1,w:B.w+(win?1:0),name:X.name(),peak:Math.max(RK.me.peak|0,nr),pend:false,ts:X.TS};
+  try{await X.set('ratings/'+X.uid(),d);RK.me=Object.assign({},d,{ts:Date.now()});}catch(e){return {err:X.why(e)};}
+  bumpStat(win?'rkW':'rkL');if(nr>ST('rkPeak'))save.stats.rkPeak=nr;persist();achSweep();return {d:nr-B.r,r:nr};}
+function rkLine(res){if(!res)return 'Unrated (offline or not signed in)';if(res.err)return res.err;const t=tierOf(res.r);return `Rating ${res.d>=0?'+':''}${res.d} → ${res.r} · ${t[0]}`;}
+function rankedEnd(){state='end';const t=$('endT');const R=SK.ranked;
+  if(endWin){t.textContent='VICTORY';t.className='win';sfx.win();}else{t.textContent='DEFEAT';t.className='lose';sfx.lose();}
+  $('endS').innerHTML=`Ranked · <b>vs AI</b> (${R.A.diff}${R.A.mul>1?' +'+Math.round((R.A.mul-1)*100)+'%':''}, ~${R.A.r})<br>${curLevel.name} · ${mmss(time)}`;
+  $('endStreak').textContent=R.rated?'Updating rating…':'Practice match (unrated)';
+  $('bNext').classList.remove('hidden');$('bNext').textContent='Ranked';$('bRetry').classList.add('hidden');$('bMenu2').textContent='Menu';show('sEnd');renderEnd();
+  if(!R.rated)bumpStat(endWin?'rkW':'rkL');
+  (R.rated?rkFinal(endWin):Promise.resolve(null)).then(res=>{if(state==='end'&&R.rated)$('endStreak').textContent=rkLine(res);achEnd({mode:'ranked'});});}
+function rkMpEnd(win){$('bNext').classList.remove('hidden');$('bNext').textContent='Ranked';$('bRetry').classList.add('hidden');if(RK.done||RK.ending){if(RK.lastLine)$('endStreak').textContent=RK.lastLine;return;}RK.ending=true;const r=rkFinal(win);$('endStreak').textContent='Updating rating…';
+  $('endS').innerHTML=(win?'You win':'You lose')+` the ranked match vs <b>${esc(RK.opp?RK.opp.name:'player')}</b> (${RK.oppR}).`;
+  r.then(res=>{RK.lastLine=rkLine(res);$('endStreak').textContent=RK.lastLine;achEnd({mode:'ranked',win});RK.ending=false;});
+  // bNext in ranked = back to the ranked screen
+}
+$('bRanked').onclick=()=>{ensureAudio();rankedOpen();};$('rkGo').onclick=()=>rkFind();$('rkCancel').onclick=()=>rkCancel();$('rkBack').onclick=()=>{if(RK.phase==='queue')rkCancel();show('sTitle');};
 function skNext(){if(SK.endless){if(endWin)startSkirm(SK.cfg,skRandSeed(),0);else{SK.streak=0;startSkirm(SK.cfg,skRandSeed(),0);}}else startSkirm(SK.cfg,skRandSeed(),false);}
-function showSkEnd(){if(SK.daily){showDailyEnd();return;}setTimeout(()=>achEnd({mode:'skirm'}),0);if(SK.ranked&&window.rankedEnd){rankedEnd();return;}state='end';const t=$('endT');const mm=mmss(time);
+function showSkEnd(){if(SK.daily){showDailyEnd();return;}setTimeout(()=>achEnd({mode:'skirm'}),0);if(SK.ranked){rankedEnd();return;}state='end';const t=$('endT');const mm=mmss(time);
   if(endWin){t.textContent='VICTORY';t.className='win';sfx.win();}else{t.textContent='DEFEAT';t.className='lose';sfx.lose();}
   bumpStat(endWin?'skW':'skL');persist();CLOUD.flush();
   const c=SK.cfg,L=curLevel;const desc=`${{s:'Small',m:'Medium',l:'Large'}[c.size]||''} · ${L.ais.length} rival${L.ais.length>1?'s':''} · ${SK.diff}${L.feats&&L.feats.length?' · '+L.feats.join(', '):''}`;
@@ -2061,7 +2144,7 @@ function mpCreate(){mpStatus('Connecting to the matchmaking server…');$('bCrea
       peer.on('open',()=>{opened=true;clearTimeout(to);mpReset();net.on=true;net.role='host';net.peer=peer;net.code=code;net.myId='host';net.map=7;net.diff=save.diff;
         net.slots=[];buildSlots(net.map);occupy(rndPick(net.slots),{pid:'host',ready:true,host:true});net.rnd.seed=skRandSeed();$('bCreate').disabled=false;
         peer.on('connection',mpHostConn);peer.on('disconnected',()=>{try{peer.reconnect();}catch(e){}});
-        net.iv=setInterval(mpWatchdog,1000);showLobby();});
+        net.iv=setInterval(mpWatchdog,1000);if(RK.phase==='queue'){net.map='R';net.rnd={size:'m',n:2,ter:'mix',seed:skRandSeed()};net.teams=0;buildSlots(net.map);rkRoomReady(code);}else showLobby();});
       peer.on('error',e=>{clearTimeout(to);if(e.type==='unavailable-id'&&att<5){try{peer.destroy();}catch(_){}tryOpen(att+1);return;}
         if(!opened){$('bCreate').disabled=false;mpStatus('Could not create a room ('+(e.type||e.message)+'). Try again.',true);}});};
     tryOpen(0);}).catch(e=>{$('bCreate').disabled=false;mpStatus(e.message,true);});}
@@ -2090,6 +2173,7 @@ function mpHostConn(conn){
   conn.on('error',()=>mpPlayerLeft(conn.peer));
 }
 function mpPlayerLeft(pid){if(!net.conns.has(pid))return;net.conns.delete(pid);const sl=net.slots.find(s=>s.pid===pid);if(!sl)return;
+  if(net.inMatch&&RK.mp){net.conns.delete(pid);toast('Opponent disconnected: you win',2500);net.winner=ME;return;}
   if(net.inMatch){sl.kind='ai';sl.pid=null;sl.left=true;HUM.delete(sl.f);if(aiList.indexOf(sl.f)<0)aiList.push(sl.f);
     const D=curDiff();prodMul[sl.f]=D.prod;aiT[sl.f]=1;const m=CNAME[sl.f]+' disconnected — an AI takes over';toast(m,3000);mpBroadcast({t:'msg',m});}
   else{sl.kind='ai';sl.pid=null;sl.ready=true;sl.host=false;mpLobbyBroadcast();toast('A player left',1500);}}
@@ -2098,7 +2182,7 @@ function mpLobbyBroadcast(){mpBroadcast(mpLobbyState());if(net.role==='host')ren
 function mpHostData(pid,d){const c=net.conns.get(pid);if(c)c.lastRx=performance.now();if(!d||typeof d!=='object')return;
   net.bytesIn+=JSON.stringify(d).length;
   if(d.t==='hello'){mpSendTo(c&&c.conn,mpLobbyState());return;}
-  if(d.t==='ready'){const sl=net.slots.find(s=>s.pid===pid);if(sl&&!net.inMatch){sl.ready=!!d.v;mpLobbyBroadcast();}return;}
+  if(d.t==='ready'){const sl=net.slots.find(s=>s.pid===pid);if(sl&&!net.inMatch){sl.ready=!!d.v;mpLobbyBroadcast();if(RK.mp&&sl.ready)setTimeout(()=>{if(RK.mp&&!net.inMatch)mpStart();},300);}return;}
   if(d.t==='pick'){if(slotPick(pid,d.f|0))mpLobbyBroadcast();return;}
   if(d.t==='team'){const sl=net.slots.find(s=>s.pid===pid);if(sl&&!net.inMatch&&net.teams){sl.team=((d.v|0)%net.teams+net.teams)%net.teams;mpLobbyBroadcast();}return;}
   if(d.t==='cmd'&&net.inMatch){const sl=net.slots.find(s=>s.pid===pid&&s.kind==='human');if(!sl)return;const f=sl.f;
@@ -2114,7 +2198,7 @@ function mpHostData(pid,d){const c=net.conns.get(pid);if(c)c.lastRx=performance.
 function mpClientData(d){net.lastRx=performance.now();
   if(d instanceof ArrayBuffer||ArrayBuffer.isView(d)){net.bytesIn+=d.byteLength;if(net.inMatch)mpApplySnap(d);return;}
   if(!d||typeof d!=='object')return;net.bytesIn+=JSON.stringify(d).length;
-  if(d.t==='lobby'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;net.code=d.code;if(d.rnd)net.rnd=d.rnd;net.teams=d.teams|0;if(!net.inMatch){const me=net.slots.find(s=>s.pid===net.myId);net.ready=!!(me&&me.ready);showLobby();}}
+  if(d.t==='lobby'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;net.code=d.code;if(d.rnd)net.rnd=d.rnd;net.teams=d.teams|0;if(!net.inMatch){const me=net.slots.find(s=>s.pid===net.myId);net.ready=!!(me&&me.ready);if(RK.mp){if(!net.ready){net.ready=true;mpToHost({t:'ready',v:true});}}else showLobby();}}
   else if(d.t==='deny'){mpReset();show('sMp');mpStatus(d.m,true);}
   else if(d.t==='start'){net.slots=d.slots;net.map=d.map;net.diff=d.diff;if(d.rnd)net.rnd=d.rnd;net.teams=d.teams|0;mpStartMatch(d.perm);}
   else if(d.t==='tolobby'){FLIP=false;net.inMatch=false;state='title';$('hud').classList.add('hidden');startLevel(0,true);net.ready=false;showLobby();}
@@ -2122,7 +2206,8 @@ function mpClientData(d){net.lastRx=performance.now();
   else if(d.t==='msg')toast(d.m,3000);}
 function mpHostLost(){if(!net.on||net.role!=='client')return;const wasMatch=net.inMatch;mpReset();
   if(wasMatch){state='end';$('endT').textContent='HOST LEFT';$('endT').className='lose';$('endS').innerHTML='The host closed the match or lost connection.';
-    $('bNext').classList.add('hidden');$('bRetry').classList.add('hidden');$('bMenu2').textContent='Menu';$('endStreak').textContent='';show('sEnd');renderEnd(true);}
+    $('bNext').classList.add('hidden');$('bRetry').classList.add('hidden');$('bMenu2').textContent='Menu';$('endStreak').textContent='';show('sEnd');renderEnd(true);
+    if(RK.mp){$('endT').textContent='VICTORY';$('endT').className='win';$('endS').innerHTML='Your opponent left the ranked match.';rkMpEnd(true);}}
   else{toMenuQuiet();show('sMp');mpStatus('The host closed the room.',true);}}
 function toMenuQuiet(){state='title';$('hud').classList.add('hidden');refreshUI();startLevel(0,true);}
 function mpWatchdog(){const now=performance.now();
@@ -2179,7 +2264,8 @@ function mpStartMatch(perm){
   Object.assign(net,{histSent:false,histMask:undefined,inMatch:true,winner:-2,endShown:false,elimShown:false,endMode:'',pend:[],seq:0,ack:[0,0,0,0,0,0],snapT:0});
   show(null);$('hud').classList.remove('hidden');state='play';$('intro').classList.remove('on');
   const li=net.map==='R'?99:net.map;startLevel(li,false,L);levelIdx=li;queueTips(L);{const h=planets.find(P=>P.owner===ME);FLIP=!!h&&h.y<MH/2;}hintStage=99;
-  $('lvlName').innerHTML=`${L.name}<b>Multiplayer · you are ${CNAME[ME]}${TEAMS_ON?' · Team '+teamName(ME):''}</b>`;
+  if(RK.mp){RK.done=false;RK.lastLine='';rkStopQueue(true);rkProvisional(RK.opp?RK.opp.r:1000,32);}
+  $('lvlName').innerHTML=RK.mp?`${L.name}<b>Ranked · vs ${esc(RK.opp?RK.opp.name:'player')} · you are ${CNAME[ME]}</b>`:`${L.name}<b>Multiplayer · you are ${CNAME[ME]}${TEAMS_ON?' · Team '+teamName(ME):''}</b>`;
   showIntro({name:L.name,T:L.T},L.T?7000:4200,net.slots.filter(s=>s.kind!=='empty').map((s,i)=>({f:s.f,a:s.f===ME?'You':CNAME[s.f],b:(TEAMS_ON?'Team '+TNAME[s.team%3]+' · ':'')+(s.kind==='human'?(s.f===ME?'your color':'player'):'AI · '+PERS[s.f].name),c:s.kind==='ai'?PERS[s.f].blurb:''})));
 }
 function mpHostCheck(){let mask=0;const alive=[];
@@ -2194,7 +2280,7 @@ function mpHostCheck(){let mask=0;const alive=[];
 function mpCheckEnd(){
   if(net.winner!==-2&&!net.endShown){net.endShown=true;showMpEnd(net.winner>=0&&ally(net.winner,ME),true);}
   else if(net.winner===-2&&!(net.alive&(1<<ME))&&!net.elimShown){net.elimShown=true;showMpEnd(false,false);}}
-function showMpEnd(win,over){if(over&&!SK.rankedMp){bumpStat(win?'mpW':'mpL');achEnd({mode:'mp',win});}
+function showMpEnd(win,over){if(RK.mp&&over){setTimeout(()=>rkMpEnd(win),0);}else if(over){bumpStat(win?'mpW':'mpL');achEnd({mode:'mp',win});}
   const t=$('endT');net.endMode=over?'over':'elim';
   if(over)state='end';
   t.textContent=win?'VICTORY':'DEFEAT';t.className=win?'win':'lose';(win?sfx.win:sfx.lose)();
@@ -2354,7 +2440,7 @@ function frame(now){
   render();updateSelUI();tipTickUI(now);
 }
 window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
-if(location.hash==='#debug')window.__lumen={ach:()=>Object.keys(save.ach||{}),achEnd:o=>achEnd(o),achOpen:()=>achOpen(),bump:(k,v)=>{save.stats[k]=v;return achSweep().map(a=>a.id);},setTime:t=>{time=t;},daily:k=>{dailyOverride=k||null;return dailyDef(dailyKey());},dailyPlay:()=>dailyPlay(),dailyOpen:()=>dailyOpen(),dStreak:()=>dailyStreak(),saveObj:()=>JSON.parse(JSON.stringify(save)),stuck:()=>{let n=0,w=0;for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>w){w=time-ut[i];}for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>90)n++;return{n,w:Math.round(w)};},gq:()=>GQ+'/'+(save.gfx||'auto'),setGfx:v=>{save.gfx=v;gqReset();return GQ;},mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
+if(location.hash==='#debug')window.__lumen={rk:()=>({phase:RK.phase,me:RK.me,mp:RK.mp,opp:RK.opp,base:RK.base,done:RK.done}),rkWait:v=>{},tier:r=>tierOf(r)[0],rkAi:r=>rkAiFor(r),ach:()=>Object.keys(save.ach||{}),achEnd:o=>achEnd(o),achOpen:()=>achOpen(),bump:(k,v)=>{save.stats[k]=v;return achSweep().map(a=>a.id);},setTime:t=>{time=t;},daily:k=>{dailyOverride=k||null;return dailyDef(dailyKey());},dailyPlay:()=>dailyPlay(),dailyOpen:()=>dailyOpen(),dStreak:()=>dailyStreak(),saveObj:()=>JSON.parse(JSON.stringify(save)),stuck:()=>{let n=0,w=0;for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>w){w=time-ut[i];}for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>90)n++;return{n,w:Math.round(w)};},gq:()=>GQ+'/'+(save.gfx||'auto'),setGfx:v=>{save.gfx=v;gqReset();return GQ;},mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
     let lh=2166136261;try{const L=mpLevel(net.map);for(const q of L.planets)for(const v of q.slice(0,5)){h=h;lh^=Math.round((+v||0)*10);lh=Math.imul(lh,16777619);}}catch(e){}
     return{slots:net.slots.map(s=>({f:s.f,kind:s.kind,me:s.pid===net.myId,host:!!s.host,team:s.team})),teams:net.teams,rnd:net.rnd,map:net.map,TEAM:TEAM.slice(),TEAMS_ON,hash:h>>>0,lobbyHash:lh>>>0,NP,ME,winner:net.winner,endShown:net.endShown,endT:document.getElementById('endT').textContent};},
   slotTest:(n)=>{const keep=net.slots;const hits={};for(let k=0;k<n;k++){net.slots=[0,1,2,3,4,5].map(f=>({f,kind:f===2?'human':'ai'}));const fr=freeSlots();const sl=rndPick(fr);hits[sl.f]=(hits[sl.f]||0)+1;}net.slots=keep;return hits;},
@@ -2481,7 +2567,7 @@ const CLOUD=(()=>{
     // lazy: restore an existing session shortly after start, never blocking the game; failures (offline) are silent
     setTimeout(()=>{if(navigator.onLine!==false||MOCK)load().catch(()=>{});},MOCK?50:300);}
   // generic Firestore helpers for daily leaderboards / ratings / matchmaking; every call may fail (offline, rules not deployed)
-  const x={TS:'__TS__',signedIn:()=>!!user,loaded:()=>!!fb,can:()=>!!(user&&fb&&fb.dset),uid:()=>user&&user.uid,name:()=>String(user&&(user.displayName||(user.email||'').split('@')[0])||'Player').slice(0,40),
+  const x={TS:'__TS__',signedIn:()=>!!user,loaded:()=>!!fb,can:()=>!!(user&&fb&&fb.dset),canRead:()=>!!(fb&&fb.dlist),uid:()=>user&&user.uid,name:()=>String(user&&(user.displayName||(user.email||'').split('@')[0])||'Player').slice(0,40),
     get:p=>fb.dget(p),set:(p,d)=>fb.dset(p,d),del:p=>fb.ddel(p),list:(c,f,d,n)=>fb.dlist(c,f,d,n),watch:(p,cb)=>fb.dwatch(p,cb),
     why:e=>{const c=String(e&&(e.code||e.message)||e);return /permission/i.test(c)?'Online features are not enabled yet (the Firestore rules need updating).':/unavailable|offline|network/i.test(c)?'Offline: leaderboard unavailable right now.':'Online error: '+c;}};
   return {x,merge,touch,flush:()=>{if(user&&ready)push();},init,info:()=>({cfg:!!CFG,user:user&&user.uid,ready,st,dirty:isDirty(),loaded:!!fb})};
