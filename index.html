@@ -97,7 +97,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 .slot .tchip{flex:none;min-width:26px;height:26px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font:800 12px system-ui,sans-serif;border:1.5px solid currentColor;background:rgba(6,12,24,.6);padding:0 6px;cursor:pointer}
 .seg.sm button{height:32px;font-size:13px}#rndOpts{margin-top:6px}#rndOpts select{width:100%;height:38px;border-radius:19px;background:rgba(10,25,45,.7);color:#fff;border:1px solid rgba(120,220,255,.35);padding:0 12px;font:600 14px system-ui,sans-serif;margin-top:6px}
 #rnSeed{flex:1;height:38px;border-radius:19px;background:rgba(10,25,45,.7);color:#fff;border:1px solid rgba(120,220,255,.35);padding:0 14px;font:600 15px system-ui,sans-serif;min-width:0}
-#sLobby .panel{max-height:calc(100vh - 24px);overflow-y:auto}
+
 #intro .idea{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,220,130,.25);color:#ffe2a0;font-size:13px;line-height:1.4}
 #lvlGrid button.feat{box-shadow:inset 0 0 0 1px rgba(255,200,110,.55)}
 #lvlGrid button.feat::after{content:'✦';position:absolute;top:2px;right:5px;font-size:9px;color:#ffd27a}
@@ -142,6 +142,59 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
 #tip.on{opacity:1}#tip b{color:#ffd98a;letter-spacing:.08em;font-weight:700}
 @media (max-width:359px){#hud .pill{min-width:58px;padding:0 9px;font-size:14px}.selpill{max-width:calc(100vw - 146px);padding-left:10px;font-size:13px;gap:4px}#bJoin{flex:none;padding:0 16px}}
 @media (max-height:500px){.logo{font-size:38px}.tag{margin-bottom:10px}.big{height:46px}.panel{padding:14px}}
+/* ---- layout cleanup (v15): fluid sizing, tidy grids, 40px+ targets, two-column wide/landscape panels ---- */
+.panel{padding:clamp(14px,4vw,22px) clamp(14px,4.5vw,20px)}
+.big{height:clamp(46px,7vh,54px);font-size:clamp(15px,4.6vw,19px);letter-spacing:clamp(.06em,.6vw,.12em);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 12px;margin:8px 0}
+h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-right:-.12em;white-space:nowrap}
+.logo{font-size:clamp(40px,14vw,56px)}
+.tag{margin-bottom:clamp(10px,2.4vh,20px)}
+.lbl{margin:10px 0 6px}
+.ghost{min-height:42px;height:auto;padding:4px 10px;font-size:clamp(12.5px,3.6vw,14px);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row{gap:8px;margin-top:10px}
+.seg{margin:6px 0 10px}.seg button{height:40px}
+#sSkirm .seg{margin:4px 0 8px}#sSkirm .seg button{height:40px}
+.seg.sm button,#rndOpts select,#rnSeed{height:40px}
+.chips{gap:6px;margin:4px 0 8px}.chips button{height:40px;padding:0 12px}
+#skTer,#mapSel{height:42px;margin-bottom:6px}
+.slot button{height:36px;min-width:64px}.slot .tchip{min-width:32px;height:32px;border-radius:16px}
+#acct{flex-wrap:wrap}#acct button{min-height:40px;padding:6px 14px;border-radius:20px}
+#bJoin{flex:0 0 92px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.modes .big{margin:0;font-size:clamp(13px,3.9vw,16px)}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.tools .ghost{flex:none}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 2px}.duo .big{margin:0}
+.grid{gap:clamp(6px,2vw,9px);max-width:330px;margin:0 auto}
+#sPause .row .ghost{padding:4px 6px}
+.ach{margin:5px 0}
+.achl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));column-gap:8px}
+#sAch .panel,#sHow .panel,#sKeys .panel{max-width:560px}
+@media (min-width:700px) and (min-height:600px){.how{columns:2;column-gap:22px}.how li{break-inside:avoid}#sHow .panel{max-width:860px}#sAch .panel{max-width:600px}}
+/* two-column panels when the screen is wide but short (phone landscape, laptops) */
+@media (orientation:landscape) and (min-width:560px){
+ .panel.two{max-width:min(860px,100%);display:grid;grid-template-columns:1fr 1fr;column-gap:22px;align-items:start}
+ .panel.two>h2{grid-column:1/-1}
+ #sEnd .panel.two{max-width:min(760px,100%);align-items:center}
+ #sAch .panel{max-width:860px}
+ .how{columns:2;column-gap:22px}.how li{break-inside:avoid}#sHow .panel{max-width:900px}
+ .panel.tt{max-width:min(760px,100%);align-items:center}
+ .tt .cb .grid{max-width:300px}
+}
+@media (orientation:landscape) and (min-width:560px) and (min-height:900px){.panel.tt{display:block;max-width:420px}}
+@media (max-height:500px){.panel{padding:12px 14px;border-radius:20px}.big{height:44px;font-size:15px}h2{font-size:19px;margin-bottom:6px}.lbl{margin:6px 0 4px}
+ .seg button,#sSkirm .seg button,.seg.sm button,.chips button,#rndOpts select,#rnSeed,#skTer,#mapSel{height:40px}.seg{margin:4px 0 6px}
+ .tt .logo{font-size:40px}.tt .tag{margin-bottom:8px}.tt .modes .big{height:44px}
+ #gCv{height:128px}#endT{font-size:26px}#endS{line-height:1.4;margin:4px 0 6px;font-size:13px}#gInfo{min-height:2.6em;font-size:12px}.stats div{padding:5px 2px;font-size:15px}
+ .note{margin:4px 0;font-size:12.5px}.dmod{padding:10px 12px;margin:6px 0 8px}.rkc .tier{font-size:22px}
+ #sDaily .panel,#sRanked .panel,#sMp .panel{max-width:520px}
+ .keys td{padding:3px 4px}
+}
+.chips{display:grid;grid-template-columns:1fr 1fr}.chips button{padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}#achCos{display:flex}
+.duo .big{font-size:clamp(13px,3.9vw,17px);letter-spacing:.06em;padding:0 8px}
+@media (max-width:440px){.chips button{font-size:12px;padding:0 6px;letter-spacing:-.01em}}
+#skRnd,#bRnRoll{flex:0 0 auto!important;padding:4px 14px}
+@media (max-height:700px) and (orientation:portrait){#gCv{height:140px}#endS{line-height:1.4}.stats div{padding:4px 2px}}
+@media (max-height:500px){.tt .modes .big{font-size:13px;letter-spacing:.04em;padding:0 6px}.chips{display:flex}.chips button{overflow:visible}.big{margin:6px 0}h2{margin-bottom:4px}.row{margin-top:8px}.rkc .bar{margin:5px auto 2px}.tt .cb .grid{max-width:250px}.tt .seg{margin:8px 0 0}.tt .tools{margin-top:8px}}
+@media (max-width:359px){#sPause .row{flex-wrap:wrap}#bHow2{order:3;flex-basis:100%}.ghost{padding:4px 6px}.chips button{font-size:11.5px;padding:0 6px}
+.panel{padding:14px 12px}.ghost{font-size:12.5px}.modes .big{font-size:13px;letter-spacing:.04em}#sPause .row .ghost{font-size:12px}}
 </style>
 </head>
 <body>
@@ -163,21 +216,19 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
 <div id="intro"></div>
 
 <div id="sTitle" class="screen">
-  <div class="panel">
+  <div class="panel two tt">
+    <div class="ca">
     <div class="logo">LUMEN</div>
     <div class="tag">orbital conquest</div>
     <button id="bPlay" class="big">Play</button>
-    <button id="bSkirm" class="big alt">Skirmish</button>
-    <button id="bDaily" class="big alt">Daily challenge</button>
-    <button id="bMulti" class="big alt">Multiplayer</button>
-    <button id="bRanked" class="big alt">Ranked</button>
+    <div class="modes"><button id="bSkirm" class="big alt">Skirmish</button><button id="bDaily" class="big alt">Daily</button><button id="bMulti" class="big alt">Multiplayer</button><button id="bRanked" class="big alt">Ranked</button></div>
     <div class="seg" id="diffSeg"><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
+    </div><div class="cb">
     <div class="lbl">Sectors</div>
     <div id="lvlGrid" class="grid"></div>
-    <div class="row"><button id="bHow" class="ghost">How to play</button><button id="bSnd" class="ghost">Sound: On</button><button id="bGfx" class="ghost">Gfx: Auto</button></div>
-    <div class="row"><button id="bAch" class="ghost">🏆 Achievements</button></div>
-    <div class="row"><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
+    <div class="tools"><button id="bHow" class="ghost">How to play</button><button id="bAch" class="ghost">🏆 Achievements</button><button id="bSnd" class="ghost">Sound: On</button><button id="bGfx" class="ghost">Gfx: Auto</button><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
     <div id="acct" class="hidden"><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct">Sign in with Google</button><span id="acctSt"></span></div>
+    </div>
   </div>
 </div>
 
@@ -228,7 +279,8 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
 </div>
 
 <div id="sLobby" class="screen hidden">
-  <div class="panel">
+  <div class="panel two">
+    <div class="ca">
     <div class="lbl">Room code</div>
     <div id="roomCode" class="code">----</div>
     <div class="row"><button id="bShare" class="ghost">Share invite</button><button id="bCopy" class="ghost">Copy link</button></div>
@@ -244,22 +296,26 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div class="seg" id="mpDiff"><button data-d="easy">Easy</button><button data-d="normal">Normal</button><button data-d="hard">Hard</button></div>
     <div class="lbl">Mode</div>
     <div class="seg" id="mpMode"><button data-m="0">Free-for-all</button><button data-m="2">2 teams</button><button data-m="3">3 teams</button></div>
+    </div><div class="cb">
     <div class="lbl">Players</div>
     <div id="slotList"></div>
     <div class="row" id="slotTools" style="margin-top:4px"><button id="bShuffle" class="ghost">🔀 Shuffle colors</button><button id="bBal" class="ghost">⚖ Auto-balance</button></div>
     <button id="bReady" class="big">Ready</button>
     <div id="lobbyNote" class="note"></div>
     <div class="row"><button id="bLeave" class="ghost">Leave room</button></div>
+    </div>
   </div>
 </div>
 
 <div id="sSkirm" class="screen hidden">
-  <div class="panel">
+  <div class="panel two">
     <h2>Skirmish</h2>
+    <div class="ca">
     <div class="lbl">Map size</div><div class="seg" id="skSize"><button data-v="s">Small</button><button data-v="m">Medium</button><button data-v="l">Large</button></div>
     <div class="lbl">Rivals</div><div class="seg" id="skRiv"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div>
     <div class="lbl">Who you face</div><div class="chips" id="skPers"><button data-v="0">Random</button><button data-v="1"><i style="background:#ff5464"></i>Red · Aggressive</button><button data-v="2"><i style="background:#96ff5f"></i>Green · Defensive</button><button data-v="3"><i style="background:#cd73ff"></i>Violet · Balanced</button><button data-v="4"><i style="background:#ff9826"></i>Orange · Expansionist</button><button data-v="5"><i style="background:#ff80de"></i>Pink · Sniper</button></div>
     <div class="lbl">Teams</div><div class="seg" id="skTeams"><button data-v="off">Free-for-all</button><button data-v="on">You + AI allies</button></div>
+    </div><div class="cb">
     <div class="lbl">Difficulty</div><div class="seg" id="skDiff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button></div>
     <div class="lbl">Terrain</div><select id="skTer"><option value="none">None (classic)</option><option value="mix">Random features</option><option value="walls">Asteroid walls</option><option value="neb">Nebulae</option><option value="flares">Flares + slingshot lanes</option><option value="special">Special planets</option><option value="worm">Wormholes</option></select>
     <div class="lbl">Start</div><div class="seg" id="skStart"><button data-v="even">Even</button><button data-v="outn">Outnumbered</button></div>
@@ -267,8 +323,8 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
     <div id="skNote" class="note"></div>
     <div class="lbl">Seed (optional)</div>
     <div class="row" style="margin-top:0"><input id="skSeed" inputmode="numeric" maxlength="9" placeholder="random" autocomplete="off" spellcheck="false"><button id="skRnd" class="ghost" style="flex:0 0 96px">🎲 Random</button></div>
-    <button id="skGo" class="big">Start</button>
-    <button id="skQuick" class="big alt">Play random</button>
+    <div class="duo"><button id="skGo" class="big">Start</button><button id="skQuick" class="big alt">Play random</button></div>
+    </div>
     <div class="row"><button id="skBack" class="ghost">Back</button></div>
   </div>
 </div>
@@ -326,16 +382,19 @@ h2{font-weight:300;letter-spacing:.2em;text-transform:uppercase;font-size:24px;m
 </div>
 
 <div id="sEnd" class="screen hidden">
-  <div class="panel">
+  <div class="panel two">
+    <div class="ca">
     <div id="endT">VICTORY</div>
     <div id="endS"></div>
     <div id="endStreak"></div>
     <div class="seg sm" id="gTog"><button data-m="u" class="on">Units</button><button data-m="p">Planets</button></div>
     <canvas id="gCv" aria-label="Strength over time"></canvas>
     <div id="gInfo"></div>
+    </div><div class="cb">
     <div id="endStats" class="stats"></div>
     <button id="bNext" class="big">Next sector</button>
     <div class="row"><button id="bRetry" class="ghost">Retry</button><button id="bMenu2" class="ghost">Menu</button></div>
+    </div>
   </div>
 </div>
 

@@ -1,5 +1,5 @@
 /* LUMEN service worker: versioned precache, network-first page (updates on reload), runtime cache for the PeerJS CDN. */
-const VERSION = 'lumen-v14';
+const VERSION = 'lumen-v15';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const CDN = ['https://cdn.jsdelivr.net/npm/peerjs@', 'https://unpkg.com/peerjs@'];
 self.addEventListener('install', e => {
