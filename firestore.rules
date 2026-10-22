@@ -1,14 +1,47 @@
 rules_version = '2';
-// LUMEN cloud saves: one document per player at users/{uid}, owner-only.
+// LUMEN: cloud saves, daily leaderboards, ranked ratings + matchmaking queue.
+// All scores/ratings are client-reported (no server-side anti-cheat); these rules only bound them.
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // users/{uid}: one private save document per player
     match /users/{uid} {
-      allow read, delete: if request.auth != null && request.auth.uid == uid;
-      allow create, update: if request.auth != null && request.auth.uid == uid && validSave(request.resource.data);
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validSave(request.resource.data);
     }
+
+    // daily/{day}/scores/{uid}: public top-times board; one doc per player per UTC day; only an improved time may overwrite
+    match /daily/{day}/scores/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid) && day.matches('^[0-9]{8}$') && validScore(request.resource.data);
+      allow update: if isOwner(uid) && validScore(request.resource.data) && request.resource.data.time < resource.data.time;
+      allow delete: if false;
+    }
+
+    // ratings/{uid}: Elo rating, readable by signed-in players, writable only by its owner with bounded changes.
+    // A match = one write with n+1 and pend=true (provisional loss, so quitting counts as a loss),
+    // then at most one write with the same n and pend=false (the final result).
+    match /ratings/{uid} {
+      allow read: if signedIn();
+      allow create: if isOwner(uid) && ratingShape(request.resource.data)
+        && request.resource.data.r == 1000 && request.resource.data.n == 0 && request.resource.data.w == 0 && request.resource.data.pend == false;
+      allow update: if isOwner(uid) && ratingShape(request.resource.data) && ratingStep(resource.data, request.resource.data);
+      allow delete: if false;
+    }
+
+    // queue/{uid}: matchmaking tickets. Owner writes its own; anyone signed in may delete tickets older than 2 minutes.
+    match /queue/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid) && validTicket(request.resource.data);
+      allow delete: if isOwner(uid) || (signedIn() && resource.data.ts < request.time - duration.value(120, 's'));
+    }
+
     // everything else is closed
     match /{document=**} { allow read, write: if false; }
   }
+
   function validSave(d) {
     return d.keys().hasOnly(['v', 'save', 'updatedAt'])
       && d.v is int && d.v >= 1 && d.v <= 10
@@ -17,10 +50,41 @@ service cloud.firestore {
       && (!('unlocked' in d.save) || (d.save.unlocked is int && d.save.unlocked >= 1 && d.save.unlocked <= 200))
       && (!('best' in d.save)  || (d.save.best is map && d.save.best.size() <= 200))
       && (!('tips' in d.save)  || (d.save.tips is map && d.save.tips.size() <= 100))
-      && (!('stats' in d.save) || (d.save.stats is map && d.save.stats.size() <= 50))
+      && (!('stats' in d.save) || (d.save.stats is map && d.save.stats.size() <= 60))
       && (!('sk' in d.save)    || (d.save.sk is map && d.save.sk.size() <= 30))
       && (!('diff' in d.save)  || (d.save.diff is string && d.save.diff.size() <= 16))
       && (!('pct' in d.save)   || d.save.pct is number)
-      && (!('muted' in d.save) || d.save.muted is bool);
+      && (!('muted' in d.save) || d.save.muted is bool)
+      && (!('ach' in d.save)   || (d.save.ach is map && d.save.ach.size() <= 60))
+      && (!('daily' in d.save) || (d.save.daily is map && d.save.daily.size() <= 60))
+      && (!('cos' in d.save)   || (d.save.cos is string && d.save.cos.size() <= 16));
+  }
+  function validScore(d) {
+    return d.keys().hasOnly(['name', 'time', 'ts'])
+      && d.name is string && d.name.size() >= 1 && d.name.size() <= 40
+      && d.time is int && d.time >= 20 && d.time <= 7200
+      && d.ts == request.time;
+  }
+  function ratingShape(d) {
+    return d.keys().hasOnly(['r', 'n', 'w', 'name', 'peak', 'pend', 'ts'])
+      && d.r is int && d.r >= 100 && d.r <= 4000
+      && d.n is int && d.n >= 0 && d.w is int && d.w >= 0 && d.w <= d.n
+      && d.peak is int && d.peak <= 4000
+      && d.pend is bool
+      && d.name is string && d.name.size() <= 40
+      && d.ts == request.time;
+  }
+  function ratingStep(o, d) {
+    return d.r - o.r <= 64 && o.r - d.r <= 64
+      && ((d.n == o.n + 1 && d.pend == true && d.w == o.w && request.time > o.ts + duration.value(10, 's'))
+       || (d.n == o.n && o.pend == true && d.pend == false && (d.w == o.w || d.w == o.w + 1)));
+  }
+  function validTicket(d) {
+    return d.keys().hasOnly(['r', 'code', 'name', 'm', 'ts'])
+      && d.r is int && d.r >= 100 && d.r <= 4000
+      && d.code is string && d.code.size() == 4
+      && d.name is string && d.name.size() <= 40
+      && d.m is string && d.m.size() <= 128
+      && d.ts == request.time;
   }
 }
