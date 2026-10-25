@@ -168,13 +168,16 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
 #acct{flex-wrap:wrap}#acct button{min-height:40px;padding:6px 14px;border-radius:20px}
 #bJoin{flex:0 0 92px}
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.modes .big{margin:0;font-size:clamp(13px,3.9vw,16px)}
-.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.tools .ghost{flex:none}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.tools .ghost{flex:none}#bSettings{grid-column:1/-1}
+.settings-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}.settings-tools .ghost{flex:none;min-height:44px}
+@media (max-width:359px){.settings-tools{grid-template-columns:1fr}}
+#sSettings .panel{max-width:420px}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 2px}.duo .big{margin:0}
 .grid{gap:clamp(6px,2vw,9px);max-width:330px;margin:0 auto}
 #sPause .row .ghost{padding:4px 6px}
 .ach{margin:5px 0}
 .achl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));column-gap:8px}
-#sAch .panel,#sHow .panel,#sKeys .panel{max-width:560px}
+#sAch .panel,#sHow .panel,#sKeys .panel,#sSettings .panel{max-width:560px}
 @media (min-width:700px) and (min-height:600px){.how{columns:2;column-gap:22px}.how li{break-inside:avoid}#sHow .panel{max-width:860px}#sAch .panel{max-width:600px}}
 /* two-column panels when the screen is wide but short (phone landscape, laptops) */
 @media (orientation:landscape) and (min-width:560px){
@@ -245,7 +248,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
     </div><div class="cb">
     <div class="lbl">Sectors</div>
     <div id="lvlGrid" class="grid"></div>
-    <div class="tools"><button id="bHow" class="ghost">How to play</button><button id="bAch" class="ghost">🏆 Achievements</button><button id="bSnd" class="ghost">Sound: On</button><button id="bGfx" class="ghost">Gfx: Auto</button><button id="bPower" class="ghost">Power saver: Off</button><button id="bPen" class="ghost">Pencil only: Off</button><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
+    <div class="tools"><button id="bHow" class="ghost">How to play</button><button id="bAch" class="ghost">🏆 Achievements</button><button id="bSettings" class="ghost">Settings</button></div>
     <div id="acct" class="hidden"><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct">Sign in with Google</button><span id="acctSt"></span></div>
     </div>
   </div>
@@ -368,6 +371,20 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
     <div class="lbl">Cosmetic</div><div class="chips" id="achCos"></div>
     <div id="achList" class="achl"></div>
     <div class="row"><button id="achBack" class="ghost">Back</button></div>
+  </div>
+</div>
+
+<div id="sSettings" class="screen hidden">
+  <div class="panel">
+    <h2>Settings</h2>
+    <div class="settings-tools">
+      <button id="bSnd" class="ghost">Sound: On</button>
+      <button id="bGfx" class="ghost">Gfx: Auto</button>
+      <button id="bPower" class="ghost">Power saver: Off</button>
+      <button id="bPen" class="ghost">Pencil only: Off</button>
+      <button id="bInstall" class="ghost hidden">⤓ Install app</button>
+    </div>
+    <div class="row"><button id="setBack" class="ghost">Back</button></div>
   </div>
 </div>
 
@@ -1922,7 +1939,7 @@ function showIntro(L,ms,rows){const el=$('intro');
   if(L.T&&L.T.idea)el.innerHTML+=`<div class="idea">${L.T.idea}</div>`;
   el.classList.add('on');clearTimeout(introT);introT=setTimeout(()=>el.classList.remove('on'),ms||3500);}
 function toast(msg,ms){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2000);}
-function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall','sDaily','sAch','sRanked'].filter(s=>$(s)).forEach(s=>$(s).classList.toggle('hidden',s!==id));}
+function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall','sDaily','sAch','sSettings','sRanked'].filter(s=>$(s)).forEach(s=>$(s).classList.toggle('hidden',s!==id));}
 const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 function refreshUI(){
@@ -2117,6 +2134,7 @@ function achOpen(){achSweep();show('sAch');const n=ACH.filter(a=>achHas(a.id)).l
   const cs=$('achCos');cs.innerHTML='';for(const c of COS){const b=document.createElement('button');const ok=!c.a||achHas(c.a);b.textContent=(ok?'':'🔒 ')+c.n;b.disabled=!ok;b.classList.toggle('on',(save.cos||'')===c.id);
     b.onclick=()=>{save.cos=c.id;save.setT=Date.now();persist();achOpen();sfx.select();};cs.appendChild(b);}}
 $('bAch').onclick=()=>{ensureAudio();achOpen();};$('achBack').onclick=()=>show('sTitle');
+$('bSettings').onclick=()=>{ensureAudio();show('sSettings');};$('setBack').onclick=()=>show('sTitle');
 /* ---------------- ranked ---------------- */
 // Elo with tiers. Ratings live in ratings/{uid}; matchmaking queue in queue/{uid}. Client-reported (no anti-cheat): rules bound each change.
 const TIERS=[['Bronze',0,'#d08a55'],['Silver',1150,'#c9d6e6'],['Gold',1400,'#ffd36b'],['Platinum',1650,'#7fe8e0'],['Diamond',1900,'#8fb8ff']];
