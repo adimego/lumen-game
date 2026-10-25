@@ -1625,8 +1625,10 @@ const TAP_SLOP_TOUCH=10,TAP_SLOP_PEN=5,HOLD_MS=380,PALM_MS=300;
 function tapSlop(){return ptr.kind==='pen'?TAP_SLOP_PEN:TAP_SLOP_TOUCH;}
 /** Map Apple Pencil pressure (0–1) to Q/W/E/R send steps for the current aim gesture only. */
 function pressureToPct(p){p=+p||0;if(p<0.35)return 0.25;if(p<0.55)return 0.5;if(p<0.75)return 0.75;return 1;}
-/** Effective send %: pen aim-drag uses temporary pressure mapping; tap / finger / mouse use save.pct. */
+/** Effective send %: pen aim-drag uses temporary pressure mapping for that gesture only; tap / finger / mouse use save.pct.
+ *  gestPct must be cleared when the pointer ends — otherwise a light-pressure pen aim leaves sends stuck at 25% after the SEND button changes. */
 function gestPct(){return(ptr.kind==='pen'&&ptr.moved&&ptr.gestPct!=null)?ptr.gestPct:save.pct;}
+function clearGestPct(){ptr.gestPct=null;try{updateSelUI.k='';}catch(_){}}
 let penDown=false,penHover=false,penUntil=0;
 function palmBlock(){return penDown||penHover||performance.now()<penUntil;}
 function rejectTouch(e){return e.pointerType==='touch'&&(save.penOnly||palmBlock());}
@@ -1732,7 +1734,7 @@ function onMove(sx,sy){
     if(ptr.mode==='aim'){buzz(6);if(levelIdx===0&&hintStage<2)hintStage=2;}}
   if(ptr.moved&&ptr.mode==='lasso'){const l=ptr.path[ptr.path.length-1];if(Math.hypot(sx-l[0],sy-l[1])>4)ptr.path.push([sx,sy]);}
 }
-function cancelPtr(){clearTimeout(ptr.hold);clearTimeout(tipS.touchT);ptr.down=false;ptr.mode='';ptr.path.length=0;ptr.id=null;ptr.gestPct=null;if(ptr.kind==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}}
+function cancelPtr(){clearTimeout(ptr.hold);clearTimeout(tipS.touchT);ptr.down=false;ptr.mode='';ptr.path.length=0;ptr.id=null;clearGestPct();if(ptr.kind==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}}
 /* ---------------- in-flight fleets: select, redirect, park, recall ---------------- */
 function fleetValid(){for(const i of selF)if(!(us[i]===2||us[i]===4)||uo[i]!==ME)selF.delete(i);}
 function fleetLanes(){fleetValid();const m=new Map();for(const i of selF){const k=us[i]*1000+up[i];let L=m.get(k);if(!L){L={k:us[i]===2?'p':'s',id:up[i],n:0,cx:0,cy:0};m.set(k,L);}L.n++;L.cx+=ux[i];L.cy+=uy[i];}
@@ -1766,6 +1768,7 @@ function lassoPickF(){const poly=ptr.path.concat([[ptr.x,ptr.y]]);if(poly.length
 
 function onUp(sx,sy){
   if(!ptr.down)return;ptr.down=false;clearTimeout(ptr.hold);const mode=ptr.mode;ptr.mode='';
+  try{
   if(state!=='play'){ptr.path.length=0;return;}
   ptr.x=sx;ptr.y=sy;
   if(mode==='held')return;
@@ -1800,6 +1803,7 @@ function onUp(sx,sy){
     return;}
   if(mode==='lasso'){const picked=lassoPick(),pS=lassoPickS();let added=lassoPickF();ptr.path.length=0;for(const p of picked)if(!sel.has(p)){sel.add(p);added++;}for(const q of pS)if(!selS.has(q)){selS.add(q);added++;}
     if(added){sfx.select();buzz(12);}}
+  }finally{clearGestPct();}
 }
 function doSend(f,src,t,pct,fx){let total=0;const T=planets[t];
   for(const p of src){if(p===t||!planets[p]||planets[p].owner!==f)continue;const c=cnt[p*NF+f];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
@@ -1872,7 +1876,7 @@ function hoverPlanet(){if(!hov.on)return -1;return planetAt(hov.x,hov.y);}
 function keysOpen(){return !$('sKeys').classList.contains('hidden');}
 function showKeys(on){$('sKeys').classList.toggle('hidden',!on);}
 $('bKeysOk').onclick=()=>showKeys(false);
-function setPct(v){save.pct=v;persist();refreshUI();toast('Send '+Math.round(v*100)+'%',900);}
+function setPct(v){clearGestPct();save.pct=v;persist();refreshUI();toast('Send '+Math.round(v*100)+'%',900);}
 function kbShowHow(){$('howKeys').classList.remove('hidden');}
 try{if(matchMedia('(any-pointer: fine)').matches)kbShowHow();}catch(_){}
 window.addEventListener('keydown',e=>{
@@ -2025,7 +2029,7 @@ $('bRestart').onclick=()=>{if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(S
 $('bMenu').onclick=()=>{if(net.on)mpLeave();else toMenu();};$('bMenu2').onclick=()=>{if(net.on)mpLeave();else toMenu();};
 $('bRetry').onclick=()=>{if(net.inMatch){if(net.endMode==='elim')show(null);else if(net.role==='host')mpToLobby();return;}if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(MODE==='skirm'){startSkirm(SK.cfg,SK.seed,false);return;}play(levelIdx);};
 $('bNext').onclick=()=>{if($('bNext').textContent==='Ranked'){if(net.on)mpReset();rankedOpen();return;}if(net.inMatch){if(net.role==='host')mpStart();return;}if(SK.daily&&MODE==='skirm'){dailyOpen();return;}if(SK.ranked&&MODE==='skirm'){rankedOpen();return;}if(MODE==='skirm'){skNext();return;}play(Math.min(LEVELS-1,levelIdx+1));};
-bindHud($('bPct'),()=>{save.pct=PCTS[(PCTS.indexOf(save.pct)+1)%PCTS.length];persist();refreshUI();sfx.select();});
+bindHud($('bPct'),()=>{clearGestPct();save.pct=PCTS[(PCTS.indexOf(save.pct)+1)%PCTS.length];persist();refreshUI();sfx.select();});
 bindHud($('bAll'),()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===ME).map(P=>P.id);const ms=[];for(let q=0;q<MAXS;q++)if(SWA[q]&&SWO[q]===ME)ms.push(q);
   const mf=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)mf.push(i);
   if(mine.length+ms.length+mf.length&&mine.every(p=>sel.has(p))&&ms.every(q=>selS.has(q))&&mf.every(i=>selF.has(i))){clearSel();sfx.deselect();}else{clearSel();mine.forEach(p=>sel.add(p));ms.forEach(q=>selS.add(q));mf.forEach(i=>selF.add(i));sfx.select();buzz(10);}});
