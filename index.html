@@ -32,7 +32,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;tou
 #hud{position:fixed;inset:0;pointer-events:none;z-index:5}
 #hud .top{position:absolute;left:0;right:0;top:calc(var(--sat) + 8px);display:flex;align-items:center;justify-content:space-between;padding:0 calc(var(--sar) + 10px) 0 calc(var(--sal) + 10px)}
 #hud .bot{position:absolute;left:0;right:0;bottom:calc(var(--sab) + 12px);display:flex;align-items:center;justify-content:space-between;padding:0 calc(var(--sar) + 12px) 0 calc(var(--sal) + 12px)}
-#hud button{pointer-events:auto}
+#hud button{pointer-events:auto;touch-action:manipulation}#hud button small{pointer-events:none}
 
 html.lo .panel,html.lo .ic,html.lo .pill,html.lo #toast,html.lo #intro,html.lo #tip{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 html.lo .panel{background:linear-gradient(165deg,rgba(14,26,48,.94),rgba(6,10,24,.96) 45%,rgba(8,8,22,.96))}
@@ -1630,6 +1630,13 @@ function gestPct(){return(ptr.kind==='pen'&&ptr.moved&&ptr.gestPct!=null)?ptr.ge
 let penDown=false,penHover=false,penUntil=0;
 function palmBlock(){return penDown||penHover||performance.now()<penUntil;}
 function rejectTouch(e){return e.pointerType==='touch'&&(save.penOnly||palmBlock());}
+/* Pencil/WebKit can retarget HUD taps onto the full-screen canvas (sticky hover). If the
+   visual top element is a HUD control, don't start a map gesture — forward on pointerup. */
+let hudPtr=null;
+function hudHit(x,y){const el=document.elementFromPoint(x,y);if(!el||el===cv||cv.contains(el))return null;return el.closest('#hud button,.selpill button');}
+function hudForwardUp(e){if(!hudPtr||e.pointerId!==hudPtr.id)return false;const H=hudPtr;hudPtr=null;if(Math.hypot(e.clientX-H.x,e.clientY-H.y)<28){try{H.el.click();}catch(_){}}return true;}
+/** Pen: activate on pointerup (Safari/iPad often skips click for Pencil). Latch so a following click does not double-fire. Mouse/touch still use click. */
+function bindHud(el,fn){if(!el)return;let pid=null,x0=0,y0=0,armed=0;el.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&(e.button===0||e.button===-1)){pid=e.pointerId;x0=e.clientX;y0=e.clientY;}});el.addEventListener('pointerup',e=>{if(e.pointerType!=='pen'||e.pointerId!==pid)return;pid=null;if(Math.hypot(e.clientX-x0,e.clientY-y0)<28){armed=performance.now();fn(e);}});el.onclick=e=>{if(performance.now()-armed<80)return;fn(e);};}
 /* special-planet tooltips: mouse hover 300 ms, touch hold (never consumes the gesture), brief first-time hint */
 const TIPTXT={F:['FORTRESS','triple shield, slow production'],X:['FACTORY','fast production, holds few units'],C:['CORE','+10% production on all your planets'],W:['WORMHOLE','own both gates: fleets jump instantly']};
 const tipS={p:-1,until:0,src:'',hovP:-1,hovT:0,touchT:0};
@@ -1820,7 +1827,7 @@ function updateSelUI(){
     $('selTxt').textContent=parts.join(' + ')+(np||ns?` · ${Math.round(showPct*100)}%`+(innerWidth<385?'':' · tap target'):'');}else pill.classList.add('off');
 }
 if(window.PointerEvent){
-  cv.addEventListener('pointerdown',e=>{e.preventDefault();if(e.pointerType==='mouse'&&e.button===2){if(!ptr.down)rightClick(e.clientX,e.clientY);return;}if(ptr.down)return;if(e.pointerType==='mouse'&&e.button!==0)return;
+  cv.addEventListener('pointerdown',e=>{const hit=hudHit(e.clientX,e.clientY);if(hit){hudPtr={id:e.pointerId,el:hit,x:e.clientX,y:e.clientY};return;}e.preventDefault();if(e.pointerType==='mouse'&&e.button===2){if(!ptr.down)rightClick(e.clientX,e.clientY);return;}if(ptr.down)return;if(e.pointerType==='mouse'&&e.button!==0)return;
     if(rejectTouch(e))return;
     const kind=e.pointerType==='pen'?'pen':(e.pointerType==='touch'?'touch':'mouse');
     ptr.id=e.pointerId;ptr.kind=kind;ptr.touch=kind==='touch';ptr.pressure=+e.pressure||0;ptr.gestPct=null;
@@ -1832,11 +1839,12 @@ if(window.PointerEvent){
     if(ptr.kind==='pen'){ptr.pressure=+e.pressure||0;if(ptr.mode==='aim'){ptr.gestPct=pressureToPct(ptr.pressure);updateSelUI.k='';}}
     onMove(e.clientX,e.clientY);e.preventDefault();});
   cv.addEventListener('pointerup',e=>{
+    if(hudForwardUp(e))return;
     if(e.pointerType==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}
     if(e.pointerId!==ptr.id)return;
     if(ptr.kind==='pen'&&e.pressure!=null){ptr.pressure=+e.pressure||ptr.pressure;if(ptr.mode==='aim'&&ptr.moved)ptr.gestPct=pressureToPct(ptr.pressure);}
     onUp(e.clientX,e.clientY);ptr.id=null;e.preventDefault();});
-  cv.addEventListener('pointercancel',e=>{if(e.pointerType==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}if(e.pointerId!==ptr.id)return;cancelPtr();});
+  cv.addEventListener('pointercancel',e=>{if(hudPtr&&e.pointerId===hudPtr.id)hudPtr=null;if(e.pointerType==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}if(e.pointerId!==ptr.id)return;cancelPtr();});
   cv.addEventListener('pointerout',e=>{if(e.pointerType==='pen'&&e.pointerId!==ptr.id){penHover=false;}});
 }else{
   cv.addEventListener('touchstart',e=>{e.preventDefault();if(ptr.down)return;if(save.penOnly)return;const t=e.changedTouches[0];ptr.id=t.identifier;ptr.kind='touch';ptr.touch=true;ptr.gestPct=null;onDown(t.clientX,t.clientY);},{passive:false});
@@ -1847,8 +1855,8 @@ if(window.PointerEvent){
   window.addEventListener('mousemove',e=>{if(ptr.id==='m')onMove(e.clientX,e.clientY);});
   window.addEventListener('mouseup',e=>{if(ptr.id==='m'){onUp(e.clientX,e.clientY);ptr.id=null;}});
 }
-$('bClr').onclick=()=>{clearSel();sfx.deselect();buzz(5);};
-$('bRecall').onclick=()=>{if(state!=='play')return;fleetAct('home');clearSel();};
+bindHud($('bClr'),()=>{clearSel();sfx.deselect();buzz(5);});
+bindHud($('bRecall'),()=>{if(state!=='play')return;fleetAct('home');clearSel();});
 document.addEventListener('touchmove',e=>{if(!e.target.closest||!e.target.closest('.panel'))e.preventDefault();},{passive:false});
 ['gesturestart','gesturechange','gestureend'].forEach(n=>document.addEventListener(n,e=>e.preventDefault()));
 document.addEventListener('dblclick',e=>e.preventDefault());
@@ -2009,18 +2017,18 @@ $('bGfx').onclick=()=>{const o=['auto','high','low'];save.gfx=o[(o.indexOf(save.
 $('bPower').onclick=()=>{save.power=!save.power;gqReset();persist();refreshUI();resize();toast(save.power?'Power saver on: lower resolution, fewer effects, slower menus — gameplay pace unchanged':'Power saver off',2200);sfx.select();};
 $('bPen').onclick=()=>{save.penOnly=!save.penOnly;persist();refreshUI();toast(save.penOnly?'Pencil only: canvas ignores finger (menus still work) — for iPad + Pencil':'Pencil only off: finger and Pencil both work',2200);sfx.select();};
 $('bSnd').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio();};
-$('bMute').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio();};
+bindHud($('bMute'),()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio();});
 $('bKeysOk').onclick=()=>showKeys(false);
-$('bPause').onclick=()=>pause();
+bindHud($('bPause'),()=>pause());
 $('bResume').onclick=()=>resume();
 $('bRestart').onclick=()=>{if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(SK.ranked&&MODE==='skirm'){toMenu();return;}if(MODE==='skirm')startSkirm(SK.cfg,SK.seed,true);else play(levelIdx);};
 $('bMenu').onclick=()=>{if(net.on)mpLeave();else toMenu();};$('bMenu2').onclick=()=>{if(net.on)mpLeave();else toMenu();};
 $('bRetry').onclick=()=>{if(net.inMatch){if(net.endMode==='elim')show(null);else if(net.role==='host')mpToLobby();return;}if(SK.daily&&MODE==='skirm'){dailyPlay();return;}if(MODE==='skirm'){startSkirm(SK.cfg,SK.seed,false);return;}play(levelIdx);};
 $('bNext').onclick=()=>{if($('bNext').textContent==='Ranked'){if(net.on)mpReset();rankedOpen();return;}if(net.inMatch){if(net.role==='host')mpStart();return;}if(SK.daily&&MODE==='skirm'){dailyOpen();return;}if(SK.ranked&&MODE==='skirm'){rankedOpen();return;}if(MODE==='skirm'){skNext();return;}play(Math.min(LEVELS-1,levelIdx+1));};
-$('bPct').onclick=()=>{save.pct=PCTS[(PCTS.indexOf(save.pct)+1)%PCTS.length];persist();refreshUI();sfx.select();};
-$('bAll').onclick=()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===ME).map(P=>P.id);const ms=[];for(let q=0;q<MAXS;q++)if(SWA[q]&&SWO[q]===ME)ms.push(q);
+bindHud($('bPct'),()=>{save.pct=PCTS[(PCTS.indexOf(save.pct)+1)%PCTS.length];persist();refreshUI();sfx.select();});
+bindHud($('bAll'),()=>{if(state!=='play')return;const mine=planets.filter(P=>P.owner===ME).map(P=>P.id);const ms=[];for(let q=0;q<MAXS;q++)if(SWA[q]&&SWO[q]===ME)ms.push(q);
   const mf=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)mf.push(i);
-  if(mine.length+ms.length+mf.length&&mine.every(p=>sel.has(p))&&ms.every(q=>selS.has(q))&&mf.every(i=>selF.has(i))){clearSel();sfx.deselect();}else{clearSel();mine.forEach(p=>sel.add(p));ms.forEach(q=>selS.add(q));mf.forEach(i=>selF.add(i));sfx.select();buzz(10);}};
+  if(mine.length+ms.length+mf.length&&mine.every(p=>sel.has(p))&&ms.every(q=>selS.has(q))&&mf.every(i=>selF.has(i))){clearSel();sfx.deselect();}else{clearSel();mine.forEach(p=>sel.add(p));ms.forEach(q=>selS.add(q));mf.forEach(i=>selF.add(i));sfx.select();buzz(10);}});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){if(!net.inMatch)pause();stopLoop();startMpKeep();}
   else{stopMpKeep();last=performance.now();frameAcc=0;startLoop();}
