@@ -237,7 +237,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
     </div><div class="cb">
     <div class="lbl">Sectors</div>
     <div id="lvlGrid" class="grid"></div>
-    <div class="tools"><button id="bHow" class="ghost">How to play</button><button id="bAch" class="ghost">🏆 Achievements</button><button id="bSnd" class="ghost">Sound: On</button><button id="bGfx" class="ghost">Gfx: Auto</button><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
+    <div class="tools"><button id="bHow" class="ghost">How to play</button><button id="bAch" class="ghost">🏆 Achievements</button><button id="bSnd" class="ghost">Sound: On</button><button id="bGfx" class="ghost">Gfx: Auto</button><button id="bPen" class="ghost">Pencil only: Off</button><button id="bInstall" class="ghost hidden">⤓ Install app</button></div>
     <div id="acct" class="hidden"><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct">Sign in with Google</button><span id="acctSt"></span></div>
     </div>
   </div>
@@ -264,6 +264,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
       <li><span class="i">▲</span>With one planet selected, tap <b>Upgrade</b> to spend its orbiting units on a level-up (max 3).</li>
       <li><span class="i">◆</span><b>Rivals mass before they strike:</b> a swarm gathering in open space near your planet means an attack is coming from that side. Reinforce it, or hit the swarm first. <b style="color:#ff6a78">Red</b> attacks often and follows up, picking on the weakest. <b style="color:#9dff6a">Green</b> turtles and punishes attackers who just lost a fight. <b style="color:#d48bff">Violet</b> feints, threatening one planet and hitting another. <b style="color:#ff9826">Orange</b> grabs neutrals two at a time. <b style="color:#ff80de">Pink</b> masses out of sight to snipe cores, factories and drained planets, and backs off if spotted.</li>
       <li><span class="i">%</span>The % button sets how much each planet sends. Destroy every rival planet and unit to win.</li>
+      <li><span class="i">✎</span><b>Apple Pencil:</b> hover a special planet for its tooltip · while dragging to aim, <b>pressure</b> sets the send % for that send only (light 25% → firm 100%) · turn on <b>Pencil only</b> in settings for palm rejection on iPad.</li>
       <li><span class="i">↩</span><b>Change your mind:</b> tap one of your moving fleets (or draw a loop around part of it) to select it, then tap another planet to redirect it, or empty space to park it there. <b>↩ Recall</b> sends it back to your nearest planet.</li>
       <li><span class="i">◎</span><b>ALL</b> (or <kbd>A</kbd>) selects every planet, swarm and moving fleet you own; the next tap sends from planets at your send % and redirects all fleets.</li>
       <li><span class="i">?</span><b>Hold</b> a special planet (or hover it with a mouse) to see what it does.</li>
@@ -467,17 +468,17 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 
 /* ---------------- save ---------------- */
 const SKEY='lumen_save_v1';
-const save={unlocked:1,diff:'normal',muted:false,pct:0.5,best:{},howSeen:false};
+const save={unlocked:1,diff:'normal',muted:false,pct:0.5,penOnly:false,best:{},howSeen:false};
 try{const s=JSON.parse(localStorage.getItem(SKEY)||'null');if(s&&typeof s==='object')Object.assign(save,s);}catch(e){}
 if(!DIFF[save.diff])save.diff='normal';
 const PCTS=[0.25,0.5,0.75,1];if(PCTS.indexOf(save.pct)<0)save.pct=0.5;
 if(!save.stats||typeof save.stats!=='object')save.stats={};
 // sanitize a corrupt/foreign save so menus and level grid never break
-{const ob=v=>v&&typeof v==='object'&&!Array.isArray(v);save.unlocked=Math.max(1,Math.min(16,Math.floor(+save.unlocked)||1));if(!['easy','normal','hard'].includes(save.diff))save.diff='normal';save.muted=save.muted===true;save.howSeen=!!save.howSeen;
+{const ob=v=>v&&typeof v==='object'&&!Array.isArray(v);save.unlocked=Math.max(1,Math.min(16,Math.floor(+save.unlocked)||1));if(!['easy','normal','hard'].includes(save.diff))save.diff='normal';save.muted=save.muted===true;save.penOnly=save.penOnly===true;save.howSeen=!!save.howSeen;
   if(!ob(save.best))save.best={};for(const k in save.best)if(!(+save.best[k]>0))delete save.best[k];if(!ob(save.tips))save.tips={};if(save.daily!=null&&!ob(save.daily))save.daily={};if(save.ach!=null&&!ob(save.ach))save.ach={};if(typeof save.cos!=='string')save.cos='';if(save.sk!=null&&!ob(save.sk))delete save.sk;
   if(!['auto','high','low',undefined].includes(save.gfx))save.gfx='auto';if(save.skBest!=null&&!(+save.skBest>=0))save.skBest=0;}
 let cloudH=null;
-const setFp=()=>JSON.stringify([save.diff,save.muted,save.pct,save.sk||null]);let lastSetFp=setFp();
+const setFp=()=>JSON.stringify([save.diff,save.muted,save.pct,!!save.penOnly,save.sk||null]);let lastSetFp=setFp();
 function persist(){const f=setFp();if(f!==lastSetFp){lastSetFp=f;save.setT=Date.now();}
   try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}if(cloudH)cloudH.touch();}
 function bumpStat(k){save.stats[k]=(save.stats[k]|0)+1;}
@@ -1280,7 +1281,9 @@ function pickAt(sx,sy){const p=planetAt(sx,sy),q=swarmAt(sx,sy);if(p<0&&q<0)retu
   const P=planets[p];const dp=Math.hypot(SX(P.x,P.y)-sx,SY(P.x,P.y)-sy)-P.r*S,dq=Math.hypot(SX(SWX[q],SWY[q])-sx,SY(SWX[q],SWY[q])-sy)-swR(q)*S;return dq<dp?{k:'s',i:q}:{k:'p',i:p};}
 function planetAt(sx,sy){
   let best=-1,bd=1e9;
-  for(let i=0;i<NP;i++){const P=planets[i];const d=Math.hypot(SX(P.x,P.y)-sx,SY(P.x,P.y)-sy);const r=P.r*S;const hr=Math.max(44,r+16);
+  const pen=(ptr&&ptr.kind==='pen')||(hov&&hov.kind==='pen');
+  const pad=pen?10:16,minR=pen?36:44;
+  for(let i=0;i<NP;i++){const P=planets[i];const d=Math.hypot(SX(P.x,P.y)-sx,SY(P.x,P.y)-sy);const r=P.r*S;const hr=Math.max(minR,r+pad);
     if(d<hr&&d-r<bd){bd=d-r;best=i;}}
   return best;
 }
@@ -1376,7 +1379,7 @@ function render(){
     const line=(wx,wy,r0,R,warp)=>{const x0=SX(wx,wy),y0=SY(wx,wy);const pts=[[x0,y0]];if(R)for(let k=0;k<R.length;k+=2)pts.push([SX(R[k],R[k+1]),SY(R[k],R[k+1])]);pts.push([ex,ey]);
       const r1=aimT>=0?planets[aimT].r*S+12:(aimPt?10:0);const f0=pts[1],l0=Math.hypot(f0[0]-x0,f0[1]-y0)||1;const pl2=pts[pts.length-2],L=Math.hypot(ex-pl2[0],ey-pl2[1])||1;if(pts.length===2&&l0<r0+r1+6)return;
       const ax=x0+(f0[0]-x0)/l0*r0,ay=y0+(f0[1]-y0)/l0*r0,dx=ex-pl2[0],dy=ey-pl2[1],bx=ex-dx/L*r1,by=ey-dy/L*r1;
-      ctx.strokeStyle=aimCancel?'rgba(150,170,190,0.35)':warp?'rgba(215,170,255,0.95)':(aimT>=0||aimPt)?'rgba(170,245,255,0.95)':'rgba(120,230,255,0.55)';ctx.lineWidth=aimCancel?2:3;
+      ctx.strokeStyle=aimCancel?'rgba(150,170,190,0.35)':warp?'rgba(215,170,255,0.95)':(aimT>=0||aimPt)?'rgba(170,245,255,0.95)':'rgba(120,230,255,0.55)';ctx.lineWidth=aimCancel?2:(ptr.kind==='pen'?2.2+1.4*(ptr.pressure||0.4):3);
       ctx.setLineDash(warp?[2,6]:[8,7]);ctx.lineDashOffset=-now*50;ctx.beginPath();ctx.moveTo(ax,ay);for(let k=1;k<pts.length-1;k++)ctx.lineTo(pts[k][0],pts[k][1]);ctx.lineTo(bx,by);ctx.stroke();ctx.setLineDash([]);
       if(aimCancel)return;const ux2=dx/L,uy2=dy/L,hs=11;ctx.fillStyle=ctx.strokeStyle;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx-ux2*hs-uy2*hs*0.6,by-uy2*hs+ux2*hs*0.6);ctx.lineTo(bx-ux2*hs+uy2*hs*0.6,by-uy2*hs-ux2*hs*0.6);ctx.closePath();ctx.fill();};
     const tw=aimT>=0?[planets[aimT].x,planets[aimT].y]:aimPt;
@@ -1387,8 +1390,8 @@ function render(){
     if(aimPt&&!aimCancel){const x=SX(aimPt[0],aimPt[1]),y=SY(aimPt[0],aimPt[1]);const pu=0.5+0.5*Math.sin(now*9);
       ctx.strokeStyle='rgba(170,245,255,0.95)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,14+pu*3,0,TAU);ctx.stroke();
       ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.moveTo(x,y-6);ctx.lineTo(x,y+6);ctx.stroke();
-      let n=0;for(const p of aimSources()){const c=cnt[p*NF+ME];n+=save.pct>=1?c:Math.round(c*save.pct);}for(const q of aimSwarms())n+=swc[q]+swi[q];
-      ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText('move '+n,Math.max(42,Math.min(CW-42,x)),y-30);}
+      const ap=gestPct();let n=0;for(const p of aimSources()){const c=cnt[p*NF+ME];n+=ap>=1?c:Math.round(c*ap);}for(const q of aimSwarms())n+=swc[q]+swi[q];
+      ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.fillText('move '+n+(ptr.kind==='pen'?` · ${Math.round(ap*100)}%`:''),Math.max(42,Math.min(CW-42,x)),y-30);}
     if(aimCancel){const sx0=ptr.start>=0?SX(planets[ptr.start].x,planets[ptr.start].y):SX(SWX[ptr.startS],SWY[ptr.startS]),sy0=ptr.start>=0?SY(planets[ptr.start].x,planets[ptr.start].y):SY(SWX[ptr.startS],SWY[ptr.startS]);
       const rr=ptr.start>=0?planets[ptr.start].r*S:swR(ptr.startS)*S;ctx.font='700 13px system-ui,-apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='rgba(220,230,240,0.85)';ctx.fillText('release to cancel',sx0,sy0-rr-26);}
   }
@@ -1485,8 +1488,8 @@ function render(){
     else if(lassoSet&&lassoSet.has(p)){ctx.strokeStyle='rgba(190,250,255,0.6)';ctx.lineWidth=2;ctx.setLineDash([4,5]);ctx.beginPath();ctx.arc(x,y,r+12,0,TAU);ctx.stroke();ctx.setLineDash([]);}
     if(p===aimT){const own=planets[p].owner===ME;ctx.strokeStyle=own?'rgba(150,255,200,0.95)':'rgba(255,255,255,0.95)';ctx.lineWidth=3;
       ctx.beginPath();ctx.arc(x,y,r+14+Math.sin(now*10)*2,0,TAU);ctx.stroke();
-      let n=0;for(const q of aimSources()){if(q===p)continue;const c=cnt[q*NF+ME];n+=save.pct>=1?c:Math.round(c*save.pct);}for(const q of aimSwarms())n+=swc[q]+swi[q];
-      ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.fillStyle='#fff';ctx.fillText((own?'reinforce ':(planets[p].owner<0?'capture ':'attack '))+n,x,y-r-26);}
+      const ap=gestPct();let n=0;for(const q of aimSources()){if(q===p)continue;const c=cnt[q*NF+ME];n+=ap>=1?c:Math.round(c*ap);}for(const q of aimSwarms())n+=swc[q]+swi[q];
+      ctx.font='700 14px system-ui,-apple-system,sans-serif';ctx.fillStyle='#fff';ctx.fillText((own?'reinforce ':(planets[p].owner<0?'capture ':'attack '))+n+(ptr.kind==='pen'?` · ${Math.round(ap*100)}%`:''),x,y-r-26);}
   }
   // upgrade chip (big button)
   chip=null;
@@ -1560,7 +1563,15 @@ function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,
 // (attack, capture or reinforce) and clear. Tap a selected planet to deselect. Hold your planet to add it.
 // Tap empty = clear. Drag from your planet = aim & send. Drag on empty space = lasso.
 // Red DEFEND badge on a threatened planet = rally just enough units from safe nearby planets.
-const TAP_SLOP=10,HOLD_MS=380;
+const TAP_SLOP_TOUCH=10,TAP_SLOP_PEN=5,HOLD_MS=380,PALM_MS=300;
+function tapSlop(){return ptr.kind==='pen'?TAP_SLOP_PEN:TAP_SLOP_TOUCH;}
+/** Map Apple Pencil pressure (0–1) to Q/W/E/R send steps for the current aim gesture only. */
+function pressureToPct(p){p=+p||0;if(p<0.35)return 0.25;if(p<0.55)return 0.5;if(p<0.75)return 0.75;return 1;}
+/** Effective send %: pen aim-drag uses temporary pressure mapping; tap / finger / mouse use save.pct. */
+function gestPct(){return(ptr.kind==='pen'&&ptr.moved&&ptr.gestPct!=null)?ptr.gestPct:save.pct;}
+let penDown=false,penHover=false,penUntil=0;
+function palmBlock(){return penDown||penHover||performance.now()<penUntil;}
+function rejectTouch(e){return e.pointerType==='touch'&&(save.penOnly||palmBlock());}
 /* special-planet tooltips: mouse hover 300 ms, touch hold (never consumes the gesture), brief first-time hint */
 const TIPTXT={F:['FORTRESS','triple shield, slow production'],X:['FACTORY','fast production, holds few units'],C:['CORE','+10% production on all your planets'],W:['WORMHOLE','own both gates: fleets jump instantly']};
 const tipS={p:-1,until:0,src:'',hovP:-1,hovT:0,touchT:0};
@@ -1576,8 +1587,8 @@ function tipTickUI(now){if(state!=='play'&&state!=='paused'){if(tipS.p>=0)tipHid
     if(p!==tipS.hovP){tipS.hovP=p;tipS.hovT=now;if(tipS.src==='mouse')tipHide();}
     else if(p>=0&&now-tipS.hovT>=300&&tipS.p!==p)tipShow(p,0,'mouse');}
   if(tipS.p>=0&&(now>tipS.until||tipS.p>=NP))tipHide();if(tipS.p>=0)tipPlace();}
-cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){tipS.hovP=-1;if(tipS.src==='mouse')tipHide();}});
-const ptr={down:false,id:null,sx:0,sy:0,x:0,y:0,moved:false,start:-1,startS:-1,mode:'',path:[],hold:0};
+cv.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'||e.pointerType==='pen'){tipS.hovP=-1;if(tipS.src==='mouse')tipHide();if(e.pointerType==='pen'){penHover=false;hov.on=false;hov.kind='';}}});
+const ptr={down:false,id:null,sx:0,sy:0,x:0,y:0,moved:false,start:-1,startS:-1,mode:'',path:[],hold:0,touch:false,kind:'mouse',pressure:0,gestPct:null};
 let lastNudge=0;
 function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(_){}}
 function aimSources(){const s=new Set(sel);if(ptr.start>=0&&planets[ptr.start]&&planets[ptr.start].owner===ME)s.add(ptr.start);return s;}
@@ -1585,11 +1596,12 @@ function aimSwarms(){const s=new Set(selS);if(ptr.startS>=0&&SWA[ptr.startS]&&SW
 function isSource(pk){return pk&&((pk.k==='p'&&pk.i===ptr.start)||(pk.k==='s'&&pk.i===ptr.startS));}
 function moveFrom(srcP,srcS,x,y){
   srcP=[...srcP].filter(p=>planets[p]&&planets[p].owner===ME);srcS=[...srcS].filter(q=>SWA[q]&&SWO[q]===ME);
-  let n=0;for(const p of srcP){const c=cnt[p*NF+ME];n+=c?(save.pct>=1?c:Math.max(1,Math.round(c*save.pct))):0;}for(const q of srcS)n+=swc[q]+swi[q];
+  const pct=gestPct();
+  let n=0;for(const p of srcP){const c=cnt[p*NF+ME];n+=c?(pct>=1?c:Math.max(1,Math.round(c*pct))):0;}for(const q of srcS)n+=swc[q]+swi[q];
   clearSel();[x,y]=clampPt(x,y);
   if(!n){if(!fleetN){sfx.deny();toast('No units to move yet',1500);}return;}
-  if(net.inMatch&&net.role==='client'){mpToHost({t:'cmd',c:'move',src:srcP,sw:srcS,x:Math.round(x),y:Math.round(y),pct:save.pct,seq:++net.seq});}
-  else{moveTo(ME,srcP,srcS,x,y,save.pct);n=mvN;}
+  if(net.inMatch&&net.role==='client'){mpToHost({t:'cmd',c:'move',src:srcP,sw:srcS,x:Math.round(x),y:Math.round(y),pct,seq:++net.seq});}
+  else{moveTo(ME,srcP,srcS,x,y,pct);n=mvN;}
   for(const p of srcP)beams.push({x1:planets[p].x,y1:planets[p].y,x2:x,y2:y,t:0,d:0.45});
   sfx.send();buzz(14);stats.sent+=n;rings.push({x,y,r:18,c:ME,t:0,d:0.7});rings.push({x,y,r:8,c:ME,t:0,d:0.45});
   floats.push({x,y,r:10,s:'move '+n,t:0,d:1});}
@@ -1632,7 +1644,7 @@ function lassoPickS(){const poly=ptr.path.concat([[ptr.x,ptr.y]]);const out=[];
 function inRect(sx,sy,R){return R&&Math.abs(sx-R.x)<R.w/2&&Math.abs(sy-R.y)<R.h/2;}
 function onDown(sx,sy,addKey){
   ensureAudio();if(state!=='play')return;
-  ptr.down=true;ptr.sx=ptr.x=sx;ptr.sy=ptr.y=sy;ptr.moved=false;ptr.path.length=0;clearTimeout(ptr.hold);
+  ptr.down=true;ptr.sx=ptr.x=sx;ptr.sy=ptr.y=sy;ptr.moved=false;ptr.path.length=0;ptr.gestPct=null;clearTimeout(ptr.hold);
   clearTimeout(tipS.touchT);if(tipS.src==='touch'||tipS.src==='first')tipHide();{const tp=planetAt(sx,sy);if(isSpecial(tp)&&ptr.touch)tipS.touchT=setTimeout(()=>{if(ptr.down&&!ptr.moved)tipShow(tp,2000,'touch');},HOLD_MS);}
   const under=planetAt(sx,sy);const onBody=under>=0&&Math.hypot(SX(planets[under].x,planets[under].y)-sx,SY(planets[under].x,planets[under].y)-sy)<planets[under].r*S+6;
   if(!onBody){for(const B of badges)if(inRect(sx,sy,B)){ptr.mode='badge';ptr.start=B.p;return;}
@@ -1650,12 +1662,12 @@ function onDown(sx,sy,addKey){
 }
 function onMove(sx,sy){
   if(!ptr.down||state!=='play')return;ptr.x=sx;ptr.y=sy;
-  if(!ptr.moved&&Math.hypot(sx-ptr.sx,sy-ptr.sy)>TAP_SLOP){ptr.moved=true;clearTimeout(ptr.hold);clearTimeout(tipS.touchT);
+  if(!ptr.moved&&Math.hypot(sx-ptr.sx,sy-ptr.sy)>tapSlop()){ptr.moved=true;clearTimeout(ptr.hold);clearTimeout(tipS.touchT);
     if(ptr.mode==='lasso')ptr.path.push([ptr.sx,ptr.sy]);
     if(ptr.mode==='aim'){buzz(6);if(levelIdx===0&&hintStage<2)hintStage=2;}}
   if(ptr.moved&&ptr.mode==='lasso'){const l=ptr.path[ptr.path.length-1];if(Math.hypot(sx-l[0],sy-l[1])>4)ptr.path.push([sx,sy]);}
 }
-function cancelPtr(){clearTimeout(ptr.hold);clearTimeout(tipS.touchT);ptr.down=false;ptr.mode='';ptr.path.length=0;ptr.id=null;}
+function cancelPtr(){clearTimeout(ptr.hold);clearTimeout(tipS.touchT);ptr.down=false;ptr.mode='';ptr.path.length=0;ptr.id=null;ptr.gestPct=null;if(ptr.kind==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}}
 /* ---------------- in-flight fleets: select, redirect, park, recall ---------------- */
 function fleetValid(){for(const i of selF)if(!(us[i]===2||us[i]===4)||uo[i]!==ME)selF.delete(i);}
 function fleetLanes(){fleetValid();const m=new Map();for(const i of selF){const k=us[i]*1000+up[i];let L=m.get(k);if(!L){L={k:us[i]===2?'p':'s',id:up[i],n:0,cx:0,cy:0};m.set(k,L);}L.n++;L.cx+=ux[i];L.cy+=uy[i];}
@@ -1732,7 +1744,8 @@ function sendFrom(src,t,srcS){srcS=(srcS||[]).filter(q=>SWA[q]&&SWO[q]===ME);
   if(net.inMatch&&net.role==='client'){mpClientSend(src,t,srcS);return;}
   let total=swarmsToPlanet(ME,srcS,t);const T=planets[t];
   for(const q of srcS)beams.push({x1:SWX[q],y1:SWY[q],x2:T.x,y2:T.y,t:0,d:0.45});
-  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*NF+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
+  const pct=gestPct();
+  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*NF+ME];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
     const s=sendUnits(p,t,n);if(s>0){total+=s;beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}}
   clearSel();
   if(total>0){sfx.send();buzz(18);stats.sent+=total;rings.push({x:T.x,y:T.y,r:T.r*0.6,c:ME,t:0,d:0.5});
@@ -1742,23 +1755,37 @@ function sendFrom(src,t,srcS){srcS=(srcS||[]).filter(q=>SWA[q]&&SWO[q]===ME);
 }
 function updateSelUI(){
   if(selF.size)fleetValid();const nf=selF.size;
-  const key=sel.size+'|'+selS.size+'|'+nf+'|'+save.pct+'|'+state;if(key===updateSelUI.k)return;updateSelUI.k=key;
+  const showPct=gestPct();
+  const key=sel.size+'|'+selS.size+'|'+nf+'|'+showPct+'|'+state+'|'+(ptr.down&&ptr.kind==='pen'&&ptr.moved?1:0);if(key===updateSelUI.k)return;updateSelUI.k=key;
   $('bRecall').classList.toggle('hidden',!nf);
   const pill=$('selPill');if(hasSel()&&state==='play'){pill.classList.remove('off');const ns=selS.size,np=sel.size;const parts=[];if(np)parts.push(`${np} selected`);if(ns)parts.push(`${ns} swarm${ns>1?'s':''}`);if(nf)parts.push(np||ns?`✈${nf}`:`✈ ${nf}`);
-    $('selTxt').textContent=parts.join(' + ')+(np||ns?` · ${Math.round(save.pct*100)}%`+(innerWidth<385?'':' · tap target'):'');}else pill.classList.add('off');
+    $('selTxt').textContent=parts.join(' + ')+(np||ns?` · ${Math.round(showPct*100)}%`+(innerWidth<385?'':' · tap target'):'');}else pill.classList.add('off');
 }
 if(window.PointerEvent){
   cv.addEventListener('pointerdown',e=>{e.preventDefault();if(e.pointerType==='mouse'&&e.button===2){if(!ptr.down)rightClick(e.clientX,e.clientY);return;}if(ptr.down)return;if(e.pointerType==='mouse'&&e.button!==0)return;
-    ptr.id=e.pointerId;ptr.touch=e.pointerType!=='mouse';try{cv.setPointerCapture(e.pointerId);}catch(_){}onDown(e.clientX,e.clientY,e.shiftKey||e.ctrlKey||e.metaKey);});
-  cv.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){hov.x=e.clientX;hov.y=e.clientY;hov.on=true;}if(e.pointerId!==ptr.id)return;onMove(e.clientX,e.clientY);e.preventDefault();});
-  cv.addEventListener('pointerup',e=>{if(e.pointerId!==ptr.id)return;onUp(e.clientX,e.clientY);ptr.id=null;e.preventDefault();});
-  cv.addEventListener('pointercancel',e=>{if(e.pointerId!==ptr.id)return;cancelPtr();});
+    if(rejectTouch(e))return;
+    const kind=e.pointerType==='pen'?'pen':(e.pointerType==='touch'?'touch':'mouse');
+    ptr.id=e.pointerId;ptr.kind=kind;ptr.touch=kind==='touch';ptr.pressure=+e.pressure||0;ptr.gestPct=null;
+    if(kind==='pen'){penDown=true;penUntil=0;}
+    try{cv.setPointerCapture(e.pointerId);}catch(_){}onDown(e.clientX,e.clientY,e.shiftKey||e.ctrlKey||e.metaKey);});
+  cv.addEventListener('pointermove',e=>{
+    if(e.pointerType==='mouse'||e.pointerType==='pen'){hov.x=e.clientX;hov.y=e.clientY;hov.on=true;hov.kind=e.pointerType==='pen'?'pen':'mouse';if(e.pointerType==='pen')penHover=true;}
+    if(e.pointerId!==ptr.id)return;
+    if(ptr.kind==='pen'){ptr.pressure=+e.pressure||0;if(ptr.mode==='aim'){ptr.gestPct=pressureToPct(ptr.pressure);updateSelUI.k='';}}
+    onMove(e.clientX,e.clientY);e.preventDefault();});
+  cv.addEventListener('pointerup',e=>{
+    if(e.pointerType==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}
+    if(e.pointerId!==ptr.id)return;
+    if(ptr.kind==='pen'&&e.pressure!=null){ptr.pressure=+e.pressure||ptr.pressure;if(ptr.mode==='aim'&&ptr.moved)ptr.gestPct=pressureToPct(ptr.pressure);}
+    onUp(e.clientX,e.clientY);ptr.id=null;e.preventDefault();});
+  cv.addEventListener('pointercancel',e=>{if(e.pointerType==='pen'){penDown=false;penUntil=performance.now()+PALM_MS;}if(e.pointerId!==ptr.id)return;cancelPtr();});
+  cv.addEventListener('pointerout',e=>{if(e.pointerType==='pen'&&e.pointerId!==ptr.id){penHover=false;}});
 }else{
-  cv.addEventListener('touchstart',e=>{e.preventDefault();if(ptr.down)return;const t=e.changedTouches[0];ptr.id=t.identifier;onDown(t.clientX,t.clientY);},{passive:false});
+  cv.addEventListener('touchstart',e=>{e.preventDefault();if(ptr.down)return;if(save.penOnly)return;const t=e.changedTouches[0];ptr.id=t.identifier;ptr.kind='touch';ptr.touch=true;ptr.gestPct=null;onDown(t.clientX,t.clientY);},{passive:false});
   cv.addEventListener('touchmove',e=>{for(const t of e.changedTouches)if(t.identifier===ptr.id)onMove(t.clientX,t.clientY);e.preventDefault();},{passive:false});
   cv.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===ptr.id){onUp(t.clientX,t.clientY);ptr.id=null;}e.preventDefault();},{passive:false});
   cv.addEventListener('touchcancel',e=>{for(const t of e.changedTouches)if(t.identifier===ptr.id)cancelPtr();});
-  cv.addEventListener('mousedown',e=>{if(e.button===0&&!ptr.down){ptr.id='m';onDown(e.clientX,e.clientY,e.shiftKey||e.ctrlKey||e.metaKey);}});
+  cv.addEventListener('mousedown',e=>{if(e.button===0&&!ptr.down){ptr.id='m';ptr.kind='mouse';ptr.touch=false;ptr.gestPct=null;onDown(e.clientX,e.clientY,e.shiftKey||e.ctrlKey||e.metaKey);}});
   window.addEventListener('mousemove',e=>{if(ptr.id==='m')onMove(e.clientX,e.clientY);});
   window.addEventListener('mouseup',e=>{if(ptr.id==='m'){onUp(e.clientX,e.clientY);ptr.id=null;}});
 }
@@ -1769,8 +1796,8 @@ document.addEventListener('touchmove',e=>{if(!e.target.closest||!e.target.closes
 document.addEventListener('dblclick',e=>e.preventDefault());
 document.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('contextmenu',e=>e.preventDefault());
-cv.addEventListener('pointerleave',()=>{hov.on=false;});
-const hov={x:0,y:0,on:false};const groups={};
+cv.addEventListener('pointerleave',()=>{hov.on=false;hov.kind='';penHover=false;});
+const hov={x:0,y:0,on:false,kind:''};const groups={};
 function rightClick(sx,sy){ensureAudio();if(state!=='play'||!hasSel())return;const pk=pickAt(sx,sy);
   if(pk&&pk.k==='p'){const src=new Set(sel);src.delete(pk.i);orderPlanet(src,pk.i,[...selS]);}
   else if(pk&&pk.k==='s'){const ss=new Set(selS);ss.delete(pk.i);orderMove(sel,ss,SWX[pk.i],SWY[pk.i]);}
@@ -1886,6 +1913,7 @@ const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d
 const ICON_OFF='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 function refreshUI(){
   $('bMute').innerHTML=save.muted?ICON_OFF:ICON_ON;$('bSnd').textContent='Sound: '+(save.muted?'Off':'On');$('bGfx').textContent='Gfx: '+({auto:'Auto',high:'High',low:'Low'}[save.gfx||'auto']);
+  if($('bPen'))$('bPen').textContent='Pencil only: '+(save.penOnly?'On':'Off');
   $('bPct').innerHTML=Math.round(save.pct*100)+'%<small>SEND</small>';
   document.querySelectorAll('#diffSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===save.diff));
   const g=$('lvlGrid');g.innerHTML='';
@@ -1919,6 +1947,7 @@ $('bHow').onclick=()=>{pauseHow=false;show('sHow');};
 $('bHow2').onclick=()=>{pauseHow=true;show('sHow');};
 $('bHowOk').onclick=()=>{if(pauseHow){pauseHow=false;if(state==='paused'){resume();}}else show('sTitle');};
 $('bGfx').onclick=()=>{const o=['auto','high','low'];save.gfx=o[(o.indexOf(save.gfx||'auto')+1)%3];gqReset();persist();refreshUI();toast(save.gfx==='low'?'Low graphics: fewer effects, max speed':save.gfx==='high'?'High graphics: all effects':'Auto graphics: effects drop if the game slows down',1800);};
+$('bPen').onclick=()=>{save.penOnly=!save.penOnly;persist();refreshUI();toast(save.penOnly?'Pencil only: canvas ignores finger (menus still work) — for iPad + Pencil':'Pencil only off: finger and Pencil both work',2200);sfx.select();};
 $('bSnd').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio();};
 $('bMute').onclick=()=>{save.muted=!save.muted;persist();refreshUI();ensureAudio();};
 $('bKeysOk').onclick=()=>showKeys(false);
@@ -2453,8 +2482,8 @@ function clientStep(dt){time+=dt;
   for(const A of [beams,floats])for(let i=A.length-1;i>=0;i--){A[i].t+=dt;if(A[i].t>A[i].d)A.splice(i,1);}
   for(const p of sel)if(planets[p].owner!==ME)sel.delete(p);for(const q of selS)if(!SWA[q]||SWO[q]!==ME)selS.delete(q);}
 // client commands with immediate local feedback
-function mpClientSend(src,t,srcS){srcS=srcS||[];const T=planets[t];const seq=++net.seq;const q={seq,t,src:[],t0:time};let total=0;
-  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*NF+ME];if(!c)continue;const n=save.pct>=1?c:Math.max(1,Math.round(c*save.pct));
+function mpClientSend(src,t,srcS){srcS=srcS||[];const T=planets[t];const seq=++net.seq;const q={seq,t,src:[],t0:time};let total=0;const pct=gestPct();
+  for(const p of src){if(p===t||planets[p].owner!==ME)continue;const c=cnt[p*NF+ME];if(!c)continue;const n=pct>=1?c:Math.max(1,Math.round(c*pct));
     const P=planets[p];if(P.type==='W'&&P.twin===t&&T.owner===ME){total+=n;addRing(P,ME,0.6);addRing(T,ME,0.9);continue;}
     q.src.push([p,n]);total+=n;let k=0;for(let i=0;i<hiU&&k<n;i++)if(us[i]===1&&up[i]===p&&uo[i]===ME){mpLaunch(i,t,p,0);k++;}
     beams.push({x1:planets[p].x,y1:planets[p].y,x2:T.x,y2:T.y,t:0,d:0.45});}
@@ -2462,7 +2491,7 @@ function mpClientSend(src,t,srcS){srcS=srcS||[];const T=planets[t];const seq=++n
   clearSel();
   if(!total){sfx.deny();toast('No units to send yet',1500);return;}
   if(q.src.length)net.pend.push(q);
-  mpToHost({t:'cmd',c:'send',sw:srcS,src:[...src].filter(p=>p!==t&&planets[p].owner===ME),dst:t,pct:save.pct,seq});
+  mpToHost({t:'cmd',c:'send',sw:srcS,src:[...src].filter(p=>p!==t&&planets[p].owner===ME),dst:t,pct,seq});
   sfx.send();buzz(18);rings.push({x:T.x,y:T.y,r:T.r*0.6,c:ME,t:0,d:0.5});
   floats.push({x:T.x,y:T.y,r:T.r,s:(T.owner===ME?'reinforce +':(T.owner<0?'capture ':'attack '))+total,t:0,d:1});}
 function mpClientDefend(p){const P=planets[p];const seq=++net.seq;mpToHost({t:'cmd',c:'def',p,pct:save.pct,seq});sfx.send();buzz([15,40,15]);
@@ -2518,7 +2547,7 @@ if(location.hash==='#debug')window.__lumen={rk:()=>({phase:RK.phase,me:RK.me,mp:
     for(let m=0;m<30;m++)spawnOrbiter(pb,B,false);return Object.assign(out,{pa,pb});},
   sendRaw:(from,to,n)=>sendUnits(from,to,n),cntOf:(p,f)=>cnt[p*NF+f],teamOf:f=>TEAM[f],
   wipeEnemiesOf:(f)=>{for(const P of planets)if(P.owner>=0&&!ally(P.owner,f)){P.owner=-1;P.hp=0;}for(let i=0;i<hiU;i++)if(us[i]&&!ally(uo[i],f))killU(i);},
-  pathChk:(nRand)=>{const BD=[];let bad=0,segs=0,routed=0,worst=1e9;const chk=(P,e)=>{for(let k=0;k+3<P.length;k+=2){segs++;for(let q=0;q<NP;q++){if(e.indexOf(q)>=0)continue;const Q=planets[q];const d=segPt(Q.x,Q.y,P[k],P[k+1],P[k+2],P[k+3])-Q.r;if(d<worst)worst=d;if(d<0){bad++;if(BD.length<3&&e.length==2)BD.push({e,q,qr:Q.r,qx:Q.x,qy:Q.y,P:Array.from(P).map(Math.round),wall:TER.walls.length,route:!!(ROUTE&&e.length==2&&ROUTE[e[0]*NP+e[1]])});}}}};for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j])routed++;chk(routePts(i,j),[i,j]);}let rb=0;const r=mulberry32(99);for(let k=0;k<(nRand||40);k++){const a=clampPt(60+r()*(MW-120),60+r()*(MH-120)),b=clampPt(60+r()*(MW-120),60+r()*(MH-120));const ex=[];for(let q=0;q<NP;q++){const Q=planets[q];if(Math.hypot(Q.x-a[0],Q.y-a[1])<Q.r+PMARG+8||Math.hypot(Q.x-b[0],Q.y-b[1])<Q.r+PMARG+8)ex.push(q);}const w=pathPts(a[0],a[1],b[0],b[1]);const P=[a[0],a[1]];if(w)for(const v of w)P.push(v);P.push(b[0],b[1]);const before=bad;chk(P,ex);if(bad>before)rb++;}return{bad,segs,routed,worst:Math.round(worst),randBad:rb,NP,name:curLevel.name,BD,walls:TER.walls.map(w=>w.map(Math.round))};},open:v=>{if(v!=null)OPEN.on=!!v;return OPEN.on;},fl:()=>{const o=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)o.push({i,s:us[i],d:up[i],x:Math.round(SX(ux[i],uy[i])),y:Math.round(SY(ux[i],uy[i])),wx:Math.round(ux[i]),wy:Math.round(uy[i]),sel:selF.has(i)});return o;},capChk:()=>{const out=[];for(const t of ['','F','X','C','W'])for(const s of [0,1,2])for(let l=1;l<=3;l++){const P={type:t,sf:SIZE_F[s],level:l};out.push([t,s,l,capOf(P),upCost(P)]);}return out;},upb:()=>upBadges.map(U=>({p:U.p,x:Math.round(U.x),y:Math.round(U.y)})),simSk:(d,sd)=>window.__lumen.sim(99,900,'sk',d,sd),perc:v=>{if(v!=null)PERC.on=!!v;return PERC.on;},tip:()=>({p:tipS.p,src:tipS.src,on:$('tip').classList.contains('on'),txt:$('tip').textContent,box:(()=>{const r=$('tip').getBoundingClientRect();return[r.left,r.top,r.width,r.height];})()}),startSk:(c,sd)=>startSkirm(c,sd,false),menu:()=>{if(net.on)mpReset();toMenu();},skGen:(c,sd)=>JSON.stringify(genSkirm(c,sd)),sk:()=>({mode:MODE,seed:SK.seed,streak:SK.streak,best:save.skBest||0,endless:SK.endless,diff:SK.diff,name:curLevel&&curLevel.name,ais:curLevel&&curLevel.ais,feats:curLevel&&curLevel.feats,NP,state,planets:planets.map(P=>[P.x,P.y,P.owner,P.type]).join(';')}),hist:()=>({n:hist.t.length,ev:hist.ev.length,src:hist.src,last:hist.t[hist.t.length-1],u:hist.u.map(a=>a[a.length-1]),fs:fst}),win:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]!==ME)killU(i);for(const P of planets)if(P.owner>=0&&P.owner!==ME){P.owner=-1;}},lose:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]===ME)killU(i);for(const P of planets)if(P.owner===ME)P.owner=-1;},give:(i,n)=>{for(let k=0;k<n;k++)spawnOrbiter(i,planets[i].owner,false);},setP:(i,o,l)=>{const P=planets[i];P.owner=o;P.level=l;P.hp=maxHp(P);},mpMove:(src,sw,x,y)=>moveFrom(src,sw,x,y),groups:()=>JSON.parse(JSON.stringify(groups)),forceMove:(f,q,x,y)=>moveTo(f,[],[q],x,y,1),inWall:()=>{let n=0;for(let i=0;i<hiU;i++)if(us[i]>=2)for(const w of TER.walls)if(segPt(ux[i],uy[i],w[0],w[1],w[2],w[3])<w[4]-4)n++;return n;},sw:()=>{const o=[];for(let q=0;q<MAXS;q++)if(SWA[q])o.push({id:q,o:SWO[q],x:Math.round(SWX[q]),y:Math.round(SWY[q]),c:swc[q],i:swi[q]});return o;},sscr:q=>[SX(SWX[q],SWY[q]),SY(SWX[q],SWY[q])],wscr:(x,y)=>[SX(x,y),SY(x,y)],selx:()=>({p:[...sel],s:[...selS]}),mkSwarm:(f,x,y,n)=>{const q=newSwarm(f,x,y);for(let k=0;k<n;k++){const i=allocU();if(i<0)break;us[i]=3;uo[i]=f;up[i]=q;ua[i]=rand()*TAU;ub[i]=Math.sqrt(rand());uc[i]=ub[i]*20;uw[i]=0.4;ux[i]=x;uy[i]=y;}swc[q]=n;return q;},walls:()=>TER.walls,units:()=>{let a=[0,0,0,0,0];for(let i=0;i<hiU;i++)a[us[i]]++;return a;},pct:()=>save.pct,play:i=>play(i),terr:()=>{let bad=0,routed=0;for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j]){routed++;const P=routePts(i,j);for(let k=0;k+3<P.length;k+=2)if(!clearLine([P[k],P[k+1]],[P[k+2],P[k+3]],0))bad++;}else if(TER.walls.length&&!clearLine([planets[i].x,planets[i].y],[planets[j].x,planets[j].y],0))bad++;}return{bad,routed,feats:levelFeats(curLevel),name:curLevel.name,NP};},holdT:()=>holdT.slice(),scr:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],forceEnd:f=>{net.winner=f;},mpSend:(src,t,sw)=>sendFrom(src,t,sw),mpDef:p=>defend(p),mpUp:p=>playerUpgrade(p),net:()=>({pos:planets.map(P=>[P.x,P.y]),role:net.role,inMatch:net.inMatch,code:net.code,state,ME,owners:planets.map(P=>P.owner).join(','),levels:planets.map(P=>P.level).join(''),bytesOut:net.bytesOut,bytesIn:net.bytesIn,snaps:net.snaps,units:aliveU,conns:net.conns.size,slots:net.slots.map(s=>s.kind[0]+s.f).join(' '),winner:net.winner,alive:net.alive,cnt:Array.from(cnt),inc:Array.from(inc),endT:$('endT').textContent,endShown:!$('sEnd').classList.contains('hidden')}),debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
+  pathChk:(nRand)=>{const BD=[];let bad=0,segs=0,routed=0,worst=1e9;const chk=(P,e)=>{for(let k=0;k+3<P.length;k+=2){segs++;for(let q=0;q<NP;q++){if(e.indexOf(q)>=0)continue;const Q=planets[q];const d=segPt(Q.x,Q.y,P[k],P[k+1],P[k+2],P[k+3])-Q.r;if(d<worst)worst=d;if(d<0){bad++;if(BD.length<3&&e.length==2)BD.push({e,q,qr:Q.r,qx:Q.x,qy:Q.y,P:Array.from(P).map(Math.round),wall:TER.walls.length,route:!!(ROUTE&&e.length==2&&ROUTE[e[0]*NP+e[1]])});}}}};for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j])routed++;chk(routePts(i,j),[i,j]);}let rb=0;const r=mulberry32(99);for(let k=0;k<(nRand||40);k++){const a=clampPt(60+r()*(MW-120),60+r()*(MH-120)),b=clampPt(60+r()*(MW-120),60+r()*(MH-120));const ex=[];for(let q=0;q<NP;q++){const Q=planets[q];if(Math.hypot(Q.x-a[0],Q.y-a[1])<Q.r+PMARG+8||Math.hypot(Q.x-b[0],Q.y-b[1])<Q.r+PMARG+8)ex.push(q);}const w=pathPts(a[0],a[1],b[0],b[1]);const P=[a[0],a[1]];if(w)for(const v of w)P.push(v);P.push(b[0],b[1]);const before=bad;chk(P,ex);if(bad>before)rb++;}return{bad,segs,routed,worst:Math.round(worst),randBad:rb,NP,name:curLevel.name,BD,walls:TER.walls.map(w=>w.map(Math.round))};},open:v=>{if(v!=null)OPEN.on=!!v;return OPEN.on;},fl:()=>{const o=[];for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&uo[i]===ME)o.push({i,s:us[i],d:up[i],x:Math.round(SX(ux[i],uy[i])),y:Math.round(SY(ux[i],uy[i])),wx:Math.round(ux[i]),wy:Math.round(uy[i]),sel:selF.has(i)});return o;},capChk:()=>{const out=[];for(const t of ['','F','X','C','W'])for(const s of [0,1,2])for(let l=1;l<=3;l++){const P={type:t,sf:SIZE_F[s],level:l};out.push([t,s,l,capOf(P),upCost(P)]);}return out;},upb:()=>upBadges.map(U=>({p:U.p,x:Math.round(U.x),y:Math.round(U.y)})),simSk:(d,sd)=>window.__lumen.sim(99,900,'sk',d,sd),perc:v=>{if(v!=null)PERC.on=!!v;return PERC.on;},tip:()=>({p:tipS.p,src:tipS.src,on:$('tip').classList.contains('on'),txt:$('tip').textContent,box:(()=>{const r=$('tip').getBoundingClientRect();return[r.left,r.top,r.width,r.height];})()}),startSk:(c,sd)=>startSkirm(c,sd,false),menu:()=>{if(net.on)mpReset();toMenu();},skGen:(c,sd)=>JSON.stringify(genSkirm(c,sd)),sk:()=>({mode:MODE,seed:SK.seed,streak:SK.streak,best:save.skBest||0,endless:SK.endless,diff:SK.diff,name:curLevel&&curLevel.name,ais:curLevel&&curLevel.ais,feats:curLevel&&curLevel.feats,NP,state,planets:planets.map(P=>[P.x,P.y,P.owner,P.type]).join(';')}),hist:()=>({n:hist.t.length,ev:hist.ev.length,src:hist.src,last:hist.t[hist.t.length-1],u:hist.u.map(a=>a[a.length-1]),fs:fst}),win:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]!==ME)killU(i);for(const P of planets)if(P.owner>=0&&P.owner!==ME){P.owner=-1;}},lose:()=>{for(let i=0;i<hiU;i++)if(us[i]&&uo[i]===ME)killU(i);for(const P of planets)if(P.owner===ME)P.owner=-1;},give:(i,n)=>{for(let k=0;k<n;k++)spawnOrbiter(i,planets[i].owner,false);},setP:(i,o,l)=>{const P=planets[i];P.owner=o;P.level=l;P.hp=maxHp(P);},mpMove:(src,sw,x,y)=>moveFrom(src,sw,x,y),groups:()=>JSON.parse(JSON.stringify(groups)),forceMove:(f,q,x,y)=>moveTo(f,[],[q],x,y,1),inWall:()=>{let n=0;for(let i=0;i<hiU;i++)if(us[i]>=2)for(const w of TER.walls)if(segPt(ux[i],uy[i],w[0],w[1],w[2],w[3])<w[4]-4)n++;return n;},sw:()=>{const o=[];for(let q=0;q<MAXS;q++)if(SWA[q])o.push({id:q,o:SWO[q],x:Math.round(SWX[q]),y:Math.round(SWY[q]),c:swc[q],i:swi[q]});return o;},sscr:q=>[SX(SWX[q],SWY[q]),SY(SWX[q],SWY[q])],wscr:(x,y)=>[SX(x,y),SY(x,y)],selx:()=>({p:[...sel],s:[...selS]}),mkSwarm:(f,x,y,n)=>{const q=newSwarm(f,x,y);for(let k=0;k<n;k++){const i=allocU();if(i<0)break;us[i]=3;uo[i]=f;up[i]=q;ua[i]=rand()*TAU;ub[i]=Math.sqrt(rand());uc[i]=ub[i]*20;uw[i]=0.4;ux[i]=x;uy[i]=y;}swc[q]=n;return q;},walls:()=>TER.walls,units:()=>{let a=[0,0,0,0,0];for(let i=0;i<hiU;i++)a[us[i]]++;return a;},pct:()=>save.pct,penPct:pressureToPct,gestPct:()=>gestPct(),penOnly:v=>{if(v!=null){save.penOnly=!!v;persist();refreshUI();}return!!save.penOnly;},ptr:()=>({kind:ptr.kind,touch:!!ptr.touch,down:!!ptr.down,moved:!!ptr.moved,mode:ptr.mode,pressure:ptr.pressure,gestPct:ptr.gestPct,penDown,penHover,palm:palmBlock()}),play:i=>play(i),terr:()=>{let bad=0,routed=0;for(let i=0;i<NP;i++)for(let j=0;j<NP;j++){if(i===j)continue;if(ROUTE&&ROUTE[i*NP+j]){routed++;const P=routePts(i,j);for(let k=0;k+3<P.length;k+=2)if(!clearLine([P[k],P[k+1]],[P[k+2],P[k+3]],0))bad++;}else if(TER.walls.length&&!clearLine([planets[i].x,planets[i].y],[planets[j].x,planets[j].y],0))bad++;}return{bad,routed,feats:levelFeats(curLevel),name:curLevel.name,NP};},holdT:()=>holdT.slice(),scr:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],forceEnd:f=>{net.winner=f;},mpSend:(src,t,sw)=>sendFrom(src,t,sw),mpDef:p=>defend(p),mpUp:p=>playerUpgrade(p),net:()=>({pos:planets.map(P=>[P.x,P.y]),role:net.role,inMatch:net.inMatch,code:net.code,state,ME,owners:planets.map(P=>P.owner).join(','),levels:planets.map(P=>P.level).join(''),bytesOut:net.bytesOut,bytesIn:net.bytesIn,snaps:net.snaps,units:aliveU,conns:net.conns.size,slots:net.slots.map(s=>s.kind[0]+s.f).join(' '),winner:net.winner,alive:net.alive,cnt:Array.from(cnt),inc:Array.from(inc),endT:$('endT').textContent,endShown:!$('sEnd').classList.contains('hidden')}),debug:()=>({state,planets:planets.map(P=>[P.owner,P.level]),sel:[...sel],chip:chip&&[chip.x,chip.y],badges:badges.map(B=>[B.p,B.x,B.y]),cnt:Array.from(cnt),tot:Array.from(tot),inc:Array.from(inc)}),xy:i=>[SX(planets[i].x,planets[i].y),SY(planets[i].x,planets[i].y)],sim:(idx,secs,mode,diff,seed)=>{save.diff=diff||'normal';METR=true;
     if(mode==='sk'||mode==='skteam'){const L=genSkirm({size:'m',riv:mode==='skteam'?(idx>=3&&idx<=5?idx:3):2,pers:[],ter:'mix',start:'even',teams:mode==='skteam'?'on':'off'},seed);startLevel(99,false,L);mode='bot';}
     else if(mode==='ffa'){const L=procLevel(5,seed,2);const perm=[1,2,3].sort(()=>rand()-0.5);for(const q of L.planets)if(q[3]>=0)q[3]=perm[q[3]];L.ais=[1,2,3];L.aiMul=1;startLevel(idx,false,L);}
     else if(mode==='ffa6'||mode==='team6'){const L=genSkirm({size:idx===1?'m':'l',riv:5,pers:[],ter:idx===2?'mix':'none',start:'even'},seed);const perm=[0,1,2,3,4,5].sort(()=>rand()-0.5);const map={};[0].concat(L.ais).forEach((f,i)=>map[f]=perm[i]);
