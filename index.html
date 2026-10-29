@@ -669,7 +669,9 @@ function genSkirm(cfg,seed){seed=seed>>>0;const rng=mulberry32(seed^0x5bd1e995);
   const ais=pool.filter(f=>S.indexOf(f)>=0).concat(pool.filter(f=>S.indexOf(f)<0)).slice(0,riv).sort();
   const size=cfg.size||'m';const sz={s:0,m:4,l:8}[size]!=null?{s:0,m:4,l:8}[size]:4;
   const scale=skirmScale(riv,size);
-  const L=procLevel(sz,seed,riv,ais,true,{scale});const P=L.planets;const nf=riv+1;
+  // home-slot order shuffled per seed (own stream, so feature RNG is unchanged): your ring neighbours vary game to game
+  const slotAis=skShuffle(ais.slice(),mulberry32(seed^0x6a09e667));
+  const L=procLevel(sz,seed,riv,slotAis,true,{scale});const P=L.planets;const nf=riv+1;
   const mw=L.mapW||BASE_MW,mh=L.mapH||BASE_MH,sx=mw/BASE_MW,sy=mh/BASE_MH;
   let feats=cfg.ter==='mix'?skShuffle(SK_FEATS.slice(),rng).slice(0,1+(rng()<0.5?1:0)):(SK_FEATS.indexOf(cfg.ter)>=0?[cfg.ter]:[]);
   const T={};const homes=P.slice(0,nf);
