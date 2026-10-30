@@ -217,6 +217,28 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
 @media (max-height:420px){#sDaily .panel,#sRanked .panel{max-width:620px}#sDaily h2,#sRanked h2{font-size:18px;margin-bottom:2px}#sDaily .note,#sRanked .note{margin:2px 0;line-height:1.35}#sDaily .big,#sRanked .big{height:42px}#sDaily .dmod,#sRanked .dmod{margin:4px 0 6px;padding:8px 12px}#sRanked .rkc .tier{font-size:20px}}
 @media (max-height:420px){.tt .cb .grid{max-width:222px;gap:5px}.tt .cb>.lbl{display:none}#acct{margin-top:4px}.tt .tools{gap:6px}.tt .ghost{min-height:40px}}
 @media (max-width:359px){#sSkirm .panel{padding:14px 10px}#sSkirm .pair{gap:6px}}
+/* iPhone Duo / wide-portrait foldables (~0.70 aspect on both screens): 44px targets, cap widths, keep things off the fold crease */
+.ic{width:44px;height:44px}
+@media (orientation:portrait) and (min-aspect-ratio:3/5) and (min-height:640px),(orientation:landscape) and (min-height:600px){
+ .seg button,#sSkirm .seg button,.seg.sm button,.chips button,#rndOpts select,#rnSeed,#skTer,#skSeed,#mapSel{height:44px}
+ #sSkirm .lbl{margin:4px 0 3px}#sSkirm .seg{margin:1px 0 4px}#sSkirm .note{margin:3px 0}#sSkirm h2{margin-bottom:2px}#sSkirm .panel{padding-top:14px;padding-bottom:14px}
+ .chips{gap:6px}
+ .ghost{min-height:44px}
+}
+@media (orientation:portrait) and (min-aspect-ratio:3/5) and (min-height:640px) and (max-height:820px){
+ #sSkirm{padding-top:calc(var(--sat) + 8px);padding-bottom:calc(var(--sab) + 8px)}
+ #sSkirm .ca,#sSkirm .cb{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:8px;align-items:center}
+ #sSkirm .ca>*,#sSkirm .cb>*{grid-column:1/-1;min-width:0}
+ #sSkirm .ca>.lbl,#sSkirm .cb>.lbl{grid-column:1;text-align:left;margin:0 0 3px;width:58px;font-size:10px;line-height:1.2;white-space:normal}
+ #sSkirm .ca>.lbl+*,#sSkirm .cb>.lbl+*{grid-column:2}
+ #sSkirm .chips{grid-template-columns:1fr 1fr 1fr}#sSkirm .chips button{padding:0 4px;font-size:12px}
+ #sSkirm .big{height:46px;margin:4px 0}#sSkirm .row{margin-top:4px}
+ #sSkirm .panel .lbl{margin:3px 0 2px}#sSkirm .panel .seg,#sSkirm .panel .chips{margin:0 0 3px}#sSkirm .panel h2{margin:0 0 2px;font-size:20px}#sSkirm .panel .note{margin:2px 0}
+}
+@media (orientation:portrait) and (min-aspect-ratio:3/5) and (min-width:560px) and (min-height:820px){
+ #sSkirm .panel,#sLobby .panel,#sEnd .panel,#sDaily .panel,#sRanked .panel,#sMp .panel,#sPause .panel{max-width:460px}
+ #sSettings .panel{max-width:480px}
+}
 </style>
 </head>
 <body>
@@ -2632,7 +2654,13 @@ function frame(now){
   else frameAcc=0;
   render();updateSelUI();tipTickUI(now);
 }
-window.addEventListener('resize',resize);window.addEventListener('orientationchange',()=>setTimeout(resize,200));
+// Live refit for foldables (iPhone Duo inner<->outer), rotation and visualViewport changes: coalesce to one rAF,
+// drop any in-flight drag/aim (its screen coords belong to the old layout) and re-fit the camera. Game state is untouched.
+let rzQ=0,rzW=0,rzH=0;function onViewport(){if(rzQ)return;rzQ=requestAnimationFrame(()=>{rzQ=0;const w=window.innerWidth,h=window.innerHeight;if(w===rzW&&h===rzH&&w===CW&&h===CH)return;rzW=w;rzH=h;
+  if(typeof ptr!=='undefined'&&ptr.down){try{cancelPtr();}catch(e){}}if(typeof hudPtr!=='undefined')hudPtr=null;resize();});}
+window.addEventListener('resize',onViewport);window.addEventListener('orientationchange',()=>{onViewport();setTimeout(onViewport,250);});
+if(window.visualViewport)visualViewport.addEventListener('resize',onViewport);
+if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',()=>setTimeout(onViewport,60));
 if(location.hash==='#debug')window.__lumen={rk:()=>({phase:RK.phase,me:RK.me,mp:RK.mp,opp:RK.opp,base:RK.base,done:RK.done}),rkWait:v=>{},tier:r=>tierOf(r)[0],rkAi:r=>rkAiFor(r),ach:()=>Object.keys(save.ach||{}),achEnd:o=>achEnd(o),achOpen:()=>achOpen(),bump:(k,v)=>{save.stats[k]=v;return achSweep().map(a=>a.id);},setTime:t=>{time=t;},daily:k=>{dailyOverride=k||null;return dailyDef(dailyKey());},dailyPlay:()=>dailyPlay(),dailyOpen:()=>dailyOpen(),dStreak:()=>dailyStreak(),saveObj:()=>JSON.parse(JSON.stringify(save)),stuck:()=>{let n=0,w=0;for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>w){w=time-ut[i];}for(let i=0;i<hiU;i++)if((us[i]===2||us[i]===4)&&time-ut[i]>90)n++;return{n,w:Math.round(w)};},gq:()=>GQ+'/'+(save.gfx||'auto')+(save.power?'/pwr':''),setGfx:v=>{save.gfx=v;gqReset();applyLo();return GQ;},power:v=>{if(v!=null){save.power=!!v;gqReset();persist();refreshUI();resize();}return!!save.power;},dpr:()=>DPR,lo:()=>document.documentElement.classList.contains('lo'),mpInfo:()=>{let h=2166136261;for(const P of planets){for(const v of [P.x,P.y,P.r,P.owner,P.type?P.type.charCodeAt(0):0]){h^=Math.round(v*10);h=Math.imul(h,16777619);}}
     let lh=2166136261;try{const L=mpLevel(net.map);for(const q of L.planets)for(const v of q.slice(0,5)){h=h;lh^=Math.round((+v||0)*10);lh=Math.imul(lh,16777619);}}catch(e){}
     return{slots:net.slots.map(s=>({f:s.f,kind:s.kind,me:s.pid===net.myId,host:!!s.host,team:s.team})),teams:net.teams,rnd:net.rnd,map:net.map,TEAM:TEAM.slice(),TEAMS_ON,hash:h>>>0,lobbyHash:lh>>>0,NP,ME,winner:net.winner,endShown:net.endShown,endT:document.getElementById('endT').textContent};},
