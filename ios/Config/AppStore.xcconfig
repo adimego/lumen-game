@@ -1,0 +1,30 @@
+// LUMEN App Store configuration.
+// Values containing REPLACE_ME, example.com, or com.example are unresolved.
+// Release builds refuse to compile while they remain. Do not ship those builds.
+// https:// in xcconfig must be written as https:/$()/ because // starts a comment.
+
+PRODUCT_BUNDLE_IDENTIFIER = com.example.lumen.orbitalconquest
+MARKETING_VERSION = 26.0
+CURRENT_PROJECT_VERSION = 26
+LUMEN_DEVELOPMENT_TEAM = REPLACE_ME
+LUMEN_PRIVACY_POLICY_URL = https:/$()/example.com/REPLACE_ME/lumen-privacy
+LUMEN_TERMS_URL = https:/$()/example.com/REPLACE_ME/lumen-terms
+LUMEN_SUPPORT_URL = https:/$()/example.com/REPLACE_ME/lumen-support
+
+IPHONEOS_DEPLOYMENT_TARGET = 16.0
+TARGETED_DEVICE_FAMILY = 1,2
+SDKROOT = iphoneos
+SUPPORTED_PLATFORMS = iphoneos iphonesimulator
+SWIFT_VERSION = 5.0
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM =
+CODE_SIGN_ENTITLEMENTS = Lumen/Lumen.entitlements
+GENERATE_INFOPLIST_FILE = NO
+INFOPLIST_FILE = Lumen/Info.plist
+ENABLE_USER_SCRIPT_SANDBOXING = NO
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+PRODUCT_NAME = Lumen
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks
+CLANG_ENABLE_MODULES = YES
+SWIFT_EMIT_LOC_STRINGS = YES
+ENABLE_PREVIEWS = NO
