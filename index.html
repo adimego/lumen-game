@@ -166,6 +166,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
 #skTer,#mapSel{height:42px;margin-bottom:6px}
 .slot button{height:36px;min-width:64px}.slot .tchip{min-width:32px;height:32px;border-radius:16px}
 #acct{flex-wrap:wrap}#acct button{min-height:40px;padding:6px 14px;border-radius:20px}
+#acct{flex-direction:column;align-items:stretch}#acct .siwa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;height:44px;margin:0;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:600;letter-spacing:-.01em;border:1px solid #000}#acct .siwa svg{width:16px;height:16px;flex:none}#acct .google-btn{min-height:44px;height:44px;border-radius:8px;border:1px solid rgba(120,220,255,.45);background:rgba(10,25,45,.65);font-size:16px;font-weight:600}#bDeleteAcct{min-height:44px;border-radius:22px;border:1px solid rgba(255,120,130,.55);color:#ffb4bc;padding:0 14px}#pubName{width:100%;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:600 16px system-ui,sans-serif;text-align:center;outline:none;-webkit-user-select:text;user-select:text}#legalBody{-webkit-user-select:text;user-select:text;text-align:left;white-space:pre-wrap;max-height:50vh;overflow:auto}.lb li button{min-height:44px;padding:0 10px;border-radius:12px;border:1px solid rgba(120,220,255,.35);background:rgba(10,25,45,.55);font-size:12px;font-weight:600}html.iosapp .screen{padding-top:calc(var(--sat) + 56px)}
 #bJoin{flex:0 0 92px}
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.modes .big{margin:0;font-size:clamp(13px,3.9vw,16px)}
 .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.tools .ghost{flex:none}#bSettings{grid-column:1/-1}
@@ -271,7 +272,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
     <div class="lbl">Sectors</div>
     <div id="lvlGrid" class="grid"></div>
     <div class="tools"><button id="bHow" class="ghost">How to play</button><button id="bAch" class="ghost">🏆 Achievements</button><button id="bSettings" class="ghost">Settings</button></div>
-    <div id="acct" class="hidden"><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct">Sign in with Google</button><span id="acctSt"></span></div>
+    <div id="acct" class="hidden"><button id="bApple" class="siwa" type="button"><svg viewBox="0 0 18 22" aria-hidden="true"><path fill="currentColor" d="M14.4 11.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.8-3.5.8s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.3 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7 2-1.1 2.8-2.2.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.8zM12.2 5.2c.6-.8 1.1-1.8.9-2.9-1 .1-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.8 1.1.1 2.2-.5 2.9-1.3z"/></svg>Sign in with Apple</button><img id="acctAv" class="hidden" alt=""><span id="acctNm"></span><button id="bAcct" class="google-btn" type="button">Sign in with Google</button><button id="bDeleteAcct" class="hidden" type="button">Delete account</button><span id="acctSt"></span></div>
     </div>
   </div>
 </div>
@@ -406,7 +407,22 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
       <button id="bPen" class="ghost">Pencil only: Off</button>
       <button id="bInstall" class="ghost hidden">⤓ Install app</button>
     </div>
+    <div class="lbl">Public name</div>
+    <input id="pubName" maxlength="40" autocomplete="off" spellcheck="false" placeholder="Player">
+    <p class="note">Shown on the daily board and ranked list. Your email is never posted. Saved on this device until you post a score.</p>
+    <button id="bPub" class="ghost" type="button">Save public name</button>
+    <div class="row"><button id="bPrivacy" class="ghost" type="button">Privacy</button><button id="bTerms" class="ghost" type="button">Terms</button></div>
     <div class="row"><button id="setBack" class="ghost">Back</button></div>
+  </div>
+</div>
+
+<div id="sLegal" class="screen hidden">
+  <div class="panel">
+    <h2 id="legalTitle">Privacy</h2>
+    <div id="legalBody" class="note"></div>
+    <p id="legalUrlNote" class="note"></p>
+    <button id="legalAccept" class="big hidden" type="button">I agree</button>
+    <div class="row"><button id="legalBack" class="ghost" type="button">Back</button></div>
   </div>
 </div>
 
@@ -418,6 +434,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
     <button id="rkGo" class="big">Find match</button>
     <button id="rkCancel" class="big alt hidden">Cancel</button>
     <div class="note">1v1 on a random map. If no human opponent is found within 15 s you play an AI scaled to your rating (counts for rating at reduced weight). Leaving a match counts as a loss.</div>
+    <div id="rkMod" class="row hidden"><button id="rkBlock" class="ghost" type="button">Block opponent</button><button id="rkReport" class="ghost" type="button">Report name</button></div>
     <div class="row"><button id="rkBack" class="ghost">Back</button></div>
   </div>
 </div>
@@ -458,6 +475,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
 <script>
 (()=>{
 'use strict';
+if(window.__LUMEN_IOS_APP)document.documentElement.classList.add('iosapp');
 const $=id=>document.getElementById(id);
 const cv=$('c'), ctx=cv.getContext('2d',{alpha:false});
 const bg=document.createElement('canvas');
@@ -2000,7 +2018,7 @@ function showIntro(L,ms,rows){const el=$('intro');
   if(L.T&&L.T.idea)el.innerHTML+=`<div class="idea">${L.T.idea}</div>`;
   el.classList.add('on');clearTimeout(introT);introT=setTimeout(()=>el.classList.remove('on'),ms||3500);}
 function toast(msg,ms){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2000);}
-function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall','sDaily','sAch','sSettings','sRanked'].filter(s=>$(s)).forEach(s=>$(s).classList.toggle('hidden',s!==id));}
+function show(id){['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall','sDaily','sAch','sSettings','sRanked','sLegal'].filter(s=>$(s)).forEach(s=>$(s).classList.toggle('hidden',s!==id));lumenNativePost({action:'shell',mode:id?'menu':'play'});}
 const ICON_ON='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#cdefff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 function refreshUI(){
@@ -2122,11 +2140,14 @@ async function dailyBoard(k){const el=$('dyLb'),st=$('dyLbSt');el.innerHTML='';c
   if(!X.canRead()){st.textContent='Leaderboard unavailable (offline).';return;}
   st.textContent='Loading…';
   try{const rows=await X.list(`daily/${k}/scores`,'time','asc',20);const me=X.uid();
-    el.innerHTML=rows.map((r,i)=>`<li class="${r.id===me?'me':''}"><i>${i+1}</i><span></span><em>${mmss(r.time)}</em></li>`).join('');
-    [...el.children].forEach((li,i)=>li.querySelector('span').textContent=String(rows[i].name||'Player').slice(0,40));
+    rows.forEach((r,i)=>{const li=document.createElement('li');if(r.id===me)li.className='me';
+      const rank=document.createElement('i');rank.textContent=String(i+1);const span=document.createElement('span');
+      span.textContent=lumenBlocked(r.id)?'Blocked player':lumenBoardName('', r.name);
+      const em=document.createElement('em');em.textContent=mmss(r.time);li.append(rank,span,em);if(!lumenBlocked(r.id))lumenRowTools(li,r,me);else lumenRowTools(li,r,me);el.appendChild(li);});
     st.textContent=(rows.length?'':'No times yet today. Be the first! ')+(X.signedIn()?'':'Sign in on the title screen to post your time.');}
   catch(e){st.textContent=X.why(e);}}
 async function dailySubmit(k,t){const X=CLOUD.x;if(!X.can())return 'Sign in to post your time to the leaderboard.';
+  if(!lumenTermsAccepted()){lumenShowLegal('terms',true);return 'Agree to the terms to post a public time. Nothing was posted.';}
   try{const p=`daily/${k}/scores/${X.uid()}`;const cur=await X.get(p);if(cur&&cur.time<=t)return 'Leaderboard: your earlier time stands.';
     await X.set(p,{name:X.name(),time:t,ts:X.TS});return 'Posted to the leaderboard ✓';}catch(e){return X.why(e);}}
 function showDailyEnd(){state='end';const D=SK.daily,k=D.key,t=$('endT');const tm=Math.max(1,Math.round(time));
@@ -2195,7 +2216,11 @@ function achOpen(){achSweep();show('sAch');const n=ACH.filter(a=>achHas(a.id)).l
   const cs=$('achCos');cs.innerHTML='';for(const c of COS){const b=document.createElement('button');const ok=!c.a||achHas(c.a);b.textContent=(ok?'':'🔒 ')+c.n;b.disabled=!ok;b.classList.toggle('on',(save.cos||'')===c.id);
     b.onclick=()=>{save.cos=c.id;save.setT=Date.now();persist();achOpen();sfx.select();};cs.appendChild(b);}}
 $('bAch').onclick=()=>{ensureAudio();achOpen();};$('achBack').onclick=()=>show('sTitle');
-$('bSettings').onclick=()=>{ensureAudio();show('sSettings');};$('setBack').onclick=()=>show('sTitle');
+$('bSettings').onclick=()=>{ensureAudio();if($('pubName'))$('pubName').value=lumenStoredPublicName();show('sSettings');};$('setBack').onclick=()=>show('sTitle');
+$('bPub').onclick=()=>{const s=lumenRememberPublicName($('pubName').value);$('pubName').value=s;toast(s?'Public name saved on this device':'That name can’t be posted. The field was cleared.',2200);};
+$('bPrivacy').onclick=()=>lumenShowLegal('privacy',false);$('bTerms').onclick=()=>lumenShowLegal('terms',false);
+$('legalBack').onclick=()=>show(lumenLegalFrom||'sTitle');
+$('legalAccept').onclick=()=>{lumenAcceptTerms();show(lumenLegalFrom||'sTitle');toast('You can post a public score now',1800);};
 /* ---------------- ranked ---------------- */
 // Elo with tiers. Ratings live in ratings/{uid}; matchmaking queue in queue/{uid}. Client-reported (no anti-cheat): rules bound each change.
 const TIERS=[['Bronze',0,'#d08a55'],['Silver',1150,'#c9d6e6'],['Gold',1400,'#ffd36b'],['Platinum',1650,'#7fe8e0'],['Diamond',1900,'#8fb8ff']];
@@ -2208,13 +2233,14 @@ function rkSt(t){$('rkSt').textContent=t;}
 function rkCard(){const R=RK.me||{r:1000,n:0,w:0};const t=tierOf(R.r),ni=TIERS[TIERS.indexOf(t)+1];const lo=Math.max(t[1],850),pr=ni?Math.max(0,(R.r-lo)/(ni[1]-lo)):1;
   $('rkCard').innerHTML=`<div class="tier" style="color:${t[2]}">${t[0]}</div><div class="rt">Rating <b>${R.r}</b> · ${R.w||0}W ${Math.max(0,(R.n||0)-(R.w||0))}L</div><div class="bar"><i style="width:${Math.round(pr*100)}%;background:${t[2]}"></i></div><small style="opacity:.6">${ni?`${ni[1]-R.r} to ${ni[0]}`:'Top tier'}</small>`;}
 async function rankedOpen(){if(net.on)mpReset();RK.mp=false;RK.lastLine='';RK.phase='idle';show('sRanked');$('rkCancel').classList.add('hidden');$('rkGo').classList.remove('hidden');const X=CLOUD.x;
-  rkCard();if(!X.signedIn()){$('rkGo').disabled=true;rkSt('Ranked needs a Google account: sign in on the title screen first.');return;}
+  rkCard();rkModeration();if(!X.signedIn()){$('rkGo').disabled=true;rkSt('Ranked needs a sign-in. Use Sign in with Apple or Google on the title screen. Nothing was queued.');return;}
   $('rkGo').disabled=true;rkSt('Loading your rating…');
   try{let d=await X.get('ratings/'+X.uid());if(!d){d={r:1000,n:0,w:0,name:X.name(),peak:1000,pend:false,ts:X.TS};await X.set('ratings/'+X.uid(),d);d.ts=Date.now();}
     RK.me=d;RK.offline=false;rkCard();rkSt('');$('rkGo').disabled=false;}
   catch(e){RK.offline=true;rkSt(X.why(e)+' You can still play a practice match vs AI (unrated).');$('rkGo').disabled=false;$('rkGo').textContent='Practice vs AI';return;}
   $('rkGo').textContent='Find match';}
 async function rkFind(){const X=CLOUD.x;ensureAudio();if(RK.offline||!RK.me){rkStartAi(false);return;}
+  if(!lumenTermsAccepted()){lumenShowLegal('terms',true);rkSt('Agree to the terms to play ranked. Nothing was queued.');return;}
   RK.phase='queue';RK.t0=Date.now();RK.prop='';RK.code='';RK.done=false;$('rkGo').classList.add('hidden');$('rkCancel').classList.remove('hidden');rkSt('Opening a room…');
   mpCreate();clearInterval(RK.iv);RK.iv=setInterval(rkTick,2000);}
 async function rkRoomReady(code){if(RK.phase!=='queue'){mpReset();return;}RK.code=code;RK.mp=true;const X=CLOUD.x;
@@ -2228,15 +2254,15 @@ async function rkTick(){if(RK.phase!=='queue')return;const X=CLOUD.x;const el=Da
   let rows;try{rows=await X.list('queue','ts','desc',30);}catch(e){return;}if(RK.phase!=='queue'||RK.joining)return;
   const now=Date.now(),me=X.uid(),win=150+el/1000*25;
   for(const q of rows)if(q.ts&&now-q.ts>120000&&q.id!==me)X.del('queue/'+q.id).catch(()=>{});   // stale cleanup
-  const fresh=rows.filter(q=>q.id!==me&&q.ts&&now-q.ts<45000&&q.code&&q.code.length===4);
+  const fresh=rows.filter(q=>q.id!==me&&!lumenBlocked(q.id)&&q.ts&&now-q.ts<45000&&q.code&&q.code.length===4);
   const offer=fresh.find(q=>q.m===me);
-  if(offer&&me>offer.id){RK.joining=true;RK.opp={uid:offer.id,r:offer.r|0,name:offer.name||'Player'};rkSt('Opponent found: '+RK.opp.name+' · connecting…');
+  if(offer&&me>offer.id){RK.joining=true;RK.opp={uid:offer.id,r:offer.r|0,name:lumenBoardName('', offer.name)};rkSt('Opponent found: '+RK.opp.name+' · connecting…');
     try{await X.set('queue/'+me,{r:RK.me.r,code:RK.code,name:X.name(),m:offer.id,ts:X.TS});}catch(e){}
     if(net.peer){try{net.peer.destroy();}catch(e){}}net.on=false;RK.mp=true;mpJoin(offer.code);
     setTimeout(()=>{if(RK.phase==='queue'&&!net.inMatch){RK.joining=false;rkSt('Could not connect, still searching…');mpCreate();}},15000);return;}
   if(RK.prop&&now-RK.propT<10000)return;
   const cand=fresh.filter(q=>(!q.m||q.m===me)&&me<q.id&&Math.abs((q.r|0)-RK.me.r)<=win).sort((a,b)=>Math.abs(a.r-RK.me.r)-Math.abs(b.r-RK.me.r))[0];
-  const p=cand?cand.id:'';if(p!==RK.prop){RK.prop=p;RK.propT=now;if(cand)RK.opp={uid:cand.id,r:cand.r|0,name:cand.name||'Player'};
+  const p=cand?cand.id:'';if(p!==RK.prop){RK.prop=p;RK.propT=now;if(cand)RK.opp={uid:cand.id,r:cand.r|0,name:lumenBoardName('', cand.name)};
     try{await X.set('queue/'+me,{r:RK.me.r,code:RK.code,name:X.name(),m:p,ts:X.TS});}catch(e){}}}
 function rkStopQueue(keepRoom){clearInterval(RK.iv);RK.iv=0;RK.joining=false;const X=CLOUD.x;if(X.can())X.del('queue/'+X.uid()).catch(()=>{});
   if(!keepRoom){RK.mp=false;if(net.on&&!net.inMatch)mpReset();}RK.phase=keepRoom?'match':'idle';}
@@ -2266,7 +2292,10 @@ function rkMpEnd(win){$('bNext').classList.remove('hidden');$('bNext').textConte
   r.then(res=>{RK.lastLine=rkLine(res);$('endStreak').textContent=RK.lastLine;achEnd({mode:'ranked',win});RK.ending=false;});
   // bNext in ranked = back to the ranked screen
 }
+function rkModeration(){const el=$('rkMod');if(!el)return;el.classList.toggle('hidden',!(RK.opp&&RK.opp.uid));}
 $('bRanked').onclick=()=>{ensureAudio();rankedOpen();};$('rkGo').onclick=()=>rkFind();$('rkCancel').onclick=()=>rkCancel();$('rkBack').onclick=()=>{if(RK.phase==='queue')rkCancel();show('sTitle');};
+$('rkBlock').onclick=()=>{if(!(RK.opp&&RK.opp.uid))return;lumenBlock(RK.opp.uid);rkSt('Blocked on this device. Matchmaking on this device will skip them.');};
+$('rkReport').onclick=()=>{if(!(RK.opp&&RK.opp.uid))return;$('rkReport').disabled=true;lumenReport(RK.opp.uid,'ranked',RK.opp.name).then(m=>{rkSt(m);$('rkReport').disabled=false;});};
 function skNext(){if(SK.endless){if(endWin)startSkirm(SK.cfg,skRandSeed(),0);else{SK.streak=0;startSkirm(SK.cfg,skRandSeed(),0);}}else startSkirm(SK.cfg,skRandSeed(),false);}
 function showSkEnd(){if(SK.daily){showDailyEnd();return;}setTimeout(()=>achEnd({mode:'skirm'}),0);if(SK.ranked){rankedEnd();return;}state='end';const t=$('endT');const mm=mmss(time);
   if(endWin){t.textContent='VICTORY';t.className='win';sfx.win();}else{t.textContent='DEFEAT';t.className='lose';sfx.lose();}
@@ -2297,12 +2326,12 @@ instRefresh();
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!/[?&]nosw/.test(location.search))window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(()=>{});});
 
 /* ---------------- multiplayer: PeerJS signaling, WebRTC data channels, host-authoritative ---------------- */
-const PEER_SRC=['https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js'];
+const PEER_SRC=window.__LUMEN_IOS_APP?['./vendor/peerjs.min.js']:['https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js'];
 const PEER_SRI='sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu';
 const PEER_OPTS={debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}};
 const ROOM_PREFIX='lumen-mp-v1-',CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function loadPeer(){if(window.Peer)return Promise.resolve();return new Promise((res,rej)=>{let k=0;const next=()=>{if(k>=PEER_SRC.length)return rej(new Error('Could not load the multiplayer library. Are you online?'));
-  const sc=document.createElement('script');sc.src=PEER_SRC[k++];sc.integrity=PEER_SRI;sc.crossOrigin='anonymous';sc.onload=()=>window.Peer?res():next();sc.onerror=next;document.head.appendChild(sc);};next();});}
+  const sc=document.createElement('script');sc.src=PEER_SRC[k++];if(!window.__LUMEN_IOS_APP){sc.integrity=PEER_SRI;sc.crossOrigin='anonymous';}sc.onload=()=>window.Peer?res():next();sc.onerror=next;document.head.appendChild(sc);};next();});}
 function mpStatus(t,err){const el=$('mpStatus');el.textContent=t||'';el.classList.toggle('err',!!err);}
 function mpSendTo(c,m){try{if(c&&c.open){c.send(m);if(m instanceof ArrayBuffer)net.bytesOut+=m.byteLength;else net.bytesOut+=JSON.stringify(m).length;}}catch(e){}}
 function mpBroadcast(m){for(const c of net.conns.values())mpSendTo(c.conn,m);}
@@ -2700,6 +2729,92 @@ if(location.hash==='#debug')window.__lumen={rk:()=>({phase:RK.phase,me:RK.me,mp:
   attack:(p,g,n)=>{const src=planets.findIndex(P=>P.owner===g);if(src<0)return 0;for(let m=0;m<n;m++)spawnOrbiter(src,g,false);setTimeout(()=>sendUnits(src,p,n),80);return n;},
   stress:n=>{for(let k=0;k<n;k++)for(let i=0;i<NP;i++)if(planets[i].owner===0)spawnOrbiter(i,0,false);}};
 
+/* UGC_POLICY_START */
+const LUMEN_BLOCK_WORDS=['fuck','shit','cunt','bitch','nigger','nigga','faggot','retard','porn','nude','slut','whore'];
+function lumenFoldName(s){return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]+/g,'');}
+function lumenPublicNameSanitize(raw){
+  let s=String(raw==null?'':raw).replace(/[\u0000-\u001F\u007F]/g,'').replace(/\s+/g,' ').trim();
+  if(s.length>40)s=s.slice(0,40).trim();
+  if(!s)return '';
+  if(s.indexOf('@')>=0)return '';
+  if(/https?:|www\./i.test(s))return '';
+  const f=lumenFoldName(s);
+  for(let i=0;i<LUMEN_BLOCK_WORDS.length;i++)if(f.indexOf(LUMEN_BLOCK_WORDS[i])>=0)return '';
+  return s;
+}
+function lumenBoardName(stored, displayName){
+  const a=lumenPublicNameSanitize(stored);
+  if(a)return a;
+  const b=lumenPublicNameSanitize(displayName);
+  if(b)return b;
+  return 'Player';
+}
+function lumenLinkOk(u){
+  try{
+    const x=new URL(String(u||''));
+    if(x.protocol!=='https:')return false;
+    const s=String(u).toLowerCase();
+    if(s.indexOf('example.com')>=0||s.indexOf('replace_me')>=0)return false;
+    return true;
+  }catch(e){return false;}
+}
+/* UGC_POLICY_END */
+const LUMEN_LINKS={privacy:'https://example.com/REPLACE_ME/lumen-privacy',terms:'https://example.com/REPLACE_ME/lumen-terms',support:'https://example.com/REPLACE_ME/lumen-support'};
+const LUMEN_NAME_KEY='lumen_public_name',LUMEN_BLOCK_KEY='lumen_blocks_v1',LUMEN_TERMS_KEY='lumen_terms_ack',LUMEN_REPORT_KEY='lumen_report_ids';
+function lumenStoredPublicName(){try{return localStorage.getItem(LUMEN_NAME_KEY)||'';}catch(e){return '';}}
+function lumenRememberPublicName(v){const s=lumenPublicNameSanitize(v);try{if(s)localStorage.setItem(LUMEN_NAME_KEY,s);else localStorage.removeItem(LUMEN_NAME_KEY);}catch(e){}return s;}
+function lumenReadBlocks(){try{const a=JSON.parse(localStorage.getItem(LUMEN_BLOCK_KEY)||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string'&&x.length&&x.length<=128).slice(0,200):[];}catch(e){return [];}}
+function lumenWriteBlocks(a){try{localStorage.setItem(LUMEN_BLOCK_KEY,JSON.stringify(a.slice(0,200)));}catch(e){}}
+function lumenBlocked(id){return !!(id&&lumenReadBlocks().indexOf(id)>=0);}
+function lumenMergeBlocks(ids){const a=lumenReadBlocks();for(const id of ids||[])if(typeof id==='string'&&id&&a.indexOf(id)<0&&a.length<200)a.push(id);lumenWriteBlocks(a);}
+function lumenBlock(id){if(!id||lumenBlocked(id))return;const a=lumenReadBlocks();a.push(String(id).slice(0,128));lumenWriteBlocks(a);lumenPushBlocks();}
+function lumenUnblock(id){lumenWriteBlocks(lumenReadBlocks().filter(x=>x!==id));lumenPushBlocks();}
+function lumenPushBlocks(){const X=CLOUD&&CLOUD.x;if(!X||!X.can())return;X.set('blocks/'+X.uid(),{uids:lumenReadBlocks(),updatedAt:X.TS}).catch(()=>{});}
+function lumenTermsAccepted(){try{return localStorage.getItem(LUMEN_TERMS_KEY)==='draft-2026-11-07';}catch(e){return false;}}
+function lumenAcceptTerms(){try{localStorage.setItem(LUMEN_TERMS_KEY,'draft-2026-11-07');}catch(e){}}
+function lumenNativePost(msg){try{const h=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.lumenNative;if(h)h.postMessage(msg);}catch(e){}}
+const LUMEN_PRIVACY_TEXT='DRAFT — not a published privacy policy and not legal advice.\n\nLUMEN stores a campaign save on this device (progress, settings, stats, achievements). If you sign in, Firebase Authentication keeps an account id, display name, email address, and profile-photo URL from Google or Apple. The cloud save is the same progress document, stored under your account id.\n\nIf you post a daily time or play ranked, the public name below and the score or rating are stored in Firestore. Daily times are world-readable. Ratings and matchmaking tickets are readable by signed-in players. Your email is not posted. There is no player-written chat.\n\nMultiplayer sends room codes and match moves through PeerJS and WebRTC, including STUN servers operated by Google and Cloudflare. The iOS app bundles the Firebase and PeerJS scripts. The website loads those scripts from their public CDNs.\n\nThis game does not use advertising, IDFA, or App Tracking Transparency. It does not sell digital items. Battery level, if the browser exposes it, stays on the device and only lowers graphics.\n\nAccount deletion is inside the game. It is not finished until the Firebase rules in this repo are published and, for Sign in with Apple, the Apple provider key is saved in Firebase. Reports you file are kept for moderation and are deleted on account deletion only for report ids still stored on this device.\n\nA legal entity name, postal address, and support contact were not in the repository. The public privacy URL is still a placeholder and is not opened.';
+const LUMEN_TERMS_TEXT='DRAFT — not published terms and not legal advice.\n\nYou may play offline without an account. If you sign in and post a public name, time, or rating, you agree not to use a name that is unlawful, hateful, harassing, sexually explicit, or that publishes someone else’s personal information. The game filters some names on this device and lets you block a player here. Server storage of reports starts only after the Firestore rules are published. There is no live moderator in this build, and no support address has been configured.\n\nMatch results and ratings are reported by the game client. They are not an official competition.\n\nThe campaign stored on this device is not erased when you delete the cloud account.';
+let lumenLegalFrom='sTitle';
+function lumenShowLegal(kind, accept){
+  lumenLegalFrom=(function(){const ids=['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall','sDaily','sAch','sSettings','sRanked'];return ids.find(id=>$(id)&&!$(id).classList.contains('hidden'))||'sTitle';})();
+  $('legalTitle').textContent=kind==='terms'?'Terms':'Privacy';
+  $('legalBody').textContent=kind==='terms'?LUMEN_TERMS_TEXT:LUMEN_PRIVACY_TEXT;
+  $('legalAccept').classList.toggle('hidden',!accept);
+  const url=kind==='terms'?LUMEN_LINKS.terms:LUMEN_LINKS.privacy;
+  $('legalUrlNote').textContent=lumenLinkOk(url)?'':'Public URL is not configured, so this screen does not open one.';
+  show('sLegal');
+}
+function lumenRememberReport(id){try{const a=JSON.parse(localStorage.getItem(LUMEN_REPORT_KEY)||'[]');a.push(id);while(a.length>100)a.shift();localStorage.setItem(LUMEN_REPORT_KEY,JSON.stringify(a));}catch(e){}}
+async function lumenReport(target, context, nameSnapshot){
+  const X=CLOUD.x;
+  lumenBlock(target);
+  if(!X.can())return 'This player is blocked on this device. The report was not sent because you are not signed in.';
+  const id=X.uid()+'_'+String(target).replace(/[^A-Za-z0-9_-]/g,'').slice(0,80)+'_'+context+'_'+Date.now();
+  try{
+    await X.set('reports/'+id,{reporter:X.uid(),target:String(target).slice(0,128),context,reason:'name',nameSnapshot:String(nameSnapshot||'').slice(0,40),ts:X.TS});
+    lumenRememberReport(id);
+    return 'Report stored for the developer. This player is blocked on this device. A person still has to review it after the rules are published.';
+  }catch(e){
+    const c=String(e&&(e.code||e.message)||e);
+    if(/permission/i.test(c))return 'This player is blocked on this device. The report was not stored because the live Firestore rules do not allow reports yet.';
+    return 'This player is blocked on this device. The report was not stored. '+c;
+  }
+}
+function lumenRowTools(li, row, me){
+  if(!row.id||row.id===me)return;
+  if(lumenBlocked(row.id)){
+    const b=document.createElement('button');b.type='button';b.textContent='Unblock';
+    b.onclick=()=>{lumenUnblock(row.id);dailyBoard(dailyKey());};
+    li.appendChild(b);return;
+  }
+  const block=document.createElement('button');block.type='button';block.textContent='Block';
+  block.onclick=()=>{lumenBlock(row.id);dailyBoard(dailyKey());};
+  const report=document.createElement('button');report.type='button';report.textContent='Report';
+  report.onclick=()=>{report.disabled=true;lumenReport(row.id,'daily',row.name).then(m=>{const st=$('dyLbSt');if(st)st.textContent=m;});};
+  li.appendChild(block);li.appendChild(report);
+}
+
 /* =====================================================================
    CLOUD SAVE (optional Google sign-in via Firebase Auth + Firestore)
    >>> PASTE THE FIREBASE WEB CONFIG HERE <<<  e.g.
@@ -2707,12 +2822,12 @@ if(location.hash==='#debug')window.__lumen={rk:()=>({phase:RK.phase,me:RK.me,mp:
    While it is null, no account UI is shown and nothing is loaded.
    ===================================================================== */
 const FIREBASE_CONFIG={apiKey:"AIzaSyAqPcrqA-akJT592vqcxjbpt9loaP_Jjz0",authDomain:"lumon-4397e.firebaseapp.com",projectId:"lumon-4397e",storageBucket:"lumon-4397e.firebasestorage.app",messagingSenderId:"453315321163",appId:"1:453315321163:web:0ea5473803d273ea509cce"};
-const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/';
+const FB_SDK=window.__LUMEN_IOS_APP?'./vendor/firebase/':'https://www.gstatic.com/firebasejs/10.12.2/';
 const CLOUD=(()=>{
   const MOCK=location.hash==='#debug'&&window.__lumenFbMock||null; // Playwright test hook
   const CFG=FIREBASE_CONFIG||(MOCK&&MOCK.config)||null;
   const DKEY='lumen_cloud_dirty';
-  let fb=null,loading=null,user=null,ready=false,tmr=0,busy=false,st='';
+  let fb=null,loading=null,user=null,ready=false,tmr=0,busy=false,st='',authRef=null,authSdk=null;
   const n=v=>typeof v==='number'&&isFinite(v)?v:0;
   // pure merge: max progress, best (lowest) time per sector, union of flags/tips, newest settings by setT
   function merge(L,C){L=L||{};C=C||{};const o=Object.assign({},C,L);
@@ -2730,10 +2845,62 @@ const CLOUD=(()=>{
   const clean=o=>JSON.parse(JSON.stringify(o));
   const dirty=v=>{try{v?localStorage.setItem(DKEY,'1'):localStorage.removeItem(DKEY);}catch(e){}};
   const isDirty=()=>{try{return localStorage.getItem(DKEY)==='1';}catch(e){return false;}};
+
+  function denied(e){return /permission-denied|insufficient/i.test(String(e&&(e.code||e.message)||e));}
+  function requestNative(action){return new Promise((resolve,reject)=>{const h=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.lumenNative;if(!h){reject(new Error('Sign in with Apple is not available in this browser.'));return;}window.__lumenNativeWait={resolve,reject};h.postMessage({action});});}
+  async function signInWithNativeApple(msg){if(!authSdk||!authRef)throw new Error('Sign-in is not loaded.');
+    const provider=new authSdk.OAuthProvider('apple.com');
+    const cred=provider.credential({idToken:msg.idToken,rawNonce:msg.nonce});
+    const result=await authSdk.signInWithCredential(authRef,cred);
+    const fn=String(msg.fullName||'').trim().slice(0,40);
+    if(fn&&result.user&&!result.user.displayName){try{await authSdk.updateProfile(result.user,{displayName:fn});}catch(e){}}
+    return result;}
+  async function signInApple(){if(window.__LUMEN_IOS_APP){const msg=await requestNative('signInWithApple');return signInWithNativeApple(msg);}
+    const provider=new authSdk.OAuthProvider('apple.com');provider.addScope('email');provider.addScope('name');
+    try{return await authSdk.signInWithPopup(authRef,provider);}catch(e){const c=e&&e.code||'';
+      if(/popup-closed-by-user|cancelled-popup-request/.test(c)){setSt('Sign-in cancelled');return;}
+      if(/operation-not-allowed|unauthorized-domain/.test(c)){setSt('Sign in with Apple is not enabled for this Firebase project yet. No account was created.');return;}
+      throw e;}}
+  async function revokeAppleCode(code){if(!code)throw new Error('Apple did not return an authorization code. The token was not revoked and the account was not deleted.');
+    const idToken=await user.getIdToken();
+    const res=await fetch('https://identitytoolkit.googleapis.com/v2/accounts:revokeToken?key='+encodeURIComponent(CFG.apiKey),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({providerId:'apple.com',tokenType:'3',token:code,idToken})});
+    if(!res.ok){const t=await res.text();throw new Error('Apple token revocation failed ('+res.status+'). The sign-in account was not deleted. '+t.slice(0,180));}}
+  async function revokeCurrentProvider(){const ids=(user.providerData||[]).map(p=>p.providerId);
+    if(ids.indexOf('apple.com')>=0){if(window.__LUMEN_IOS_APP){const msg=await requestNative('appleAuthorizationCode');
+        const provider=new authSdk.OAuthProvider('apple.com');const cred=provider.credential({idToken:msg.idToken,rawNonce:msg.nonce});
+        await authSdk.reauthenticateWithCredential(user,cred);await revokeAppleCode(msg.authorizationCode);return;}
+      const provider=new authSdk.OAuthProvider('apple.com');provider.addScope('email');provider.addScope('name');
+      const result=await authSdk.reauthenticateWithPopup(user,provider);const cred=authSdk.OAuthProvider.credentialFromResult(result);
+      if(!cred||!cred.accessToken)throw new Error('Apple did not return an access token. The account was not deleted.');
+      await authSdk.revokeAccessToken(authRef,cred.accessToken);return;}
+    if(ids.indexOf('google.com')>=0){const provider=new authSdk.GoogleAuthProvider();
+      const result=await authSdk.reauthenticateWithPopup(user,provider);const cred=authSdk.GoogleAuthProvider.credentialFromResult(result);
+      if(!cred||!cred.accessToken)throw new Error('Google did not return an access token. The account was not deleted.');
+      const res=await fetch('https://oauth2.googleapis.com/revoke?token='+encodeURIComponent(cred.accessToken),{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+      if(!res.ok)throw new Error('Google token revocation failed ('+res.status+'). The account was not deleted.');return;}
+    throw new Error('No Apple or Google provider was found to revoke. The account was not deleted.');}
+  async function deleteAccount(alreadyConfirmed){if(!user||!fb)return 'Sign in before deleting an account. Nothing was deleted.';
+    if(!alreadyConfirmed && !confirm('Delete this LUMEN account? This removes the sign-in and the cloud save, and asks Apple or Google to revoke the token for this app. The campaign saved on this device stays. This cannot be undone.'))return 'Deletion cancelled. Nothing was deleted.';
+    const uid=user.uid;const days=Object.keys(save.daily||{}).filter(k=>/^[0-9]{8}$/.test(k));
+    const probe=days.length?('daily/'+days[0]+'/scores/'+uid):('ratings/'+uid);
+    try{await fb.ddel(probe);}catch(e){if(denied(e))return 'Account deletion is not available yet. The live Firestore rules still block deleting ratings or daily scores. Your account, cloud save, and on-device progress were not changed. Publish firestore.rules from this repo, then try again.';return 'Deletion stopped before any sign-in change: '+(e&&(e.message||e.code)||e);}
+    try{for(const day of days){const pth='daily/'+day+'/scores/'+uid;if(pth!==probe)await fb.ddel(pth);}
+      if(probe.indexOf('ratings/')!==0)await fb.ddel('ratings/'+uid);
+      await fb.ddel('queue/'+uid);await fb.ddel('blocks/'+uid);
+      let ids=[];try{ids=JSON.parse(localStorage.getItem(LUMEN_REPORT_KEY)||'[]');}catch(e){}
+      for(const id of ids){if(typeof id==='string'&&id.indexOf(uid+'_')===0)await fb.ddel('reports/'+id);}
+      await fb.ddel('users/'+uid);
+    }catch(e){return 'Deletion stopped after some cloud rows were removed. The sign-in account was kept. '+(e&&(e.code||e.message)||e);}
+    try{await revokeCurrentProvider();}catch(e){return 'Cloud rows for this account were removed, but token revocation failed, so the sign-in account was kept. '+(e&&e.message||e);}
+    try{await authSdk.deleteUser(user);}catch(e){return 'Token revocation ran, but deleting the sign-in account failed. '+(e&&(e.code||e.message)||e);}
+    return 'Account deleted. The campaign on this device is still here.';}
   function ui(){const A=$('acct');if(!CFG){A.classList.add('hidden');return;}A.classList.remove('hidden');
     const av=$('acctAv');if(user&&user.photoURL){av.src=user.photoURL;av.classList.remove('hidden');}else av.classList.add('hidden');
-    $('acctNm').textContent=user?(user.displayName||user.email||'Signed in'):'';
-    $('bAcct').textContent=user?'Sign out':(fb?'Sign in with Google':'Sign in with Google…');$('bAcct').disabled=!fb&&!!loading;$('acctSt').textContent=st;}
+    $('acctNm').textContent=user?(user.displayName||'Signed in'):'';
+    $('bApple').classList.toggle('hidden',!!user);$('bApple').disabled=!fb&&!!loading;
+    $('bAcct').textContent=user?'Sign out':(fb?'Sign in with Google':'Sign in with Google…');$('bAcct').disabled=!fb&&!!loading;$('bAcct').classList.toggle('google-btn',!user);
+    $('bDeleteAcct').classList.toggle('hidden',!user);$('acctSt').textContent=st;
+    lumenNativePost({action:'authState',signedIn:!!user,name:user&&(user.displayName||'')||'',providers:user?(user.providerData||[]).map(p=>p.providerId):[]});}
   async function load(){if(fb)return fb;if(loading)return loading;
     loading=(async()=>{
       if(MOCK){fb=MOCK.api;}else{
@@ -2743,13 +2910,14 @@ const CLOUD=(()=>{
         try{auth=U.initializeAuth(app,{persistence:[U.indexedDBLocalPersistence,U.browserLocalPersistence],popupRedirectResolver:U.browserPopupRedirectResolver});}catch(e){auth=U.getAuth(app);}
         let db;try{db=F.initializeFirestore(app,{localCache:F.persistentLocalCache()});}catch(e){db=F.getFirestore(app);}
         const prov=new U.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
+        authRef=auth;authSdk=U;
         U.getRedirectResult(auth).catch(e=>authErr(e));
         fb={onAuth:cb=>U.onAuthStateChanged(auth,cb,e=>authErr(e)),
           // must be called synchronously from the tap (no await before it) so Safari allows the popup
           signIn:()=>U.signInWithPopup(auth,prov).catch(e=>{
             const c=e&&e.code||'';
             if(/popup-closed-by-user|cancelled-popup-request/.test(c)){setSt('Sign-in cancelled');return;}
-            if(/operation-not-supported-in-this-environment/.test(c)&&!STANDALONE)return U.signInWithRedirect(auth,prov);
+            if(/operation-not-supported-in-this-environment/.test(c)&&!STANDALONE&&!window.__LUMEN_IOS_APP)return U.signInWithRedirect(auth,prov);
             throw e;}),
           signOut:()=>U.signOut(auth),
           get:async uid=>{const d=await F.getDoc(F.doc(db,'users',uid));return d.exists()?d.data():null;},
@@ -2772,6 +2940,7 @@ const CLOUD=(()=>{
     st='syncing…';ui();
     try{const doc=await fb.get(user.uid);if(!user||user.uid!==(u&&u.uid))return;
       const m=merge(save,doc&&doc.save);Object.assign(save,m);lastSetFp=setFp();
+      try{const b=await fb.dget('blocks/'+user.uid);if(b&&Array.isArray(b.uids))lumenMergeBlocks(b.uids);}catch(e){}
       try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}
       ready=true;if(state==='title')refreshUI();await push();}
     catch(e){st='offline'+(e&&e.code?' ('+e.code+')':'');ready=true;dirty(true);ui();}}
@@ -2784,11 +2953,24 @@ const CLOUD=(()=>{
     // SDK is preloaded; the popup opens synchronously inside the tap. If not loaded yet, this tap loads it and the next tap signs in.
     $('bAcct').onclick=()=>{if(!fb){setSt('Loading sign-in…');load().then(()=>setSt('Tap again to sign in')).catch(e=>setSt('Sign-in unavailable (offline?)'));return;}
       setSt('');const r=user?fb.signOut():fb.signIn();Promise.resolve(r).catch(authErr);};
+    $('bApple').onclick=()=>{if(!fb){setSt('Loading sign-in…');load().then(()=>setSt('Tap Sign in with Apple again')).catch(e=>setSt('Sign-in unavailable (offline?)'));return;}
+      setSt('');Promise.resolve(signInApple()).catch(authErr);};
+    $('bDeleteAcct').onclick=()=>{Promise.resolve(window.__lumenDeleteAccount(false)).then(m=>{if(m)setSt(m);});};
+    window.__lumenOnNative=function(b64){let msg;try{msg=JSON.parse(atob(b64));}catch(e){return;}
+      if(window.__lumenNativeWait){const p=window.__lumenNativeWait;window.__lumenNativeWait=null;if(msg.ok)p.resolve(msg);else p.reject(new Error(msg.error||'Sign in with Apple was cancelled.'));return;}
+      window.__lumenCompleteAppleSignIn(b64);};
+    if(window.__lumenNativeQueue)while(window.__lumenNativeQueue.length)window.__lumenOnNative(window.__lumenNativeQueue.shift());
+    window.__lumenCompleteAppleSignIn=async function(b64){let msg;try{msg=JSON.parse(atob(b64));}catch(e){setSt('Sign-in failed.');return 'ERROR';}
+      if(!msg.ok){setSt(msg.error||'Sign in with Apple was cancelled.');return 'CANCELLED';}
+      try{if(!fb)await load();await signInWithNativeApple(msg);setSt('');return 'OK';}catch(e){authErr(e);return 'ERROR';}};
+    window.__lumenDeleteAccount=already=>deleteAccount(!!already);
+    window.__lumenSignOut=()=>{if(fb&&user)Promise.resolve(fb.signOut()).catch(authErr);};
+    window.__lumenStartGoogle=()=>{if(user){setSt('Already signed in.');return;}if(!fb){setSt('Loading sign-in…');load().then(()=>$('bAcct').click()).catch(()=>setSt('Sign-in unavailable (offline?)'));return;}$('bAcct').click();};
     addEventListener('online',()=>{if(isDirty())push();});
     // lazy: restore an existing session shortly after start, never blocking the game; failures (offline) are silent
     setTimeout(()=>{if(navigator.onLine!==false||MOCK)load().catch(()=>{});},MOCK?50:300);}
   // generic Firestore helpers for daily leaderboards / ratings / matchmaking; every call may fail (offline, rules not deployed)
-  const x={TS:'__TS__',signedIn:()=>!!user,loaded:()=>!!fb,can:()=>!!(user&&fb&&fb.dset),canRead:()=>!!(fb&&fb.dlist),uid:()=>user&&user.uid,name:()=>String(user&&(user.displayName||(user.email||'').split('@')[0])||'Player').slice(0,40),
+  const x={TS:'__TS__',signedIn:()=>!!user,loaded:()=>!!fb,can:()=>!!(user&&fb&&fb.dset),canRead:()=>!!(fb&&fb.dlist),uid:()=>user&&user.uid,name:()=>lumenBoardName(lumenStoredPublicName(), user&&user.displayName),
     get:p=>fb.dget(p),set:(p,d)=>fb.dset(p,d),del:p=>fb.ddel(p),list:(c,f,d,n)=>fb.dlist(c,f,d,n),watch:(p,cb)=>fb.dwatch(p,cb),
     why:e=>{const c=String(e&&(e.code||e.message)||e);return /permission/i.test(c)?'Online features are not enabled yet (the Firestore rules need updating).':/unavailable|offline|network/i.test(c)?'Offline: leaderboard unavailable right now.':'Online error: '+c;}};
   return {x,merge,touch,flush:()=>{if(user&&ready)push();},init,info:()=>({cfg:!!CFG,user:user&&user.uid,ready,st,dirty:isDirty(),loaded:!!fb})};
