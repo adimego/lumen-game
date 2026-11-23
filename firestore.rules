@@ -1,6 +1,8 @@
 rules_version = '2';
 // LUMEN: cloud saves, daily leaderboards, ranked ratings + matchmaking queue.
 // All scores/ratings are client-reported (no server-side anti-cheat); these rules only bound them.
+// Owner delete on ratings/daily scores, plus reports and blocks, is NOT live until a person publishes this file.
+// Do not treat a commit of this file as a production rules deploy.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
@@ -17,7 +19,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isOwner(uid) && day.matches('^[0-9]{8}$') && validScore(request.resource.data);
       allow update: if isOwner(uid) && validScore(request.resource.data) && request.resource.data.time < resource.data.time;
-      allow delete: if false;
+      allow delete: if isOwner(uid);
     }
 
     // ratings/{uid}: Elo rating, readable by signed-in players, writable only by its owner with bounded changes.
@@ -28,7 +30,7 @@ service cloud.firestore {
       allow create: if isOwner(uid) && ratingShape(request.resource.data)
         && request.resource.data.r == 1000 && request.resource.data.n == 0 && request.resource.data.w == 0 && request.resource.data.pend == false;
       allow update: if isOwner(uid) && ratingShape(request.resource.data) && ratingStep(resource.data, request.resource.data);
-      allow delete: if false;
+      allow delete: if isOwner(uid);
     }
 
     // queue/{uid}: matchmaking tickets. Owner writes its own; anyone signed in may delete tickets older than 2 minutes.
@@ -36,6 +38,34 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create, update: if isOwner(uid) && validTicket(request.resource.data);
       allow delete: if isOwner(uid) || (signedIn() && resource.data.ts < request.time - duration.value(120, 's'));
+    }
+
+    // reports/{id}: a signed-in player files a moderation report. Clients cannot read or edit them.
+    match /reports/{id} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['reporter', 'target', 'context', 'reason', 'nameSnapshot', 'ts'])
+        && request.resource.data.reporter == request.auth.uid
+        && request.resource.data.target is string
+        && request.resource.data.target.size() > 0
+        && request.resource.data.target.size() <= 128
+        && (request.resource.data.context == 'daily' || request.resource.data.context == 'ranked')
+        && request.resource.data.reason == 'name'
+        && request.resource.data.nameSnapshot is string
+        && request.resource.data.nameSnapshot.size() <= 40
+        && request.resource.data.ts == request.time
+        && id.size() <= 200;
+      allow read, update: if false;
+      allow delete: if signedIn() && resource.data.reporter == request.auth.uid;
+    }
+
+    // blocks/{uid}: device block list mirrored for the signed-in player. Not a server-wide ban.
+    match /blocks/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['uids', 'updatedAt'])
+        && request.resource.data.uids is list
+        && request.resource.data.uids.size() <= 200
+        && request.resource.data.updatedAt == request.time;
     }
 
     // everything else is closed
@@ -62,6 +92,7 @@ service cloud.firestore {
   function validScore(d) {
     return d.keys().hasOnly(['name', 'time', 'ts'])
       && d.name is string && d.name.size() >= 1 && d.name.size() <= 40
+      && !d.name.matches('.*@.*')
       && d.time is int && d.time >= 20 && d.time <= 7200
       && d.ts == request.time;
   }
@@ -72,6 +103,7 @@ service cloud.firestore {
       && d.peak is int && d.peak <= 4000
       && d.pend is bool
       && d.name is string && d.name.size() <= 40
+      && !d.name.matches('.*@.*')
       && d.ts == request.time;
   }
   function ratingStep(o, d) {
@@ -84,6 +116,7 @@ service cloud.firestore {
       && d.r is int && d.r >= 100 && d.r <= 4000
       && d.code is string && d.code.size() == 4
       && d.name is string && d.name.size() <= 40
+      && !d.name.matches('.*@.*')
       && d.m is string && d.m.size() <= 128
       && d.ts == request.time;
   }
