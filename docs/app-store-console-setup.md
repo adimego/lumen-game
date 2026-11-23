@@ -13,11 +13,11 @@ A Release build of `ios/Lumen.xcodeproj` runs that command and stops. Debug buil
 ## Apple Developer
 
 1. Join the Apple Developer Program with the account that will publish the game.
-2. Register a real bundle id. `com.example.lumen.orbitalconquest` in `ios/Config/AppStore.xcconfig` is a placeholder.
+2. Register the bundle id `com.adimego.lumen` (already set in `ios/Config/AppStore.xcconfig`) on that App ID.
 3. Enable Sign in with Apple for that App ID. The entitlement file already requests the Default Sign in with Apple capability.
 4. Create a Sign in with Apple key (Key ID plus a `.p8` private key) and a Services ID if the website will use Apple’s web flow. Put the private key in the Firebase console only. Do not add it to the repository or the app binary.
-5. Replace `LUMEN_DEVELOPMENT_TEAM` with the Team ID. Leave `DEVELOPMENT_TEAM` empty until Xcode signing is set up on a Mac, then set the real team so the app can be signed.
-6. Host the privacy policy and terms on HTTPS addresses you control. Replace `LUMEN_PRIVACY_POLICY_URL`, `LUMEN_TERMS_URL`, and `LUMEN_SUPPORT_URL`. The same three placeholders are in `index.html` as `LUMEN_LINKS`. The in-app drafts in `docs/legal/` are not the published policy.
+5. Replace `LUMEN_DEVELOPMENT_TEAM` (`TODO_APPLE_TEAM_ID`) with the 10-character Team ID. Leave `DEVELOPMENT_TEAM` empty until Xcode signing is set up on a Mac, then set the real team so the app can be signed.
+6. The public pages are already `https://adimego.github.io/lumen-game/privacy.html`, `terms.html`, and `support.html`. They go live when this branch is merged to `main` and GitHub Pages publishes it. Use the privacy URL in App Store Connect. Support is GitHub Issues via the support page. `TODO_APP_STORE_CONNECT_CONTACT_EMAIL` is the Apple ID email for the developer account. It is not in this repo. Do not invent one.
 7. In App Store Connect, create the app, set the privacy policy URL, complete the age-rating questionnaire, the privacy nutrition labels, export compliance, and screenshots. `ITSAppUsesNonExemptEncryption` is false because the app uses ordinary HTTPS and CryptoKit’s SHA-256 for the Apple nonce, not a custom cipher. Confirm that answer yourself before you submit.
 8. Do not submit from this tree while `scripts/appstore-readiness-check.sh --strict` fails.
 
@@ -41,4 +41,4 @@ On a Mac:
 xcodebuild -project ios/Lumen.xcodeproj -scheme Lumen -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 16' build
 ```
 
-Then exercise Sign in with Apple, Google sign-in, a failed deletion before the rules publish, a successful deletion after it, a daily board report and block, ranked matchmaking skipping a blocked id, safe areas on a notched phone and an iPad, VoiceOver on the native Account sheet, and an archive only after the placeholders are gone.
+Then exercise Sign in with Apple, Google sign-in, a failed deletion before the rules publish, a successful deletion after it, a daily board report and block, ranked matchmaking skipping a blocked id, safe areas on a notched phone and an iPad, VoiceOver on the native Account sheet, and an archive only after `TODO_APPLE_TEAM_ID` is replaced with the real Team ID.

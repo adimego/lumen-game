@@ -1,6 +1,7 @@
-/* LUMEN service worker: versioned precache, network-first page (updates on reload), runtime cache for the PeerJS CDN. */
-const VERSION = 'lumen-v25';
-const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
+/* LUMEN service worker: versioned precache, network-first game page (updates on reload), runtime cache for the PeerJS CDN.
+   Legal pages are cached under their own URLs. A visit to privacy.html must not be stored as index.html. */
+const VERSION = 'lumen-v26';
+const CORE = ['./', './index.html', './privacy.html', './terms.html', './support.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const CDN = ['https://cdn.jsdelivr.net/npm/peerjs@', 'https://unpkg.com/peerjs@'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -20,10 +21,18 @@ self.addEventListener('fetch', e => {
     return;
   }
   if (new URL(url).origin !== self.location.origin) return;
-  // the game page: network first, so a reload picks up a new version; fall back to the cache offline
-  if (req.mode === 'navigate' || url.endsWith('/index.html')) {
+  const path = new URL(url).pathname.replace(/\/+$/, '') || '/';
+  const gameNav = req.mode === 'navigate' && (path === '/' || path.endsWith('/index.html') || path.endsWith('/lumen-game'));
+  // the game page only: network first, so a reload picks up a new version; fall back to the game cache offline
+  if (gameNav) {
     e.respondWith(fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(VERSION).then(c => c.put('./index.html', cp)); } return r; })
       .catch(() => caches.match('./index.html').then(r => r || caches.match('./'))));
+    return;
+  }
+  // other pages, including privacy, terms, and support: network first, cached as themselves, never substituted for the game
+  if (req.mode === 'navigate') {
+    e.respondWith(fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(VERSION).then(c => c.put(req, cp)); } return r; })
+      .catch(() => caches.match(req).then(hit => hit || new Response('This page is not available offline.', {status:503, headers:{'Content-Type':'text/plain;charset=utf-8'}}))));
     return;
   }
   // other same-origin files: cache first, refresh in the background

@@ -1,14 +1,12 @@
-# Privacy draft for LUMEN: Orbital Conquest
+# Privacy policy for LUMEN: Orbital Conquest
 
-**DRAFT. Not a published policy. Not legal advice. Do not host this file as the live policy and do not paste its placeholder URL into App Store Connect.**
+Published by Adam Lyons. This page describes what the game does with data. It is not a law-firm opinion.
 
-Reviewed against the repository on 7 November 2026. A legal entity name, postal address, email address, and phone number were not in the repository. Those fields are left blank on purpose.
+The operator is Adam Lyons. Support is through GitHub Issues on [adimego/lumen-game](https://github.com/adimego/lumen-game/issues). No support email address is published, because none is stored in the game repository.
 
-## Who this draft is about
+## Who operates the game
 
-Assumption, not verified: one independent developer publishes the game. Replace this sentence with the legal name of the publisher before publication.
-
-The game is LUMEN: Orbital Conquest. The Firebase project id observed in the client config is `lumon-4397e`. That config is a client identifier already shipped in the web game. It is not a server secret. Security depends on Firebase Authentication and the Firestore rules.
+Adam Lyons publishes LUMEN: Orbital Conquest. The Firebase project id in the client is `lumon-4397e`. That config is a client identifier. It is not a server secret. Security depends on Firebase Authentication and the Firestore rules.
 
 ## What is stored on the device
 
@@ -18,7 +16,7 @@ These additional keys are not part of the cloud save document:
 
 - a public leaderboard name, if you set one
 - player ids you have blocked on this device
-- whether you accepted the draft terms on this device
+- whether you accepted the terms on this device
 - ids of reports filed from this device, so account deletion can try to remove them
 
 Firebase Authentication may also keep its session in IndexedDB. Firestore may keep a local cache.
@@ -43,7 +41,7 @@ Ranked play stores a rating document and a short-lived matchmaking ticket. Signe
 
 Blocking a player hides that player’s leaderboard name on this device and skips that player in ranked matchmaking on this device. It is not a ban for everyone else. The block list can be copied to `blocks/{account id}` only after the updated rules are published. Until then the copy fails and the local block still works.
 
-A report writes a document the client cannot read: reporter id, target id, context (`daily` or `ranked`), the reason `name`, a short snapshot of the name, and a timestamp. The write fails until the rules are published. The game does not claim the report was stored when the write fails. There is no moderation staff in this repository, and no support address to receive a report another way.
+A report writes a document the client cannot read: reporter id, target id, context (`daily` or `ranked`), the reason `name`, a short snapshot of the name, and a timestamp. The write fails until the updated Firestore rules are published. The game does not claim the report was stored when the write fails. Adam Lyons reads reports from the Firebase project. Players can also write to [GitHub Issues](https://github.com/adimego/lumen-game/issues).
 
 ## Other services the game contacts
 
@@ -56,7 +54,7 @@ No advertising SDK, analytics SDK, IDFA, or payment SDK is included. The game do
 
 ## Children
 
-The repository does not market the game as being for children and does not ask for a birth date. Public names, Google sign-in, and third-party connection services make it a poor fit for the App Store Kids Category without a separate review. This draft does not claim compliance with children’s privacy statutes.
+The game is not marketed as being for children and does not ask for a birth date. Public names, Google sign-in, and third-party connection services make it a poor fit for the App Store Kids Category. This policy does not claim compliance with children’s privacy statutes.
 
 ## Retention and deletion
 
@@ -68,4 +66,4 @@ Reports filed from another device, and daily rows for days no longer in the loca
 
 ## Contact
 
-Not configured. Do not invent an email address for this draft.
+Adam Lyons. [GitHub Issues for adimego/lumen-game](https://github.com/adimego/lumen-game/issues). No email address is listed because the repository does not contain one.

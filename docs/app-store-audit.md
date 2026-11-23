@@ -38,7 +38,7 @@ No purpose strings were added. The app does not call a protected API that requir
 
 The privacy manifest declares name, email, user id, gameplay content, and other user content (the posted public name), each linked to the account, not used for tracking, and used for app functionality. Required-reason API categories are an empty array. The Swift code does not call UserDefaults, disk-space, file-timestamp, boot-time, or active-keyboard APIs. System frameworks are not declared here.
 
-The in-app privacy text is a draft. The public URL is `https://example.com/REPLACE_ME/lumen-privacy`. The button does not open a placeholder URL. Guideline 5.1.1(i) is not met until a real policy is hosted and entered in the app and in App Store Connect.
+The public privacy URL is `https://adimego.github.io/lumen-game/privacy.html`, with terms and support beside it. Those pages are in the repo and are served after merge to `main`. App Store Connect still needs that privacy URL entered by hand. There is no support email in the repo. `TODO_APP_STORE_CONNECT_CONTACT_EMAIL` is the Apple ID email on the developer account.
 
 ### 5.1.1(v) Account deletion and Sign in with Apple revocation
 
@@ -68,11 +68,11 @@ Implemented:
 - Names containing `@`, a URL, control characters, or a small on-device objectionable list are not posted. The public name falls back to the display name and then to “Player”. The email local-part is no longer posted.
 - The public name is stored in its own localStorage key, not in the cloud save, so the existing `validSave` allow-list still accepts the save.
 - Daily rows have Block and Report. Ranked has Block opponent and Report name after a human opponent id exists. Block hides the name locally and skips that id in matchmaking. Report writes a Firestore document and, if the write is denied, says the report was not stored. Block still applies locally.
-- The terms draft forbids unlawful, hateful, harassing, and sexually explicit names.
+- The terms forbid unlawful, hateful, harassing, and sexually explicit names.
 
 Not met:
 
-- No published contact method. The support URL is a placeholder. 1.2 asks for a way to reach the developer.
+- Support is the GitHub Issues link on `support.html`. There is still no email address in the repo. App Store Connect’s account contact email is `TODO_APP_STORE_CONNECT_CONTACT_EMAIL` (the Apple ID email).
 - No person is assigned to review reports, so “timely responses” is an operational gap, not something this code can claim.
 - The name filter is client-side and short. The server, after the rules are published, only rejects `@`. A modified client can still post another string.
 - A block is not a global ban.
@@ -110,15 +110,15 @@ No permission prompt is shown at launch. Sign in with Apple appears when the pla
 - Sign in with Apple bridged into the existing Firebase web session. No second copy of the Firebase config and no Apple private key in the app.
 - Account deletion that stops cleanly on today’s live rules and continues only when deletes are allowed.
 - Public-name filter, local block, and report writes that admit failure.
-- Draft privacy text and terms, with assumptions labeled and no invented contact details.
+- Privacy, terms, and support pages for GitHub Pages, operated by Adam Lyons, with support through GitHub Issues.
 - Cloud save field allow-list left as it was, so existing saves still match the current rules.
 
 ## Still required before any claim of readiness
 
-- Replace every `REPLACE_ME`, `example.com`, and `com.example` value. Confirm `sh scripts/appstore-readiness-check.sh --strict` exits 0.
+- Paste the Apple Developer Team ID over `TODO_APPLE_TEAM_ID`. The readiness check names that step and still exits 0. The Release app keeps a submission block until the Team ID is real.
 - Apple Developer App ID, Team ID, signing, and the Firebase Apple provider with the private key stored in Firebase.
 - Publish `firestore.rules` deliberately. Then test deletion, reports, and blocks against the live project.
-- Host the privacy policy and terms. Put the real URL in the app and in App Store Connect. Provide a real support contact for 1.2.
+- Enter `https://adimego.github.io/lumen-game/privacy.html` in App Store Connect after GitHub Pages publishes `main`. Put the Apple ID email in the developer account. Do not add an invented email to the app.
 - A person has to review reports. The code does not do that.
 - On a Mac: compile, run on a notched iPhone and an iPad, VoiceOver the native sheets, Sign in with Apple, Google sign-in, deletion, and an archive. This environment did not do those steps.
 - Replace the upscaled 1024 icon if you want a master that was drawn at that size. It was flattened from `icon-512.png` onto the game background because the source had an alpha channel.

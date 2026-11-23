@@ -2,7 +2,7 @@
 
 ## iOS App Store scaffold
 
-`ios/Lumen.xcodeproj` is a SwiftUI shell around this game. It is not a signed App Store build. Read `docs/app-store-audit.md` and `docs/app-store-console-setup.md` before uploading anything. Release builds stop while the placeholder URLs and bundle id in `ios/Config/AppStore.xcconfig` remain. The drafts in `docs/legal/` are not a published privacy policy.
+`ios/Lumen.xcodeproj` is a SwiftUI shell around this game. It is not a signed App Store build. Read `docs/app-store-audit.md` and `docs/app-store-console-setup.md` before uploading anything. Privacy, terms, and support are `privacy.html`, `terms.html`, and `support.html` on this site. The Apple Team ID in `ios/Config/AppStore.xcconfig` is still `TODO_APPLE_TEAM_ID`. A Release build of the app stays blocked on that until it is replaced.
 
 ```sh
 node tests/appstore-policy.test.mjs

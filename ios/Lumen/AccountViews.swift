@@ -9,8 +9,8 @@ enum LegalDocument: String, Identifiable {
 
     var title: String {
         switch self {
-        case .privacy: return "Privacy draft"
-        case .terms: return "Terms draft"
+        case .privacy: return "Privacy policy"
+        case .terms: return "Terms of use"
         }
     }
 
@@ -78,9 +78,9 @@ struct AccountSheet: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Button("Privacy draft") { session.legalDocument = .privacy }
+                    Button("Privacy policy") { session.legalDocument = .privacy }
                         .frame(maxWidth: .infinity, minHeight: 44)
-                    Button("Terms draft") { session.legalDocument = .terms }
+                    Button("Terms of use") { session.legalDocument = .terms }
                         .frame(maxWidth: .infinity, minHeight: 44)
 
                     if let support = AppStoreConfig.openableHTTPS(AppStoreConfig.supportURL) {
@@ -139,13 +139,13 @@ struct LegalDraftView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("DRAFT. Not a published policy. Not legal advice. Do not link this build’s placeholder URL from App Store Connect.")
+                    Text("Published by Adam Lyons. This is the same text as the website. It is not a law-firm opinion.")
                         .font(.subheadline.bold())
                     Text(loadBody())
                         .font(.body)
                         .textSelection(.enabled)
                     if let url = document.configuredURL {
-                        Link("Open configured URL", destination: url)
+                        Link("Open on the website", destination: url)
                     } else {
                         Text("The public URL is still a placeholder, so this build does not open it.")
                             .font(.footnote)

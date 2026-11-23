@@ -166,7 +166,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
 #skTer,#mapSel{height:42px;margin-bottom:6px}
 .slot button{height:36px;min-width:64px}.slot .tchip{min-width:32px;height:32px;border-radius:16px}
 #acct{flex-wrap:wrap}#acct button{min-height:40px;padding:6px 14px;border-radius:20px}
-#acct{flex-direction:column;align-items:stretch}#acct .siwa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;height:44px;margin:0;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:600;letter-spacing:-.01em;border:1px solid #000}#acct .siwa svg{width:16px;height:16px;flex:none}#acct .google-btn{min-height:44px;height:44px;border-radius:8px;border:1px solid rgba(120,220,255,.45);background:rgba(10,25,45,.65);font-size:16px;font-weight:600}#bDeleteAcct{min-height:44px;border-radius:22px;border:1px solid rgba(255,120,130,.55);color:#ffb4bc;padding:0 14px}#pubName{width:100%;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:600 16px system-ui,sans-serif;text-align:center;outline:none;-webkit-user-select:text;user-select:text}#legalBody{-webkit-user-select:text;user-select:text;text-align:left;white-space:pre-wrap;max-height:50vh;overflow:auto}.lb li button{min-height:44px;padding:0 10px;border-radius:12px;border:1px solid rgba(120,220,255,.35);background:rgba(10,25,45,.55);font-size:12px;font-weight:600}html.iosapp .screen{padding-top:calc(var(--sat) + 56px)}
+#acct{flex-direction:column;align-items:stretch}#acct .siwa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;height:44px;margin:0;border-radius:8px;background:#000;color:#fff;font-size:17px;font-weight:600;letter-spacing:-.01em;border:1px solid #000}#acct .siwa svg{width:16px;height:16px;flex:none}#acct .google-btn{min-height:44px;height:44px;border-radius:8px;border:1px solid rgba(120,220,255,.45);background:rgba(10,25,45,.65);font-size:16px;font-weight:600}#bDeleteAcct{min-height:44px;border-radius:22px;border:1px solid rgba(255,120,130,.55);color:#ffb4bc;padding:0 14px}#pubName{width:100%;height:44px;border-radius:22px;border:1px solid rgba(120,220,255,.4);background:rgba(10,25,45,.6);color:#fff;font:600 16px system-ui,sans-serif;text-align:center;outline:none;-webkit-user-select:text;user-select:text}#legalBody{-webkit-user-select:text;user-select:text;text-align:left;white-space:pre-wrap;max-height:50vh;overflow:auto}#legalUrlNote a{color:#9fe9ff}.lb li button{min-height:44px;padding:0 10px;border-radius:12px;border:1px solid rgba(120,220,255,.35);background:rgba(10,25,45,.55);font-size:12px;font-weight:600}html.iosapp .screen{padding-top:calc(var(--sat) + 56px)}
 #bJoin{flex:0 0 92px}
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.modes .big{margin:0;font-size:clamp(13px,3.9vw,16px)}
 .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.tools .ghost{flex:none}#bSettings{grid-column:1/-1}
@@ -411,7 +411,7 @@ h2{font-size:clamp(19px,6.2vw,24px);letter-spacing:clamp(.12em,1vw,.2em);margin-
     <input id="pubName" maxlength="40" autocomplete="off" spellcheck="false" placeholder="Player">
     <p class="note">Shown on the daily board and ranked list. Your email is never posted. Saved on this device until you post a score.</p>
     <button id="bPub" class="ghost" type="button">Save public name</button>
-    <div class="row"><button id="bPrivacy" class="ghost" type="button">Privacy</button><button id="bTerms" class="ghost" type="button">Terms</button></div>
+    <div class="row"><button id="bPrivacy" class="ghost" type="button">Privacy</button><button id="bTerms" class="ghost" type="button">Terms</button><button id="bSupport" class="ghost" type="button">Support</button></div>
     <div class="row"><button id="setBack" class="ghost">Back</button></div>
   </div>
 </div>
@@ -2219,6 +2219,7 @@ $('bAch').onclick=()=>{ensureAudio();achOpen();};$('achBack').onclick=()=>show('
 $('bSettings').onclick=()=>{ensureAudio();if($('pubName'))$('pubName').value=lumenStoredPublicName();show('sSettings');};$('setBack').onclick=()=>show('sTitle');
 $('bPub').onclick=()=>{const s=lumenRememberPublicName($('pubName').value);$('pubName').value=s;toast(s?'Public name saved on this device':'That name can’t be posted. The field was cleared.',2200);};
 $('bPrivacy').onclick=()=>lumenShowLegal('privacy',false);$('bTerms').onclick=()=>lumenShowLegal('terms',false);
+$('bSupport').onclick=()=>lumenOpenConfigured('support');
 $('legalBack').onclick=()=>show(lumenLegalFrom||'sTitle');
 $('legalAccept').onclick=()=>{lumenAcceptTerms();show(lumenLegalFrom||'sTitle');toast('You can post a public score now',1800);};
 /* ---------------- ranked ---------------- */
@@ -2759,7 +2760,7 @@ function lumenLinkOk(u){
   }catch(e){return false;}
 }
 /* UGC_POLICY_END */
-const LUMEN_LINKS={privacy:'https://example.com/REPLACE_ME/lumen-privacy',terms:'https://example.com/REPLACE_ME/lumen-terms',support:'https://example.com/REPLACE_ME/lumen-support'};
+const LUMEN_LINKS={privacy:'https://adimego.github.io/lumen-game/privacy.html',terms:'https://adimego.github.io/lumen-game/terms.html',support:'https://adimego.github.io/lumen-game/support.html'};
 const LUMEN_NAME_KEY='lumen_public_name',LUMEN_BLOCK_KEY='lumen_blocks_v1',LUMEN_TERMS_KEY='lumen_terms_ack',LUMEN_REPORT_KEY='lumen_report_ids';
 function lumenStoredPublicName(){try{return localStorage.getItem(LUMEN_NAME_KEY)||'';}catch(e){return '';}}
 function lumenRememberPublicName(v){const s=lumenPublicNameSanitize(v);try{if(s)localStorage.setItem(LUMEN_NAME_KEY,s);else localStorage.removeItem(LUMEN_NAME_KEY);}catch(e){}return s;}
@@ -2770,11 +2771,17 @@ function lumenMergeBlocks(ids){const a=lumenReadBlocks();for(const id of ids||[]
 function lumenBlock(id){if(!id||lumenBlocked(id))return;const a=lumenReadBlocks();a.push(String(id).slice(0,128));lumenWriteBlocks(a);lumenPushBlocks();}
 function lumenUnblock(id){lumenWriteBlocks(lumenReadBlocks().filter(x=>x!==id));lumenPushBlocks();}
 function lumenPushBlocks(){const X=CLOUD&&CLOUD.x;if(!X||!X.can())return;X.set('blocks/'+X.uid(),{uids:lumenReadBlocks(),updatedAt:X.TS}).catch(()=>{});}
-function lumenTermsAccepted(){try{return localStorage.getItem(LUMEN_TERMS_KEY)==='draft-2026-11-07';}catch(e){return false;}}
-function lumenAcceptTerms(){try{localStorage.setItem(LUMEN_TERMS_KEY,'draft-2026-11-07');}catch(e){}}
+function lumenTermsAccepted(){try{return localStorage.getItem(LUMEN_TERMS_KEY)==='published-2026-11-23';}catch(e){return false;}}
+function lumenAcceptTerms(){try{localStorage.setItem(LUMEN_TERMS_KEY,'published-2026-11-23');}catch(e){}}
+function lumenOpenConfigured(which){
+  const url=LUMEN_LINKS[which];
+  if(!lumenLinkOk(url))return;
+  if(window.__LUMEN_IOS_APP){lumenNativePost({action:'openConfigured',which});return;}
+  location.href=url;
+}
 function lumenNativePost(msg){try{const h=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.lumenNative;if(h)h.postMessage(msg);}catch(e){}}
-const LUMEN_PRIVACY_TEXT='DRAFT — not a published privacy policy and not legal advice.\n\nLUMEN stores a campaign save on this device (progress, settings, stats, achievements). If you sign in, Firebase Authentication keeps an account id, display name, email address, and profile-photo URL from Google or Apple. The cloud save is the same progress document, stored under your account id.\n\nIf you post a daily time or play ranked, the public name below and the score or rating are stored in Firestore. Daily times are world-readable. Ratings and matchmaking tickets are readable by signed-in players. Your email is not posted. There is no player-written chat.\n\nMultiplayer sends room codes and match moves through PeerJS and WebRTC, including STUN servers operated by Google and Cloudflare. The iOS app bundles the Firebase and PeerJS scripts. The website loads those scripts from their public CDNs.\n\nThis game does not use advertising, IDFA, or App Tracking Transparency. It does not sell digital items. Battery level, if the browser exposes it, stays on the device and only lowers graphics.\n\nAccount deletion is inside the game. It is not finished until the Firebase rules in this repo are published and, for Sign in with Apple, the Apple provider key is saved in Firebase. Reports you file are kept for moderation and are deleted on account deletion only for report ids still stored on this device.\n\nA legal entity name, postal address, and support contact were not in the repository. The public privacy URL is still a placeholder and is not opened.';
-const LUMEN_TERMS_TEXT='DRAFT — not published terms and not legal advice.\n\nYou may play offline without an account. If you sign in and post a public name, time, or rating, you agree not to use a name that is unlawful, hateful, harassing, sexually explicit, or that publishes someone else’s personal information. The game filters some names on this device and lets you block a player here. Server storage of reports starts only after the Firestore rules are published. There is no live moderator in this build, and no support address has been configured.\n\nMatch results and ratings are reported by the game client. They are not an official competition.\n\nThe campaign stored on this device is not erased when you delete the cloud account.';
+const LUMEN_PRIVACY_TEXT='Privacy policy for LUMEN: Orbital Conquest, published by Adam Lyons. The full page is linked below.\n\nThe game stores a campaign save on this device (progress, settings, stats, achievements). If you sign in, Firebase Authentication keeps an account id, display name, email address, and profile-photo URL from Google or Apple. The cloud save is that same progress, stored under your account id.\n\nA daily time or ranked rating posts your public name, not your email. Daily times are world-readable. Ratings and matchmaking tickets are readable by signed-in players. There is no player-written chat.\n\nMultiplayer sends room codes and moves through PeerJS and WebRTC, including STUN servers run by Google and Cloudflare. This game does not use advertising, IDFA, or App Tracking Transparency, and it does not sell digital items.\n\nYou can delete the account in the game. Deletion of ratings and daily scores waits until the updated Firestore rules are published. Support is GitHub Issues on adimego/lumen-game. No email address is published.';
+const LUMEN_TERMS_TEXT='Terms of use for LUMEN: Orbital Conquest, between you and Adam Lyons. The full page is linked below.\n\nYou may play offline without an account. If you post a public name, time, or rating, you will not use a name that is unlawful, hateful, harassing, sexually explicit, or that publishes someone else’s personal information. The game may replace a name with Player and lets you block a player on this device.\n\nThere is no player chat. Reports reach Adam Lyons after the Firestore rules are published. You can also open a GitHub Issue on adimego/lumen-game. There is no published email address.\n\nThe game does not sell anything. The campaign stored on this device is not erased when you delete the cloud account.';
 let lumenLegalFrom='sTitle';
 function lumenShowLegal(kind, accept){
   lumenLegalFrom=(function(){const ids=['sTitle','sHow','sPause','sEnd','sMp','sLobby','sSkirm','sInstall','sDaily','sAch','sSettings','sRanked'];return ids.find(id=>$(id)&&!$(id).classList.contains('hidden'))||'sTitle';})();
@@ -2782,7 +2789,9 @@ function lumenShowLegal(kind, accept){
   $('legalBody').textContent=kind==='terms'?LUMEN_TERMS_TEXT:LUMEN_PRIVACY_TEXT;
   $('legalAccept').classList.toggle('hidden',!accept);
   const url=kind==='terms'?LUMEN_LINKS.terms:LUMEN_LINKS.privacy;
-  $('legalUrlNote').textContent=lumenLinkOk(url)?'':'Public URL is not configured, so this screen does not open one.';
+  const note=$('legalUrlNote');note.textContent='';
+  if(lumenLinkOk(url)){const a=document.createElement('a');a.href=url;a.textContent=kind==='terms'?'Open the terms':'Open the privacy policy';a.onclick=ev=>{ev.preventDefault();lumenOpenConfigured(kind==='terms'?'terms':'privacy');};note.appendChild(a);}
+  else note.textContent='Public URL is not configured, so this screen does not open one.';
   show('sLegal');
 }
 function lumenRememberReport(id){try{const a=JSON.parse(localStorage.getItem(LUMEN_REPORT_KEY)||'[]');a.push(id);while(a.length>100)a.shift();localStorage.setItem(LUMEN_REPORT_KEY,JSON.stringify(a));}catch(e){}}

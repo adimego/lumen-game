@@ -1,15 +1,16 @@
 // LUMEN App Store configuration.
-// Values containing REPLACE_ME, example.com, or com.example are unresolved.
-// Release builds refuse to compile while they remain. Do not ship those builds.
 // https:// in xcconfig must be written as https:/$()/ because // starts a comment.
+// LUMEN_DEVELOPMENT_TEAM stays TODO_APPLE_TEAM_ID until Adam pastes the Apple Developer Team ID.
+// App Store Connect contact email is the Apple ID email. It is not in this repo.
+// TODO_APP_STORE_CONNECT_CONTACT_EMAIL
 
-PRODUCT_BUNDLE_IDENTIFIER = com.example.lumen.orbitalconquest
+PRODUCT_BUNDLE_IDENTIFIER = com.adimego.lumen
 MARKETING_VERSION = 26.0
 CURRENT_PROJECT_VERSION = 26
-LUMEN_DEVELOPMENT_TEAM = REPLACE_ME
-LUMEN_PRIVACY_POLICY_URL = https:/$()/example.com/REPLACE_ME/lumen-privacy
-LUMEN_TERMS_URL = https:/$()/example.com/REPLACE_ME/lumen-terms
-LUMEN_SUPPORT_URL = https:/$()/example.com/REPLACE_ME/lumen-support
+LUMEN_DEVELOPMENT_TEAM = TODO_APPLE_TEAM_ID
+LUMEN_PRIVACY_POLICY_URL = https:/$()/adimego.github.io/lumen-game/privacy.html
+LUMEN_TERMS_URL = https:/$()/adimego.github.io/lumen-game/terms.html
+LUMEN_SUPPORT_URL = https:/$()/adimego.github.io/lumen-game/support.html
 
 IPHONEOS_DEPLOYMENT_TARGET = 16.0
 TARGETED_DEVICE_FAMILY = 1,2

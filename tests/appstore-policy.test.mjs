@@ -31,7 +31,9 @@ assert.equal(policy.lumenBoardName('bad@mail', 'Ada'), 'Ada');
 assert.equal(policy.lumenBoardName('', 'a@b.com'), 'Player');
 assert.equal(policy.lumenLinkOk('https://example.com/REPLACE_ME/lumen-privacy'), false);
 assert.equal(policy.lumenLinkOk('http://lumen.example/privacy'), false);
-assert.equal(policy.lumenLinkOk('https://play.lumen.invalid/privacy'), true);
+assert.equal(policy.lumenLinkOk('https://adimego.github.io/lumen-game/privacy.html'), true);
+assert.match(html, /https:\/\/adimego\.github\.io\/lumen-game\/privacy\.html/);
+assert.equal(html.includes('REPLACE_ME'), false);
 
 assert.equal(html.includes("split('@')"), false);
 assert.equal(html.includes('save.publicName'), false);
@@ -50,17 +52,7 @@ const scriptPath = join(dir, 'game.js');
 writeFileSync(scriptPath, html.slice(scriptStart + 8, scriptEnd));
 execFileSync('node', ['--check', scriptPath], { stdio: 'inherit' });
 
-let strictFailed = false;
-try {
-  execFileSync('sh', [join(root, 'scripts/appstore-readiness-check.sh'), '--strict'], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-} catch (error) {
-  strictFailed = true;
-  assert.equal(error.status, 1);
-  assert.match(String(error.stdout), /NOT READY/);
-}
-assert.equal(strictFailed, true);
-const report = execFileSync('sh', [join(root, 'scripts/appstore-readiness-check.sh')], { encoding: 'utf8' });
-assert.match(report, /NOT READY/);
+const report = execFileSync('sh', [join(root, 'scripts/appstore-readiness-check.sh'), '--strict'], { encoding: 'utf8' });
+assert.match(report, /OK:/);
+assert.match(report, /MANUAL: Apple Team ID is TODO_APPLE_TEAM_ID/);
+assert.doesNotMatch(report, /NOT READY/);

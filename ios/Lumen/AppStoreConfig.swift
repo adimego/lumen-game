@@ -18,7 +18,9 @@ enum AppStoreConfig {
         if invalidLink(privacyURL) { issues.append("Privacy policy URL is still a placeholder.") }
         if invalidLink(termsURL) { issues.append("Terms URL is still a placeholder.") }
         if invalidLink(supportURL) { issues.append("Support URL is still a placeholder.") }
-        if isPlaceholder(teamID) { issues.append("Apple Developer Team ID is still REPLACE_ME.") }
+        if teamID.contains("TODO_APPLE_TEAM_ID") || isPlaceholder(teamID) {
+            issues.append("Apple Developer Team ID is still TODO_APPLE_TEAM_ID. Set LUMEN_DEVELOPMENT_TEAM before archive.")
+        }
         if bundleID.isEmpty || bundleID.contains("com.example") || isPlaceholder(bundleID) {
             issues.append("Bundle identifier still uses a placeholder.")
         }

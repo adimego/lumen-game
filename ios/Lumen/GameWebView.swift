@@ -112,6 +112,19 @@ final class GameBridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, 
             Task { @MainActor in
                 session?.showChrome = mode != "play"
             }
+        case "openConfigured":
+            let which = body["which"] as? String
+            Task { @MainActor in
+                let raw: String
+                switch which {
+                case "privacy": raw = AppStoreConfig.privacyURL
+                case "terms": raw = AppStoreConfig.termsURL
+                case "support": raw = AppStoreConfig.supportURL
+                default: return
+                }
+                guard let url = AppStoreConfig.openableHTTPS(raw) else { return }
+                await UIApplication.shared.open(url)
+            }
         default:
             break
         }
